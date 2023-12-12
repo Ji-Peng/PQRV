@@ -1,0 +1,226 @@
+Test speed of SHA-3 related subroutines
+KeccakF1600_StatePermute instructions retired: 24441
+KeccakF1600_StatePermute cpu real time: 266
+KeccakF1600_StatePermute: 
+median: 15472 cycles/ticks
+average: 15910 cycles/ticks
+
+shake128_absorb_once instructions retired: 479
+shake128_absorb_once cpu real time: 7
+shake128_absorb_once: 
+median: 316 cycles/ticks
+average: 326 cycles/ticks
+
+shake128_squeezeblocks_1 instructions retired: 24871
+shake128_squeezeblocks_1 cpu real time: 269
+shake128_squeezeblocks_1: 
+median: 15754 cycles/ticks
+average: 16145 cycles/ticks
+
+shake128_squeezeblocks_2 instructions retired: 49717
+shake128_squeezeblocks_2 cpu real time: 533
+shake128_squeezeblocks_2: 
+median: 31487 cycles/ticks
+average: 32261 cycles/ticks
+
+shake128_squeezeblocks_3 instructions retired: 76094
+shake128_squeezeblocks_3 cpu real time: 800
+shake128_squeezeblocks_3: 
+median: 47224 cycles/ticks
+average: 48370 cycles/ticks
+
+shake128_squeezeblocks_4 instructions retired: 99409
+shake128_squeezeblocks_4 cpu real time: 1066
+shake128_squeezeblocks_4: 
+median: 62957 cycles/ticks
+average: 64478 cycles/ticks
+
+shake256_absorb_once instructions retired: 483
+shake256_absorb_once cpu real time: 8
+shake256_absorb_once: 
+median: 313 cycles/ticks
+average: 325 cycles/ticks
+
+shake256_squeezeblocks_1 instructions retired: 24795
+shake256_squeezeblocks_1 cpu real time: 267
+shake256_squeezeblocks_1: 
+median: 15702 cycles/ticks
+average: 16093 cycles/ticks
+
+shake256_squeezeblocks_2 instructions retired: 51096
+shake256_squeezeblocks_2 cpu real time: 533
+shake256_squeezeblocks_2: 
+median: 31387 cycles/ticks
+average: 32155 cycles/ticks
+
+shake256_squeezeblocks_3 instructions retired: 75866
+shake256_squeezeblocks_3 cpu real time: 798
+shake256_squeezeblocks_3: 
+median: 47073 cycles/ticks
+average: 48231 cycles/ticks
+
+shake256_squeezeblocks_4 instructions retired: 100636
+shake256_squeezeblocks_4 cpu real time: 1064
+shake256_squeezeblocks_4: 
+median: 62761 cycles/ticks
+average: 64276 cycles/ticks
+
+sha3_256 instructions retired: 25007
+sha3_256 cpu real time: 274
+sha3_256: 
+median: 15885 cycles/ticks
+average: 16277 cycles/ticks
+
+sha3_512 instructions retired: 26597
+sha3_512 cpu real time: 282
+sha3_512: 
+median: 15932 cycles/ticks
+average: 16344 cycles/ticks
+
+Test speed of Kyber512
+gen_a: 
+median: 207121 cycles/ticks
+average: 207726 cycles/ticks
+
+poly_getnoise_eta1: 
+median: 33961 cycles/ticks
+average: 34801 cycles/ticks
+
+poly_getnoise_eta2: 
+median: 18680 cycles/ticks
+average: 19159 cycles/ticks
+
+NTT: 
+median: 34100 cycles/ticks
+average: 34920 cycles/ticks
+
+INVNTT: 
+median: 54914 cycles/ticks
+average: 56203 cycles/ticks
+
+polyvec_basemul_acc_montgomery: 
+median: 42553 cycles/ticks
+average: 43561 cycles/ticks
+
+indcpa_keypair: 
+median: 628688 cycles/ticks
+average: 631314 cycles/ticks
+
+indcpa_enc: 
+median: 744355 cycles/ticks
+average: 745074 cycles/ticks
+
+indcpa_dec: 
+median: 193013 cycles/ticks
+average: 193273 cycles/ticks
+
+kyber_keypair: 
+median: 731402 cycles/ticks
+average: 732509 cycles/ticks
+
+kyber_encaps: 
+median: 993730 cycles/ticks
+average: 996001 cycles/ticks
+
+kyber_decaps: 
+median: 1072722 cycles/ticks
+average: 1073676 cycles/ticks
+
+Test speed of Kyber768
+gen_a: 
+median: 470196 cycles/ticks
+average: 472409 cycles/ticks
+
+poly_getnoise_eta1: 
+median: 18684 cycles/ticks
+average: 19160 cycles/ticks
+
+poly_getnoise_eta2: 
+median: 18686 cycles/ticks
+average: 19172 cycles/ticks
+
+NTT: 
+median: 34109 cycles/ticks
+average: 34915 cycles/ticks
+
+INVNTT: 
+median: 54912 cycles/ticks
+average: 56214 cycles/ticks
+
+polyvec_basemul_acc_montgomery: 
+median: 61850 cycles/ticks
+average: 63298 cycles/ticks
+
+indcpa_keypair: 
+median: 1063238 cycles/ticks
+average: 1065957 cycles/ticks
+
+indcpa_enc: 
+median: 1241764 cycles/ticks
+average: 1244388 cycles/ticks
+
+indcpa_dec: 
+median: 249830 cycles/ticks
+average: 251396 cycles/ticks
+
+kyber_keypair: 
+median: 1210040 cycles/ticks
+average: 1214172 cycles/ticks
+
+kyber_encaps: 
+median: 1588237 cycles/ticks
+average: 1591191 cycles/ticks
+
+kyber_decaps: 
+median: 1678061 cycles/ticks
+average: 1680322 cycles/ticks
+
+Test speed of Kyber1024
+gen_a: 
+median: 835071 cycles/ticks
+average: 837624 cycles/ticks
+
+poly_getnoise_eta1: 
+median: 18661 cycles/ticks
+average: 19131 cycles/ticks
+
+poly_getnoise_eta2: 
+median: 18677 cycles/ticks
+average: 19140 cycles/ticks
+
+NTT: 
+median: 34101 cycles/ticks
+average: 34911 cycles/ticks
+
+INVNTT: 
+median: 54911 cycles/ticks
+average: 56195 cycles/ticks
+
+polyvec_basemul_acc_montgomery: 
+median: 81058 cycles/ticks
+average: 82960 cycles/ticks
+
+indcpa_keypair: 
+median: 1691710 cycles/ticks
+average: 1695178 cycles/ticks
+
+indcpa_enc: 
+median: 1907075 cycles/ticks
+average: 1909429 cycles/ticks
+
+indcpa_dec: 
+median: 309444 cycles/ticks
+average: 308363 cycles/ticks
+
+kyber_keypair: 
+median: 1889233 cycles/ticks
+average: 1892735 cycles/ticks
+
+kyber_encaps: 
+median: 2352312 cycles/ticks
+average: 2355111 cycles/ticks
+
+kyber_decaps: 
+median: 2451367 cycles/ticks
+average: 2453218 cycles/ticks
+
