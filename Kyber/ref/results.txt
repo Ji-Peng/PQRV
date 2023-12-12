@@ -1,81 +1,68 @@
 Test speed of SHA-3 related subroutines
 KeccakF1600_StatePermute instructions retired: 9186
-KeccakF1600_StatePermute cpu real time: 101
 KeccakF1600_StatePermute: 
-median: 5834 cycles/ticks
-average: 6021 cycles/ticks
+median: 5847 cycles/ticks
+average: 6041 cycles/ticks
 
 shake128_absorb_once instructions retired: 366
-shake128_absorb_once cpu real time: 4
 shake128_absorb_once: 
-median: 234 cycles/ticks
-average: 245 cycles/ticks
+median: 233 cycles/ticks
+average: 278 cycles/ticks
 
 shake128_squeezeblocks_1 instructions retired: 9616
-shake128_squeezeblocks_1 cpu real time: 106
 shake128_squeezeblocks_1: 
-median: 6139 cycles/ticks
-average: 6301 cycles/ticks
+median: 6140 cycles/ticks
+average: 6331 cycles/ticks
 
 shake128_squeezeblocks_2 instructions retired: 19208
-shake128_squeezeblocks_2 cpu real time: 209
 shake128_squeezeblocks_2: 
-median: 12258 cycles/ticks
-average: 12573 cycles/ticks
+median: 12261 cycles/ticks
+average: 12602 cycles/ticks
 
 shake128_squeezeblocks_3 instructions retired: 28800
-shake128_squeezeblocks_3 cpu real time: 313
 shake128_squeezeblocks_3: 
-median: 18377 cycles/ticks
-average: 18826 cycles/ticks
+median: 18380 cycles/ticks
+average: 18873 cycles/ticks
 
 shake128_squeezeblocks_4 instructions retired: 38392
-shake128_squeezeblocks_4 cpu real time: 416
 shake128_squeezeblocks_4: 
-median: 24496 cycles/ticks
-average: 25097 cycles/ticks
+median: 24500 cycles/ticks
+average: 25149 cycles/ticks
 
 shake256_absorb_once instructions retired: 369
-shake256_absorb_once cpu real time: 5
 shake256_absorb_once: 
 median: 236 cycles/ticks
-average: 246 cycles/ticks
+average: 275 cycles/ticks
 
 shake256_squeezeblocks_1 instructions retired: 9540
-shake256_squeezeblocks_1 cpu real time: 104
 shake256_squeezeblocks_1: 
-median: 6087 cycles/ticks
-average: 6242 cycles/ticks
+median: 6088 cycles/ticks
+average: 6281 cycles/ticks
 
 shake256_squeezeblocks_2 instructions retired: 19056
-shake256_squeezeblocks_2 cpu real time: 206
 shake256_squeezeblocks_2: 
 median: 12155 cycles/ticks
-average: 12455 cycles/ticks
+average: 12494 cycles/ticks
 
-shake256_squeezeblocks_3 instructions retired: 28572
-shake256_squeezeblocks_3 cpu real time: 309
+shake256_squeezeblocks_3 instructions retired: 32768
 shake256_squeezeblocks_3: 
-median: 18223 cycles/ticks
-average: 18675 cycles/ticks
+median: 18224 cycles/ticks
+average: 18713 cycles/ticks
 
 shake256_squeezeblocks_4 instructions retired: 38088
-shake256_squeezeblocks_4 cpu real time: 413
 shake256_squeezeblocks_4: 
-median: 24291 cycles/ticks
-average: 24882 cycles/ticks
+median: 24292 cycles/ticks
+average: 24921 cycles/ticks
 
-sha3_256 instructions retired: 9641
-sha3_256 cpu real time: 105
+sha3_256 instructions retired: 13837
 sha3_256: 
-median: 6147 cycles/ticks
-average: 6307 cycles/ticks
+median: 6137 cycles/ticks
+average: 6331 cycles/ticks
 
 sha3_512 instructions retired: 9704
-sha3_512 cpu real time: 108
 sha3_512: 
-median: 6192 cycles/ticks
-average: 6348 cycles/ticks
+median: 6180 cycles/ticks
+average: 6377 cycles/ticks
 
 Test speed of Kyber512
 gen_a: 

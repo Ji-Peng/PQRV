@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
 RM = /bin/rm
 
 SOURCES = kex.c kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c
-SOURCESKECCAK = $(SOURCES) fips202.c symmetric-shake.c
+SOURCESKECCAK = $(SOURCES) fips202.c fips202.S symmetric-shake.c
 SOURCESNINETIES = $(SOURCES) sha256.c sha512.c aes256ctr.c symmetric-aes.c
 HEADERS = params.h kex.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 HEADERSKECCAK = $(HEADERS) fips202.h
@@ -41,8 +41,8 @@ objdump: test_kyber512
 mkdirout:
 	mkdir -p out
 
-test_speed_sha3: fips202.h speed_print.h cpucycles.h fips202.c speed_print.c cpucycles.c test_sha3.c
-	$(CC) $(CFLAGS) fips202.c speed_print.c cpucycles.c test_sha3.c -o out/test_speed_sha3
+test_speed_sha3: fips202.h speed_print.h cpucycles.h fips202.c fips202.S speed_print.c cpucycles.c test_sha3.c
+	$(CC) $(CFLAGS) fips202.c fips202.S speed_print.c cpucycles.c test_sha3.c -o out/test_speed_sha3
 
 test_kyber512: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
 	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber512
