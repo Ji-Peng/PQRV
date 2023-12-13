@@ -3,10 +3,10 @@
  * domain "TweetFips202" implementation from https://twitter.com/tweetfips202 by
  * Gilles Van Assche, Daniel J. Bernstein, and Peter Schwabe */
 
+#include "fips202.h"
+
 #include <stddef.h>
 #include <stdint.h>
-
-#include "fips202.h"
 
 #define NROUNDS 24
 #define ROL(a, offset) ((a << offset) ^ (a >> (64 - offset)))
@@ -48,93 +48,6 @@ static void store64(uint8_t x[8], uint64_t u)
         x[i] = u >> 8 * i;
 }
 
-#define ChiOp(S00, S01, S02, out) \
-    out = ~S01;                   \
-    out = out & S02;              \
-    out = S00 ^ out
-
-#define PiChiOp(S00, S01, S02, S03, S04, T00, T01, T02, T03) \
-    T00 = S00;                                               \
-    ChiOp(T00, S01, S02, S00);                               \
-    T01 = S03;                                               \
-    ChiOp(T01, S04, T00, S03);                               \
-    T02 = S04;                                               \
-    ChiOp(T02, T00, S01, S04);                               \
-    T00 = S01;                                               \
-    ChiOp(T00, S02, T01, S01);                               \
-    T03 = S02;                                               \
-    ChiOp(T03, T01, T02, S02)
-
-#define ARound(S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, \
-               S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, \
-               S24)                                                        \
-    C0 = S00 ^ S05 ^ S10 ^ S15 ^ S20;                                      \
-    C2 = S02 ^ S07 ^ S12 ^ S17 ^ S22;                                      \
-    D1 = C0 ^ ROL(C2, 1);                                                  \
-    C1 = S01 ^ S06 ^ S11 ^ S16 ^ S21;                                      \
-    S06 ^= D1;                                                             \
-    S16 ^= D1;                                                             \
-    S01 ^= D1;                                                             \
-    S11 ^= D1;                                                             \
-    S21 ^= D1;                                                             \
-    C4 = S04 ^ S09 ^ S14 ^ S19 ^ S24;                                      \
-    D3 = C2 ^ ROL(C4, 1);                                                  \
-    C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23;                                      \
-    S18 ^= D3;                                                             \
-    S03 ^= D3;                                                             \
-    S13 ^= D3;                                                             \
-    S23 ^= D3;                                                             \
-    S08 ^= D3;                                                             \
-    D4 = C3 ^ ROL(C0, 1);                                                  \
-    S24 ^= D4;                                                             \
-    S09 ^= D4;                                                             \
-    S19 ^= D4;                                                             \
-    S04 ^= D4;                                                             \
-    S14 ^= D4;                                                             \
-    D2 = C1 ^ ROL(C3, 1);                                                  \
-    S12 ^= D2;                                                             \
-    S22 ^= D2;                                                             \
-    S07 ^= D2;                                                             \
-    S17 ^= D2;                                                             \
-    S02 ^= D2;                                                             \
-    D0 = C4 ^ ROL(C1, 1);                                                  \
-    S00 ^= D0;                                                             \
-    S05 ^= D0;                                                             \
-    S10 ^= D0;                                                             \
-    S15 ^= D0;                                                             \
-    S20 ^= D0;                                                             \
-    S00 = S00;                                                             \
-    S01 = ROL(S01, 1);                                                     \
-    S02 = ROL(S02, 62);                                                    \
-    S03 = ROL(S03, 28);                                                    \
-    S04 = ROL(S04, 27);                                                    \
-    S05 = ROL(S05, 36);                                                    \
-    S06 = ROL(S06, 44);                                                    \
-    S07 = ROL(S07, 6);                                                     \
-    S08 = ROL(S08, 55);                                                    \
-    S09 = ROL(S09, 20);                                                    \
-    S10 = ROL(S10, 3);                                                     \
-    S11 = ROL(S11, 10);                                                    \
-    S12 = ROL(S12, 43);                                                    \
-    S13 = ROL(S13, 25);                                                    \
-    S14 = ROL(S14, 39);                                                    \
-    S15 = ROL(S15, 41);                                                    \
-    S16 = ROL(S16, 45);                                                    \
-    S17 = ROL(S17, 15);                                                    \
-    S18 = ROL(S18, 21);                                                    \
-    S19 = ROL(S19, 8);                                                     \
-    S20 = ROL(S20, 18);                                                    \
-    S21 = ROL(S21, 2);                                                     \
-    S22 = ROL(S22, 61);                                                    \
-    S23 = ROL(S23, 56);                                                    \
-    S24 = ROL(S24, 14);                                                    \
-    PiChiOp(S00, S06, S12, S18, S24, C0, C1, C2, C3);                      \
-    PiChiOp(S03, S09, S10, S16, S22, C0, C1, C2, C3);                      \
-    PiChiOp(S01, S07, S13, S19, S20, C0, C1, C2, C3);                      \
-    PiChiOp(S04, S05, S11, S17, S23, C0, C1, C2, C3);                      \
-    PiChiOp(S02, S08, S14, S15, S21, C0, C1, C2, C3);                      \
-    S00 ^= (uint64_t)KeccakF_RoundConstants[round++]
-
 /*************************************************
  * Name:        KeccakF1600_StatePermute
  *
@@ -163,6 +76,94 @@ static const uint64_t KeccakF_RoundConstants[NROUNDS] = {
     (uint64_t)0x000000000000800aULL, (uint64_t)0x800000008000000aULL,
     (uint64_t)0x8000000080008081ULL, (uint64_t)0x8000000000008080ULL,
     (uint64_t)0x0000000080000001ULL, (uint64_t)0x8000000080008008ULL};
+
+#    define ChiOp(S00, S01, S02, out) \
+        out = ~S01;                   \
+        out = out & S02;              \
+        out = S00 ^ out
+
+#    define PiChiOp(S00, S01, S02, S03, S04, T00, T01, T02, T03) \
+        T00 = S00;                                               \
+        ChiOp(T00, S01, S02, S00);                               \
+        T01 = S03;                                               \
+        ChiOp(T01, S04, T00, S03);                               \
+        T02 = S04;                                               \
+        ChiOp(T02, T00, S01, S04);                               \
+        T00 = S01;                                               \
+        ChiOp(T00, S02, T01, S01);                               \
+        T03 = S02;                                               \
+        ChiOp(T03, T01, T02, S02)
+
+#    define ARound(S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, \
+                   S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, \
+                   S24)                                                        \
+        C0 = S00 ^ S05 ^ S10 ^ S15 ^ S20;                                      \
+        C2 = S02 ^ S07 ^ S12 ^ S17 ^ S22;                                      \
+        D1 = C0 ^ ROL(C2, 1);                                                  \
+        C1 = S01 ^ S06 ^ S11 ^ S16 ^ S21;                                      \
+        S06 ^= D1;                                                             \
+        S16 ^= D1;                                                             \
+        S01 ^= D1;                                                             \
+        S11 ^= D1;                                                             \
+        S21 ^= D1;                                                             \
+        C4 = S04 ^ S09 ^ S14 ^ S19 ^ S24;                                      \
+        D3 = C2 ^ ROL(C4, 1);                                                  \
+        C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23;                                      \
+        S18 ^= D3;                                                             \
+        S03 ^= D3;                                                             \
+        S13 ^= D3;                                                             \
+        S23 ^= D3;                                                             \
+        S08 ^= D3;                                                             \
+        D4 = C3 ^ ROL(C0, 1);                                                  \
+        S24 ^= D4;                                                             \
+        S09 ^= D4;                                                             \
+        S19 ^= D4;                                                             \
+        S04 ^= D4;                                                             \
+        S14 ^= D4;                                                             \
+        D2 = C1 ^ ROL(C3, 1);                                                  \
+        S12 ^= D2;                                                             \
+        S22 ^= D2;                                                             \
+        S07 ^= D2;                                                             \
+        S17 ^= D2;                                                             \
+        S02 ^= D2;                                                             \
+        D0 = C4 ^ ROL(C1, 1);                                                  \
+        S00 ^= D0;                                                             \
+        S05 ^= D0;                                                             \
+        S10 ^= D0;                                                             \
+        S15 ^= D0;                                                             \
+        S20 ^= D0;                                                             \
+        S00 = S00;                                                             \
+        S01 = ROL(S01, 1);                                                     \
+        S02 = ROL(S02, 62);                                                    \
+        S03 = ROL(S03, 28);                                                    \
+        S04 = ROL(S04, 27);                                                    \
+        S05 = ROL(S05, 36);                                                    \
+        S06 = ROL(S06, 44);                                                    \
+        S07 = ROL(S07, 6);                                                     \
+        S08 = ROL(S08, 55);                                                    \
+        S09 = ROL(S09, 20);                                                    \
+        S10 = ROL(S10, 3);                                                     \
+        S11 = ROL(S11, 10);                                                    \
+        S12 = ROL(S12, 43);                                                    \
+        S13 = ROL(S13, 25);                                                    \
+        S14 = ROL(S14, 39);                                                    \
+        S15 = ROL(S15, 41);                                                    \
+        S16 = ROL(S16, 45);                                                    \
+        S17 = ROL(S17, 15);                                                    \
+        S18 = ROL(S18, 21);                                                    \
+        S19 = ROL(S19, 8);                                                     \
+        S20 = ROL(S20, 18);                                                    \
+        S21 = ROL(S21, 2);                                                     \
+        S22 = ROL(S22, 61);                                                    \
+        S23 = ROL(S23, 56);                                                    \
+        S24 = ROL(S24, 14);                                                    \
+        PiChiOp(S00, S06, S12, S18, S24, C0, C1, C2, C3);                      \
+        PiChiOp(S03, S09, S10, S16, S22, C0, C1, C2, C3);                      \
+        PiChiOp(S01, S07, S13, S19, S20, C0, C1, C2, C3);                      \
+        PiChiOp(S04, S05, S11, S17, S23, C0, C1, C2, C3);                      \
+        PiChiOp(S02, S08, S14, S15, S21, C0, C1, C2, C3);                      \
+        S00 ^= (uint64_t)KeccakF_RoundConstants[round++]
+
 void KeccakF1600_StatePermute(uint64_t state[25])
 {
     int round;
