@@ -8,6 +8,31 @@
 #define SHAKE256_RATE 136
 #define SHA3_256_RATE 136
 #define SHA3_512_RATE 72
+// Supported ROUNDS_MERGING: 24, 12, 6, 3. The 24 rounds merging is the fastest and also will generate the biggest executable file.
+#define ROUNDS_MERGING 24
+
+/*************************************************
+ * Name:        KeccakF1600_StatePermute
+ *
+ * Description: The Keccak F1600 Permutation
+ *
+ * Arguments:   - uint64_t *state: pointer to input/output Keccak state
+ **************************************************/
+#if ROUNDS_MERGING == 24
+extern void KeccakF1600_StatePermute_RV64_24r(uint64_t state[25]);
+#define KeccakF1600_StatePermute KeccakF1600_StatePermute_RV64_24r
+#elif ROUNDS_MERGING == 12
+extern void KeccakF1600_StatePermute_RV64_12r(uint64_t state[25]);
+#define KeccakF1600_StatePermute KeccakF1600_StatePermute_RV64_12r
+#elif ROUNDS_MERGING == 6
+extern void KeccakF1600_StatePermute_RV64_6r(uint64_t state[25]);
+#define KeccakF1600_StatePermute KeccakF1600_StatePermute_RV64_6r
+#elif ROUNDS_MERGING == 3
+extern void KeccakF1600_StatePermute_RV64_3r(uint64_t state[25]);
+#define KeccakF1600_StatePermute KeccakF1600_StatePermute_RV64_3r
+#else
+#error "Unsupported ROUNDS_MERGING"
+#endif
 
 #define FIPS202_NAMESPACE(s) pqcrystals_kyber_fips202_ref_##s
 
@@ -50,7 +75,5 @@ void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen);
 void sha3_256(uint8_t h[32], const uint8_t *in, size_t inlen);
 #define sha3_512 FIPS202_NAMESPACE(sha3_512)
 void sha3_512(uint8_t h[64], const uint8_t *in, size_t inlen);
-
-void KeccakF1600_StatePermute(uint64_t state[25]);
 
 #endif

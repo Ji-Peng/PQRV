@@ -1,5 +1,5 @@
 .data
-
+.align 2
 constants_keccak:
 .quad 0x0000000000000001
 .quad 0x0000000000008082
@@ -520,6 +520,75 @@ constants_keccak:
     IotaForRounds12 \S00, \T00, \T01
 .endm
 
+.macro IotaForRounds6 S00, T00, T01
+    ld   \T00, 17*8(sp)
+    ld   \T01, 0(\T00)
+    xor  \S00, \S00, \T01
+    addi \T00, \T00, 8
+    sd   \T00, 17*8(sp)
+.endm
+
+.macro Rounds6  S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
+                S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
+                S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+    ARoundNoIota  \S00, \S01, \S02, \S03, \S04, \S05, \S06, \S07, \S08, \S09, \
+            \S10, \S11, \S12, \S13, \S14, \S15, \S16, \S17, \S18, \S19, \
+            \S20, \S21, \S22, \S23, \S24, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S06, \S12, \S18, \S24, \S03, \S09, \S10, \S16, \S22, \
+            \S01, \S07, \S13, \S19, \S20, \S04, \S05, \S11, \S17, \S23, \
+            \S02, \S08, \S14, \S15, \S21, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S09, \S13, \S17, \S21, \S18, \S22, \S01, \S05, \S14, \
+            \S06, \S10, \S19, \S23, \S02, \S24, \S03, \S07, \S11, \S15, \
+            \S12, \S16, \S20, \S04, \S08, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S22, \S19, \S11, \S08, \S17, \S14, \S06, \S03, \S20, \
+            \S09, \S01, \S23, \S15, \S12, \S21, \S18, \S10, \S07, \S04, \
+            \S13, \S05, \S02, \S24, \S16, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S14, \S23, \S07, \S16, \S11, \S20, \S09, \S18, \S02, \
+            \S22, \S06, \S15, \S04, \S13, \S08, \S17, \S01, \S10, \S24, \
+            \S19, \S03, \S12, \S21, \S05, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S20, \S15, \S10, \S05, \S07, \S02, \S22, \S17, \S12, \
+            \S14, \S09, \S04, \S24, \S19, \S16, \S11, \S06, \S01, \S21, \
+            \S23, \S18, \S13, \S08, \S03, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds6 \S00, \T00, \T01
+.endm
+
+.macro IotaForRounds3 S00, T00, T01
+    ld   \T00, 17*8(sp)
+    ld   \T01, 0(\T00)
+    xor  \S00, \S00, \T01
+    addi \T00, \T00, 8
+    sd   \T00, 17*8(sp)
+.endm
+
+.macro Rounds3  S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
+                S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
+                S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+    ARoundNoIota  \S00, \S01, \S02, \S03, \S04, \S05, \S06, \S07, \S08, \S09, \
+            \S10, \S11, \S12, \S13, \S14, \S15, \S16, \S17, \S18, \S19, \
+            \S20, \S21, \S22, \S23, \S24, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds3 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S06, \S12, \S18, \S24, \S03, \S09, \S10, \S16, \S22, \
+            \S01, \S07, \S13, \S19, \S20, \S04, \S05, \S11, \S17, \S23, \
+            \S02, \S08, \S14, \S15, \S21, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds3 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S09, \S13, \S17, \S21, \S18, \S22, \S01, \S05, \S14, \
+            \S06, \S10, \S19, \S23, \S02, \S24, \S03, \S07, \S11, \S15, \
+            \S12, \S16, \S20, \S04, \S08, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds3 \S00, \T00, \T01
+.endm
+
 .globl KeccakF1600_StatePermute_RV64_24r
 .align 2
 KeccakF1600_StatePermute_RV64_24r:
@@ -574,6 +643,80 @@ rounds12_loop_start:
     j rounds12_loop_start
 
 rounds12_loop_end:
+
+    RestoreRegs
+    addi sp, sp, 8*18
+    ret
+
+.globl KeccakF1600_StatePermute_RV64_6r
+.align 2
+KeccakF1600_StatePermute_RV64_6r:
+    addi sp, sp, -8*18
+    SaveRegs
+    sd a0, 15*8(sp)
+
+    # 16*8(sp): loop control variable i
+    # 17*8(sp): table index
+    la a0, constants_keccak
+    sd a0, 17*8(sp)
+    li a0, 4
+rounds6_loop_start:
+    beqz a0, rounds6_loop_end
+    addi a0, a0, -1
+    sd a0, 16*8(sp)
+    ld a0, 15*8(sp)
+
+    LoadStates  a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10
+    Rounds6     a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
+    ld a0, 15*8(sp)
+    StoreStates a1, a3, a5, a2, a4, t3, t5, s0, t4, t6, \
+                s6, s8, s10, s7, s9, a6, t0, t2, a7, t1, \
+                s1, s3, s5, s2, s4
+    ld a0, 16*8(sp)
+    j rounds6_loop_start
+
+rounds6_loop_end:
+
+    RestoreRegs
+    addi sp, sp, 8*18
+    ret
+
+.globl KeccakF1600_StatePermute_RV64_3r
+.align 2
+KeccakF1600_StatePermute_RV64_3r:
+    addi sp, sp, -8*18
+    SaveRegs
+    sd a0, 15*8(sp)
+
+    # 16*8(sp): loop control variable i
+    # 17*8(sp): table index
+    la a0, constants_keccak
+    sd a0, 17*8(sp)
+    li a0, 8
+rounds3_loop_start:
+    beqz a0, rounds3_loop_end
+    addi a0, a0, -1
+    sd a0, 16*8(sp)
+    ld a0, 15*8(sp)
+
+    LoadStates  a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10
+    Rounds3     a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
+    ld a0, 15*8(sp)
+    StoreStates a1, s8, s5, t4, t1, s3, s0, a7, a4, s6, \
+                t2, a2, s9, s1, t5, s7, s4, t3, t0, a5, \
+                t6, a6, a3, s10, s2
+    ld a0, 16*8(sp)
+    j rounds3_loop_start
+
+rounds3_loop_end:
 
     RestoreRegs
     addi sp, sp, 8*18

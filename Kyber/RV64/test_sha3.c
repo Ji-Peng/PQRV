@@ -4,7 +4,7 @@
 #include "fips202.h"
 #include "speed_print.h"
 
-#if (1)
+#if (0)
 // for debug
 void print_hash(uint8_t out[32]);
 void print_stat(uint64_t s[25]);
