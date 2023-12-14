@@ -1,3 +1,31 @@
+.data
+
+constants_keccak:
+.quad 0x0000000000000001
+.quad 0x0000000000008082
+.quad 0x800000000000808a
+.quad 0x8000000080008000
+.quad 0x000000000000808b
+.quad 0x0000000080000001
+.quad 0x8000000080008081
+.quad 0x8000000000008009
+.quad 0x000000000000008a
+.quad 0x0000000000000088
+.quad 0x0000000080008009
+.quad 0x000000008000000a
+.quad 0x000000008000808b
+.quad 0x800000000000008b
+.quad 0x8000000000008089
+.quad 0x8000000000008003
+.quad 0x8000000000008002
+.quad 0x8000000000000080
+.quad 0x000000000000800a
+.quad 0x800000008000000a
+.quad 0x8000000080008081
+.quad 0x8000000000008080
+.quad 0x0000000080000001
+.quad 0x8000000080008008
+
 .text
 
 .equ R0Constant,  0x0000000000000001
@@ -254,10 +282,93 @@
     # Pi & Chi - end
 
     # Iota
-    # LUI  \T00, %hi(\Constant)
-    # ADDI \T00, \T00, %lo(\Constant)
     li  \T00, \Constant
     xor \S00, \S00, \T00
+.endm
+
+.macro ARoundNoIota  S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
+                     S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
+                     S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+    # theta - start
+    # C0 = S00 ^ S05 ^ S10 ^ S15 ^ S20
+    XOR5 \T00, \S00, \S05, \S10, \S15, \S20
+    # C2 = S02 ^ S07 ^ S12 ^ S17 ^ S22
+    XOR5 \T01, \S02, \S07, \S12, \S17, \S22 // T00=C0 T01=C2
+    # D1 = C0 ^ ROL(C2, 1)
+    ROL1 \T02, \T01, \T03
+    xor  \T02, \T02, \T00 // T00=C0 T01=C2 T02=D1
+
+    # C1 = S01 ^ S06 ^ S11 ^ S16 ^ S21
+    XOR5 \T03, \S01, \S06, \S11, \S16, \S21 // T00=C0 T01=C2 T02=D1 T03=C1
+    # S06 ^= D1; S16 ^= D1; S01 ^= D1; S11 ^= D1; S21 ^= D1
+    EachXOR \S01, \S06, \S11, \S16, \S21, \T02 // T00=C0 T01=C2 T03=C1
+
+    # C4 = S04 ^ S09 ^ S14 ^ S19 ^ S24
+    XOR5 \T02, \S04, \S09, \S14, \S19, \S24 // T00=C0 T01=C2 T03=C1 T02=C4
+    # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
+    slli \T04, \T02, 1
+    xor  \T01, \T01, \T04
+    srli \T04, \T02, 63
+    xor  \T01, \T01, \T04 // T00=C0 T01=D3 T03=C1 T02=C4
+
+    # C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23
+    XOR5 \T04, \S03, \S08, \S13, \S18, \S23 // T00=C0 T01=D3 T03=C1 T02=C4 T04=C3
+    # S18 ^= D3; S03 ^= D3; S13 ^= D3; S23 ^= D3; S08 ^= D3
+    EachXOR \S03, \S08, \S13, \S18, \S23, \T01 // T00=C0 T03=C1 T02=C4 T04=C3
+
+    # D4 = C3 ^ ROL(C0, 1); C0 can be overwritten
+    ROL1 \T00, \T00, \T01
+    xor  \T00, \T00, \T04 // T00=D4 T03=C1 T02=C4 T04=C3
+    # S24 ^= D4; S09 ^= D4; S19 ^= D4; S04 ^= D4; S14 ^= D4
+    EachXOR \S04, \S09, \S14, \S19, \S24, \T00 // T03=C1 T02=C4 T04=C3
+
+    # D2 = C1 ^ ROL(C3, 1)
+    ROL1 \T04, \T04, \T01
+    xor  \T04, \T04, \T03 // T03=C1 T02=C4 T04=D2
+    # S12 ^= D2; S22 ^= D2; S07 ^= D2; S17 ^= D2; S02 ^= D2
+    EachXOR \S02, \S07, \S12, \S17, \S22, \T04 // T03=C1 T02=C4
+
+    # D0 = C4 ^ ROL(C1, 1)
+    ROL1 \T03, \T03, \T01
+    xor  \T03, \T03, \T02 // T03=D0
+    # S00 ^= D0; S05 ^= D0; S10 ^= D0; S15 ^= D0; S20 ^= D0
+    EachXOR \S00, \S05, \S10, \S15, \S20, \T03
+    # theta - end
+
+    # Rho - start
+    ROLn \S01, \S01, \T00, 1
+    ROLn \S02, \S02, \T01, 62
+    ROLn \S03, \S03, \T02, 28
+    ROLn \S04, \S04, \T03, 27
+    ROLn \S05, \S05, \T00, 36
+    ROLn \S06, \S06, \T01, 44
+    ROLn \S07, \S07, \T02, 6
+    ROLn \S08, \S08, \T03, 55
+    ROLn \S09, \S09, \T00, 20
+    ROLn \S10, \S10, \T01, 3
+    ROLn \S11, \S11, \T02, 10
+    ROLn \S12, \S12, \T03, 43
+    ROLn \S13, \S13, \T00, 25
+    ROLn \S14, \S14, \T01, 39
+    ROLn \S15, \S15, \T02, 41
+    ROLn \S16, \S16, \T03, 45
+    ROLn \S17, \S17, \T00, 15
+    ROLn \S18, \S18, \T01, 21
+    ROLn \S19, \S19, \T02, 8
+    ROLn \S20, \S20, \T03, 18
+    ROLn \S21, \S21, \T00, 2
+    ROLn \S22, \S22, \T01, 61
+    ROLn \S23, \S23, \T02, 56
+    ROLn \S24, \S24, \T03, 14
+    # Rho - end
+
+    # Pi & Chi - start
+    PiChiOp \S00, \S06, \S12, \S18, \S24, \T00, \T01, \T02, \T03
+    PiChiOp \S03, \S09, \S10, \S16, \S22, \T00, \T01, \T02, \T03
+    PiChiOp \S01, \S07, \S13, \S19, \S20, \T00, \T01, \T02, \T03
+    PiChiOp \S04, \S05, \S11, \S17, \S23, \T00, \T01, \T02, \T03
+    PiChiOp \S02, \S08, \S14, \S15, \S21, \T00, \T01, \T02, \T03
+    # Pi & Chi - end
 .endm
 
 .macro Rounds24 S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
@@ -335,12 +446,83 @@
     ARound  \S00, \S10, \S20, \S05, \S15, \S16, \S01, \S11, \S21, \S06, \
             \S07, \S17, \S02, \S12, \S22, \S23, \S08, \S18, \S03, \S13, \
             \S14, \S24, \S09, \S19, \S04, \T00, \T01, \T02, \T03, \T04, R23Constant
-
 .endm
 
-.globl KeccakF1600_StatePermute_RV64
+.macro IotaForRounds12 S00, T00, T01
+    ld   \T00, 17*8(sp)
+    ld   \T01, 0(\T00)
+    xor  \S00, \S00, \T01
+    addi \T00, \T00, 8
+    sd   \T00, 17*8(sp)
+.endm
+
+.macro Rounds12 S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
+                S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
+                S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+    ARoundNoIota  \S00, \S01, \S02, \S03, \S04, \S05, \S06, \S07, \S08, \S09, \
+            \S10, \S11, \S12, \S13, \S14, \S15, \S16, \S17, \S18, \S19, \
+            \S20, \S21, \S22, \S23, \S24, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S06, \S12, \S18, \S24, \S03, \S09, \S10, \S16, \S22, \
+            \S01, \S07, \S13, \S19, \S20, \S04, \S05, \S11, \S17, \S23, \
+            \S02, \S08, \S14, \S15, \S21, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+
+    ARoundNoIota  \S00, \S09, \S13, \S17, \S21, \S18, \S22, \S01, \S05, \S14, \
+            \S06, \S10, \S19, \S23, \S02, \S24, \S03, \S07, \S11, \S15, \
+            \S12, \S16, \S20, \S04, \S08, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S22, \S19, \S11, \S08, \S17, \S14, \S06, \S03, \S20, \
+            \S09, \S01, \S23, \S15, \S12, \S21, \S18, \S10, \S07, \S04, \
+            \S13, \S05, \S02, \S24, \S16, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S14, \S23, \S07, \S16, \S11, \S20, \S09, \S18, \S02, \
+            \S22, \S06, \S15, \S04, \S13, \S08, \S17, \S01, \S10, \S24, \
+            \S19, \S03, \S12, \S21, \S05, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S20, \S15, \S10, \S05, \S07, \S02, \S22, \S17, \S12, \
+            \S14, \S09, \S04, \S24, \S19, \S16, \S11, \S06, \S01, \S21, \
+            \S23, \S18, \S13, \S08, \S03, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S02, \S04, \S01, \S03, \S10, \S12, \S14, \S11, \S13, \
+            \S20, \S22, \S24, \S21, \S23, \S05, \S07, \S09, \S06, \S08, \
+            \S15, \S17, \S19, \S16, \S18, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S12, \S24, \S06, \S18, \S01, \S13, \S20, \S07, \S19, \
+            \S02, \S14, \S21, \S08, \S15, \S03, \S10, \S22, \S09, \S16, \
+            \S04, \S11, \S23, \S05, \S17, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S13, \S21, \S09, \S17, \S06, \S19, \S02, \S10, \S23, \
+            \S12, \S20, \S08, \S16, \S04, \S18, \S01, \S14, \S22, \S05, \
+            \S24, \S07, \S15, \S03, \S11, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S19, \S08, \S22, \S11, \S09, \S23, \S12, \S01, \S15, \
+            \S13, \S02, \S16, \S05, \S24, \S17, \S06, \S20, \S14, \S03, \
+            \S21, \S10, \S04, \S18, \S07, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S23, \S16, \S14, \S07, \S22, \S15, \S13, \S06, \S04, \
+            \S19, \S12, \S05, \S03, \S21, \S11, \S09, \S02, \S20, \S18, \
+            \S08, \S01, \S24, \S17, \S10, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+    
+    ARoundNoIota  \S00, \S15, \S05, \S20, \S10, \S14, \S04, \S19, \S09, \S24, \
+            \S23, \S13, \S03, \S18, \S08, \S07, \S22, \S12, \S02, \S17, \
+            \S16, \S06, \S21, \S11, \S01, \T00, \T01, \T02, \T03, \T04
+    IotaForRounds12 \S00, \T00, \T01
+.endm
+
+.globl KeccakF1600_StatePermute_RV64_24r
 .align 2
-KeccakF1600_StatePermute_RV64:
+KeccakF1600_StatePermute_RV64_24r:
     addi sp, sp, -8*16
     SaveRegs
     LoadStates  a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
@@ -358,4 +540,41 @@ KeccakF1600_StatePermute_RV64:
                 s6, s7, s8, s9, s10
     RestoreRegs
     addi sp, sp, 8*16
+    ret
+
+.globl KeccakF1600_StatePermute_RV64_12r
+.align 2
+KeccakF1600_StatePermute_RV64_12r:
+    addi sp, sp, -8*18
+    SaveRegs
+    sd a0, 15*8(sp)
+
+    # 16*8(sp): loop control variable i
+    # 17*8(sp): table index
+    la a0, constants_keccak
+    sd a0, 17*8(sp)
+    li a0, 2
+rounds12_loop_start:
+    beqz a0, rounds12_loop_end
+    addi a0, a0, -1
+    sd a0, 16*8(sp)
+    ld a0, 15*8(sp)
+
+    LoadStates  a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10
+    Rounds12    a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+                t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+                s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
+    ld a0, 15*8(sp)
+    StoreStates a1, a5, a4, a3, a2, s6, s10, s9, s8, s7, \
+                s1, s5, s4, s3, s2, t3, s0, t6, t5, t4, \
+                a6, t2, t1, t0, a7
+    ld a0, 16*8(sp)
+    j rounds12_loop_start
+
+rounds12_loop_end:
+
+    RestoreRegs
+    addi sp, sp, 8*18
     ret

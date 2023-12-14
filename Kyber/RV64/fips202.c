@@ -56,10 +56,12 @@ static void store64(uint8_t x[8], uint64_t u)
  * Arguments:   - uint64_t *state: pointer to input/output Keccak state
  **************************************************/
 #if (1)
-extern void KeccakF1600_StatePermute_RV64(uint64_t state[25]);
+extern void KeccakF1600_StatePermute_RV64_24r(uint64_t state[25]);
+extern void KeccakF1600_StatePermute_RV64_12r(uint64_t state[25]);
 void KeccakF1600_StatePermute(uint64_t state[25])
 {
-    KeccakF1600_StatePermute_RV64(state);
+    // KeccakF1600_StatePermute_RV64_24r(state);
+    KeccakF1600_StatePermute_RV64_12r(state);
 }
 #else
 /* Keccak round constants */

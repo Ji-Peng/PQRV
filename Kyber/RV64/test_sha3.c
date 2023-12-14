@@ -4,7 +4,7 @@
 #include "fips202.h"
 #include "speed_print.h"
 
-#if (0)
+#if (1)
 // for debug
 void print_hash(uint8_t out[32]);
 void print_stat(uint64_t s[25]);
@@ -73,6 +73,7 @@ int main(void)
 
     // test_sha3_256();
     // test_keccakf1600();
+    // return 0;
 
     printf("Test speed of SHA-3 related subroutines\n");
 
