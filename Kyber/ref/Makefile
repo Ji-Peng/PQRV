@@ -2,7 +2,7 @@ CC = riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
 CFLAGS = -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-  -march=rv64imav -mabi=lp64
+  -march=rv64ima -mabi=lp64
 RM = /bin/rm
 
 SOURCES = kex.c kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c
@@ -35,8 +35,8 @@ speed: mkdirout \
 results:
 	scp root@$(TARGET_IP):/sharefs/results.txt .
 
-objdump: test_kyber512
-	$(OBJDUMP) -D out/test_kyber512 > out/test_kyber512.S
+objdump:
+	$(OBJDUMP) -D out/test_speed512 > out/test_speed512.S
 
 mkdirout:
 	mkdir -p out

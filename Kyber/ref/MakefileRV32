@@ -36,8 +36,8 @@ speed: mkdirout \
 results:
 	scp root@$(TARGET_IP):/sharefs/results_rv32.txt .
 
-objdump: test_kyber512_rv32
-	$(OBJDUMP) -D out/test_kyber512_rv32 > out/test_kyber512_rv32.S
+objdump:
+	$(OBJDUMP) -D out/test_speed512_rv32 > out/test_speed512_rv32.S
 
 mkdirout:
 	mkdir -p out
