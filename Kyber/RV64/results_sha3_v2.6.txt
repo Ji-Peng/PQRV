@@ -1,0 +1,267 @@
+24 rounds merging
+Test speed of SHA-3 related subroutines
+KeccakF1600_StatePermute instructions retired: 5894
+KeccakF1600_StatePermute: 
+median: 4213 cycles/ticks
+average: 4382 cycles/ticks
+
+shake128_absorb_once instructions retired: 366
+shake128_absorb_once: 
+median: 233 cycles/ticks
+average: 241 cycles/ticks
+
+shake128_squeezeblocks_1 instructions retired: 6324
+shake128_squeezeblocks_1: 
+median: 4505 cycles/ticks
+average: 4691 cycles/ticks
+
+shake128_squeezeblocks_2 instructions retired: 12624
+shake128_squeezeblocks_2: 
+median: 8990 cycles/ticks
+average: 9305 cycles/ticks
+
+shake128_squeezeblocks_3 instructions retired: 18924
+shake128_squeezeblocks_3: 
+median: 13475 cycles/ticks
+average: 13931 cycles/ticks
+
+shake128_squeezeblocks_4 instructions retired: 25224
+shake128_squeezeblocks_4: 
+median: 17960 cycles/ticks
+average: 18562 cycles/ticks
+
+shake256_absorb_once instructions retired: 369
+shake256_absorb_once: 
+median: 233 cycles/ticks
+average: 241 cycles/ticks
+
+shake256_squeezeblocks_1 instructions retired: 6248
+shake256_squeezeblocks_1: 
+median: 4453 cycles/ticks
+average: 4623 cycles/ticks
+
+shake256_squeezeblocks_2 instructions retired: 14003
+shake256_squeezeblocks_2: 
+median: 8887 cycles/ticks
+average: 9196 cycles/ticks
+
+shake256_squeezeblocks_3 instructions retired: 18696
+shake256_squeezeblocks_3: 
+median: 13321 cycles/ticks
+average: 13774 cycles/ticks
+
+shake256_squeezeblocks_4 instructions retired: 24920
+shake256_squeezeblocks_4: 
+median: 17752 cycles/ticks
+average: 18355 cycles/ticks
+
+sha3_256 instructions retired: 6349
+sha3_256: 
+median: 4511 cycles/ticks
+average: 4687 cycles/ticks
+
+sha3_512 instructions retired: 6412
+sha3_512: 
+median: 4560 cycles/ticks
+average: 4722 cycles/ticks
+
+12 rounds merging
+Test speed of SHA-3 related subroutines
+KeccakF1600_StatePermute instructions retired: 5965
+KeccakF1600_StatePermute: 
+median: 4282 cycles/ticks
+average: 4429 cycles/ticks
+
+shake128_absorb_once instructions retired: 366
+shake128_absorb_once: 
+median: 233 cycles/ticks
+average: 244 cycles/ticks
+
+shake128_squeezeblocks_1 instructions retired: 6395
+shake128_squeezeblocks_1: 
+median: 4574 cycles/ticks
+average: 4722 cycles/ticks
+
+shake128_squeezeblocks_2 instructions retired: 12766
+shake128_squeezeblocks_2: 
+median: 9128 cycles/ticks
+average: 9374 cycles/ticks
+
+shake128_squeezeblocks_3 instructions retired: 19137
+shake128_squeezeblocks_3: 
+median: 13682 cycles/ticks
+average: 14030 cycles/ticks
+
+shake128_squeezeblocks_4 instructions retired: 25508
+shake128_squeezeblocks_4: 
+median: 18236 cycles/ticks
+average: 18702 cycles/ticks
+
+shake256_absorb_once instructions retired: 369
+shake256_absorb_once: 
+median: 234 cycles/ticks
+average: 243 cycles/ticks
+
+shake256_squeezeblocks_1 instructions retired: 6319
+shake256_squeezeblocks_1: 
+median: 4522 cycles/ticks
+average: 4650 cycles/ticks
+
+shake256_squeezeblocks_2 instructions retired: 12614
+shake256_squeezeblocks_2: 
+median: 9025 cycles/ticks
+average: 9267 cycles/ticks
+
+shake256_squeezeblocks_3 instructions retired: 18909
+shake256_squeezeblocks_3: 
+median: 13526 cycles/ticks
+average: 13890 cycles/ticks
+
+shake256_squeezeblocks_4 instructions retired: 25204
+shake256_squeezeblocks_4: 
+median: 18028 cycles/ticks
+average: 18503 cycles/ticks
+
+sha3_256 instructions retired: 6420
+sha3_256: 
+median: 4579 cycles/ticks
+average: 4705 cycles/ticks
+
+sha3_512 instructions retired: 6483
+sha3_512: 
+median: 4630 cycles/ticks
+average: 4761 cycles/ticks
+
+6 rounds merging
+Test speed of SHA-3 related subroutines
+KeccakF1600_StatePermute instructions retired: 6079
+KeccakF1600_StatePermute: 
+median: 4392 cycles/ticks
+average: 4542 cycles/ticks
+
+shake128_absorb_once instructions retired: 366
+shake128_absorb_once: 
+median: 233 cycles/ticks
+average: 245 cycles/ticks
+
+shake128_squeezeblocks_1 instructions retired: 6509
+shake128_squeezeblocks_1: 
+median: 4684 cycles/ticks
+average: 4829 cycles/ticks
+
+shake128_squeezeblocks_2 instructions retired: 12994
+shake128_squeezeblocks_2: 
+median: 9348 cycles/ticks
+average: 9585 cycles/ticks
+
+shake128_squeezeblocks_3 instructions retired: 19479
+shake128_squeezeblocks_3: 
+median: 14012 cycles/ticks
+average: 14367 cycles/ticks
+
+shake128_squeezeblocks_4 instructions retired: 25964
+shake128_squeezeblocks_4: 
+median: 18676 cycles/ticks
+average: 19151 cycles/ticks
+
+shake256_absorb_once instructions retired: 369
+shake256_absorb_once: 
+median: 234 cycles/ticks
+average: 244 cycles/ticks
+
+shake256_squeezeblocks_1 instructions retired: 6433
+shake256_squeezeblocks_1: 
+median: 4632 cycles/ticks
+average: 4757 cycles/ticks
+
+shake256_squeezeblocks_2 instructions retired: 12842
+shake256_squeezeblocks_2: 
+median: 9244 cycles/ticks
+average: 9481 cycles/ticks
+
+shake256_squeezeblocks_3 instructions retired: 19251
+shake256_squeezeblocks_3: 
+median: 13856 cycles/ticks
+average: 14215 cycles/ticks
+
+shake256_squeezeblocks_4 instructions retired: 25660
+shake256_squeezeblocks_4: 
+median: 18468 cycles/ticks
+average: 18933 cycles/ticks
+
+sha3_256 instructions retired: 6534
+sha3_256: 
+median: 4689 cycles/ticks
+average: 4813 cycles/ticks
+
+sha3_512 instructions retired: 6597
+sha3_512: 
+median: 4738 cycles/ticks
+average: 4863 cycles/ticks
+
+3 rounds merging
+Test speed of SHA-3 related subroutines
+KeccakF1600_StatePermute instructions retired: 6306
+KeccakF1600_StatePermute: 
+median: 4611 cycles/ticks
+average: 4760 cycles/ticks
+
+shake128_absorb_once instructions retired: 1897
+shake128_absorb_once: 
+median: 233 cycles/ticks
+average: 241 cycles/ticks
+
+shake128_squeezeblocks_1 instructions retired: 6736
+shake128_squeezeblocks_1: 
+median: 4903 cycles/ticks
+average: 5049 cycles/ticks
+
+shake128_squeezeblocks_2 instructions retired: 14979
+shake128_squeezeblocks_2: 
+median: 9786 cycles/ticks
+average: 10025 cycles/ticks
+
+shake128_squeezeblocks_3 instructions retired: 20160
+shake128_squeezeblocks_3: 
+median: 14669 cycles/ticks
+average: 15023 cycles/ticks
+
+shake128_squeezeblocks_4 instructions retired: 26872
+shake128_squeezeblocks_4: 
+median: 19552 cycles/ticks
+average: 20027 cycles/ticks
+
+shake256_absorb_once instructions retired: 369
+shake256_absorb_once: 
+median: 234 cycles/ticks
+average: 245 cycles/ticks
+
+shake256_squeezeblocks_1 instructions retired: 6660
+shake256_squeezeblocks_1: 
+median: 4851 cycles/ticks
+average: 4974 cycles/ticks
+
+shake256_squeezeblocks_2 instructions retired: 13296
+shake256_squeezeblocks_2: 
+median: 9683 cycles/ticks
+average: 9919 cycles/ticks
+
+shake256_squeezeblocks_3 instructions retired: 21463
+shake256_squeezeblocks_3: 
+median: 14515 cycles/ticks
+average: 14872 cycles/ticks
+
+shake256_squeezeblocks_4 instructions retired: 26568
+shake256_squeezeblocks_4: 
+median: 19347 cycles/ticks
+average: 19812 cycles/ticks
+
+sha3_256 instructions retired: 6761
+sha3_256: 
+median: 4908 cycles/ticks
+average: 5034 cycles/ticks
+
+sha3_512 instructions retired: 8355
+sha3_512: 
+median: 4958 cycles/ticks
+average: 5084 cycles/ticks

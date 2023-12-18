@@ -8,7 +8,7 @@
 #define SHAKE256_RATE 136
 #define SHA3_256_RATE 136
 #define SHA3_512_RATE 72
-// Supported ROUNDS_MERGING: 24, 12, 6, 3. The 24 rounds merging is the fastest and also will generate the biggest executable file.
+// Supported ROUNDS_MERGING: 24, 12, 6, 3. The 24 rounds merging is the fastest and also will generate the largest executable file.
 #define ROUNDS_MERGING 24
 
 /*************************************************

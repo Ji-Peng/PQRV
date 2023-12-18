@@ -2,7 +2,7 @@ CC = riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
 CFLAGS = -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-  -march=rv64ima -mabi=lp64
+  -march=rv64imac -mabi=lp64 
 RM = /bin/rm
 
 SOURCES = kex.c kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c

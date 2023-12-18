@@ -3,7 +3,7 @@ OBJDUMP = riscv64-unknown-linux-gnu-objdump
 CFLAGS = -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
   -DRV32=1 \
-  -march=rv32imadc -mabi=ilp32d
+  -march=rv32imac -mabi=ilp32
 RM = /bin/rm
 
 SOURCES = kex.c kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c

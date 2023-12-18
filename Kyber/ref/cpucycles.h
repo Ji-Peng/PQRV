@@ -76,13 +76,24 @@ static inline uint64_t cputime(void)
 
 uint64_t cpucycles_overhead(void);
 
-#define perf_profile(FUNC, LABEL)                                      \
-    do {                                                               \
-        uint64_t start, end;                                           \
-        start = cpuinstret();                                          \
-        FUNC;                                                          \
-        end = cpuinstret();                                            \
-        printf("%s instructions retired: %lu\n", #LABEL, end - start); \
-    } while (0)
+#ifdef RV32
+#    define perf_profile(FUNC, LABEL)                                       \
+        do {                                                                \
+            uint64_t start, end;                                            \
+            start = cpuinstret();                                           \
+            FUNC;                                                           \
+            end = cpuinstret();                                             \
+            printf("%s instructions retired: %llu\n", #LABEL, end - start); \
+        } while (0)
+#else
+#    define perf_profile(FUNC, LABEL)                                      \
+        do {                                                               \
+            uint64_t start, end;                                           \
+            start = cpuinstret();                                          \
+            FUNC;                                                          \
+            end = cpuinstret();                                            \
+            printf("%s instructions retired: %lu\n", #LABEL, end - start); \
+        } while (0)
 
+#endif
 #endif
