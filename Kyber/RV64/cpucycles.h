@@ -82,7 +82,7 @@ uint64_t cpucycles_overhead(void);
         start = cpuinstret();                                          \
         FUNC;                                                          \
         end = cpuinstret();                                            \
-        printf("%s instructions retired: %lu\n", #LABEL, end - start); \
+        printf("%s instructions retired: %lu\n", LABEL, end - start); \
     } while (0)
 
 #endif
