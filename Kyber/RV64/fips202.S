@@ -28,31 +28,6 @@ constants_keccak:
 
 .text
 
-.equ R0Constant,  0x0000000000000001
-.equ R1Constant,  0x0000000000008082
-.equ R2Constant,  0x800000000000808a
-.equ R3Constant,  0x8000000080008000
-.equ R4Constant,  0x000000000000808b
-.equ R5Constant,  0x0000000080000001
-.equ R6Constant,  0x8000000080008081
-.equ R7Constant,  0x8000000000008009
-.equ R8Constant,  0x000000000000008a
-.equ R9Constant,  0x0000000000000088
-.equ R10Constant, 0x0000000080008009 
-.equ R11Constant, 0x000000008000000a 
-.equ R12Constant, 0x000000008000808b
-.equ R13Constant, 0x800000000000008b
-.equ R14Constant, 0x8000000000008089
-.equ R15Constant, 0x8000000000008003
-.equ R16Constant, 0x8000000000008002
-.equ R17Constant, 0x8000000000000080
-.equ R18Constant, 0x000000000000800a
-.equ R19Constant, 0x800000008000000a
-.equ R20Constant, 0x8000000080008081
-.equ R21Constant, 0x8000000000008080
-.equ R22Constant, 0x0000000080000001
-.equ R23Constant, 0x8000000080008008
-
 .macro SaveRegs
     sd s0,  0*8(sp)
     sd s1,  1*8(sp)

@@ -4,12 +4,13 @@
 #include "fips202.h"
 #include "speed_print.h"
 
-#if (0)
+#if (1)
 // for debug
 void print_hash(uint8_t out[32]);
 void print_stat(uint64_t s[25]);
-void test_sha3_256();
-void test_keccakf1600();
+void test_sha3_256(void);
+void test_keccakf1600(void);
+
 void print_hash(uint8_t out[32])
 {
     for (int i = 0; i < 32; i++) {
@@ -21,7 +22,7 @@ void print_hash(uint8_t out[32])
 void print_stat(uint64_t s[25])
 {
     for (int i = 0; i < 25; i++) {
-        printf("%lu ", s[i]);
+        printf("%llu ", s[i]);
     }
     printf("\n");
 }
@@ -35,7 +36,7 @@ void print_stat(uint64_t s[25])
  * sha3_256 twice: 144 122 237 223 209 118 6 246 47 97 126 39 59 24 191 232 217
  * 50 214 118 56 95 54 150 36 116 79 85 156 160 53 103
  */
-void test_sha3_256()
+void test_sha3_256(void)
 {
     const uint8_t in[] = "Hello world, I am testing sha3!";
     uint8_t out[32];
@@ -49,11 +50,11 @@ void test_sha3_256()
     print_hash(out);
 }
 
-void test_keccakf1600()
+void test_keccakf1600(void)
 {
     uint64_t s[25];
     for (int i = 0; i < 25; i++) {
-        s[i] = 1;
+        s[i] = i * 10 + 1;
     }
     KeccakF1600_StatePermute(s);
     print_stat(s);
@@ -66,7 +67,7 @@ uint64_t t[NTESTS];
 
 #define PERF_SPEED(FUNC, LABEL)               \
     do {                                      \
-        perf_profile(FUNC, #LABEL);            \
+        perf_profile(FUNC, #LABEL);           \
         for (i = 0; i < NTESTS; i++) {        \
             t[i] = cpucycles();               \
             FUNC;                             \
@@ -81,7 +82,7 @@ int main(void)
     const uint8_t buff[16] = {0};
     uint8_t buff_out[4 * SHAKE128_RATE];
 
-    // test_sha3_256();
+    test_sha3_256();
     // test_keccakf1600();
     // return 0;
 
