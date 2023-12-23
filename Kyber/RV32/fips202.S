@@ -138,16 +138,66 @@ constants_keccak:
     xor \outl, \Tl, \S00l
 .endm
 
-.macro ARound1 \
-        S00h, S00l, S01h, S01l, S02h, S02l, S04h, S04l, S07h, S07l, \
-        S08h, S08l, S15h, S15l, S16h, S16l, S18h, S18l, S19h, S19l, \
+.macro InitLoad \
+        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
+        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l
+    lw \S02l, 2*8(a0)
+    lw \S02h, 2*8+4(a0)
+    lw \S04l, 4*8(a0)
+    lw \S04h, 4*8+4(a0)
+    lw \S05l, 5*8(a0)
+    lw \S05h, 5*8+4(a0)
+    lw \S08l, 8*8(a0)
+    lw \S08h, 8*8+4(a0)
+    lw \S10l, 10*8(a0)
+    lw \S10h, 10*8+4(a0)
+    lw \S14l, 14*8(a0)
+    lw \S14h, 14*8+4(a0)
+    lw \S16l, 16*8(a0)
+    lw \S16h, 16*8+4(a0)
+    lw \S17l, 17*8(a0)
+    lw \S17h, 17*8+4(a0)
+    lw \S21l, 21*8(a0)
+    lw \S21h, 21*8+4(a0)
+    lw \S23l, 23*8(a0)
+    lw \S23h, 23*8+4(a0)
+.endm
+
+.macro FinalStore \
+        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
+        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l
+    sw \S02l, 2*8(a0)
+    sw \S02h, 2*8+4(a0)
+    sw \S04l, 4*8(a0)
+    sw \S04h, 4*8+4(a0)
+    sw \S05l, 5*8(a0)
+    sw \S05h, 5*8+4(a0)
+    sw \S08l, 8*8(a0)
+    sw \S08h, 8*8+4(a0)
+    sw \S10l, 10*8(a0)
+    sw \S10h, 10*8+4(a0)
+    sw \S14l, 14*8(a0)
+    sw \S14h, 14*8+4(a0)
+    sw \S16l, 16*8(a0)
+    sw \S16h, 16*8+4(a0)
+    sw \S17l, 17*8(a0)
+    sw \S17h, 17*8+4(a0)
+    sw \S21l, 21*8(a0)
+    sw \S21h, 21*8+4(a0)
+    sw \S23l, 23*8(a0)
+    sw \S23h, 23*8+4(a0)
+.endm
+
+.macro ARound \
+        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
+        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
         T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
     # C0=S00+S05+S10+S15+S20
-    lw \T03l, 5*8(a0)
-    lw \T03h, 5*8+4(a0)
-    XOR1Init \T00h, \T00l, \S00h, \S00l, \S15h, \S15l
-    lw \T02l, 10*8(a0)
-    lw \T02h, 10*8+4(a0)
+    lw \T03l, 0*8(a0)
+    lw \T03h, 0*8+4(a0)
+    XOR1Init \T00h, \T00l, \S05h, \S05l, \S10h, \S10l
+    lw \T02l, 15*8(a0)
+    lw \T02h, 15*8+4(a0)
     XOR1 \T00h, \T00l, \T03h, \T03l
     lw \T03l, 20*8(a0)
     lw \T03h, 20*8+4(a0)
@@ -160,12 +210,12 @@ constants_keccak:
     # C3=S03+S08+S13+S18+S23
     lw \T03l, 3*8(a0)
     lw \T03h, 3*8+4(a0)
-    XOR1Init \T01h, \T01l, \S08h, \S08l, \S18h, \S18l
+    XOR1Init \T01h, \T01l, \S08h, \S08l, \S23h, \S23l
     lw \T02l, 13*8(a0)
     lw \T02h, 13*8+4(a0)
     XOR1 \T01h, \T01l, \T03h, \T03l
-    lw \T03l, 23*8(a0)
-    lw \T03h, 23*8+4(a0)
+    lw \T03l, 18*8(a0)
+    lw \T03h, 18*8+4(a0)
     XOR1 \T01h, \T01l, \T02h, \T02l
     XOR1 \T01h, \T01l, \T03h, \T03l
     sw \T01l, 24*4(sp)
@@ -181,11 +231,11 @@ constants_keccak:
     # S04,S09,S14,S19,S24 += D4
     lw \T03l, 9*8(a0)
     lw \T03h, 9*8+4(a0)
-    XOR1Init \T01h, \T01l, \S04h, \S04l, \S19h, \S19l
+    XOR1Init \T01h, \T01l, \S04h, \S04l, \S14h, \S14l
     XOR1 \S04h, \S04l, \T00h, \T00l
-    XOR1 \S19h, \S19l, \T00h, \T00l
-    lw \T02l, 14*8(a0)
-    lw \T02h, 14*8+4(a0)
+    XOR1 \S14h, \S14l, \T00h, \T00l
+    lw \T02l, 19*8(a0)
+    lw \T02h, 19*8+4(a0)
     XOR1 \T01h, \T01l, \T03h, \T03l
     XOR1 \T03h, \T03l, \T00h, \T00l
     sw \T03l, 9*8(a0)
@@ -194,8 +244,8 @@ constants_keccak:
     lw \T03h, 24*8+4(a0)
     XOR1 \T01h, \T01l, \T02h, \T02l
     XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 14*8(a0)
-    sw \T02h, 14*8+4(a0)
+    sw \T02l, 19*8(a0)
+    sw \T02h, 19*8+4(a0)
     XOR1 \T01h, \T01l, \T03h, \T03l
     XOR1 \T03h, \T03l, \T00h, \T00l
     sw \T03l, 24*8(a0)
@@ -205,14 +255,14 @@ constants_keccak:
     # T01=C4
 
     # C1=S01+S06+S11+S16+S21
-    lw \T03l, 06*8(a0)
-    lw \T03h, 06*8+4(a0)
-    XOR1Init \T00h, \T00l, \S01h, \S01l, \S16h, \S16l
-    lw \T02l, 11*8(a0)
-    lw \T02h, 11*8+4(a0)
+    lw \T03l, 1*8(a0)
+    lw \T03h, 1*8+4(a0)
+    XOR1Init \T00h, \T00l, \S16h, \S16l, \S21h, \S21l
+    lw \T02l, 6*8(a0)
+    lw \T02h, 6*8+4(a0)
     XOR1 \T00h, \T00l, \T03h, \T03l
-    lw \T03l, 21*8(a0)
-    lw \T03h, 21*8+4(a0)
+    lw \T03l, 11*8(a0)
+    lw \T03h, 11*8+4(a0)
     XOR1 \T00h, \T00l, \T02h, \T02l
     XOR1 \T00h, \T00l, \T03h, \T03l
     sw \T00l, 20*4(sp)
@@ -225,18 +275,18 @@ constants_keccak:
     # T01=C4,T00=D0
 
     # S00,S05,S10,S15,S20 += D0
-    lw \T02l, 5*8(a0)
-    lw \T02h, 5*8+4(a0)
-    XOR1 \S00h, \S00l, \T00h, \T00l
+    lw \T02l, 0*8(a0)
+    lw \T02h, 0*8+4(a0)
+    XOR1 \S05h, \S05l, \T00h, \T00l
     XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 5*8(a0)
-    sw \T02h, 5*8+4(a0)
-    lw \T02l, 10*8(a0)
-    lw \T02h, 10*8+4(a0)
-    XOR1 \S15h, \S15l, \T00h, \T00l
+    sw \T02l, 0*8(a0)
+    sw \T02h, 0*8+4(a0)
+    lw \T02l, 15*8(a0)
+    lw \T02h, 15*8+4(a0)
+    XOR1 \S10h, \S10l, \T00h, \T00l
     XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 10*8(a0)
-    sw \T02h, 10*8+4(a0)
+    sw \T02l, 15*8(a0)
+    sw \T02h, 15*8+4(a0)
     lw \T02l, 20*8(a0)
     lw \T02h, 20*8+4(a0)
     XOR1 \T02h, \T02l, \T00h, \T00l
@@ -255,19 +305,19 @@ constants_keccak:
     # T01=C4,T02=D2
     # C2=S02+S07+S12+S17+S22
     # S02,S07,S12,S17,S22 += D2
+    lw \T03l, 7*8(a0)
+    lw \T03h, 7*8+4(a0)
+    XOR1Init \T00h, \T00l, \S02h, \S02l, \S17h, \S17l
+    XOR1 \T00h, \T00l, \T03h, \T03l
+    XOR1 \T03h, \T03l, \T02h, \T02l
+    sw \T03l, 7*8(a0)
+    sw \T03h, 7*8+4(a0)
     lw \T03l, 12*8(a0)
     lw \T03h, 12*8+4(a0)
-    XOR1Init \T00h, \T00l, \S02h, \S02l, \S07h, \S07l
     XOR1 \T00h, \T00l, \T03h, \T03l
     XOR1 \T03h, \T03l, \T02h, \T02l
     sw \T03l, 12*8(a0)
     sw \T03h, 12*8+4(a0)
-    lw \T03l, 17*8(a0)
-    lw \T03h, 17*8+4(a0)
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    XOR1 \T03h, \T03l, \T02h, \T02l
-    sw \T03l, 17*8(a0)
-    sw \T03h, 17*8+4(a0)
     lw \T03l, 22*8(a0)
     lw \T03h, 22*8+4(a0)
     XOR1 \T00h, \T00l, \T03h, \T03l
@@ -277,7 +327,7 @@ constants_keccak:
     sw \T00l, 22*4(sp)
     sw \T00h, 23*4(sp)
     XOR1 \S02h, \S02l, \T02h, \T02l
-    XOR1 \S07h, \S07l, \T02h, \T02l
+    XOR1 \S17h, \S17l, \T02h, \T02l
     # T01=C4,T00=C2
 
     # D3=C2^ROL(C4,1)
@@ -294,15 +344,15 @@ constants_keccak:
     sw \T03h, 3*8+4(a0)
     lw \T03l, 13*8(a0)
     lw \T03h, 13*8+4(a0)
-    XOR1 \S18h, \S18l, \T01h, \T01l
+    XOR1 \S23h, \S23l, \T01h, \T01l
     XOR1 \T03h, \T03l, \T01h, \T01l
     sw \T03l, 13*8(a0)
     sw \T03h, 13*8+4(a0)
-    lw \T03l, 23*8(a0)
-    lw \T03h, 23*8+4(a0)
+    lw \T03l, 18*8(a0)
+    lw \T03h, 18*8+4(a0)
     XOR1 \T03h, \T03l, \T01h, \T01l
-    sw \T03l, 23*8(a0)
-    sw \T03h, 23*8+4(a0)
+    sw \T03l, 18*8(a0)
+    sw \T03h, 18*8+4(a0)
 
     # T00=C2
     # D1=C0^ROL(C2,1)
@@ -313,132 +363,130 @@ constants_keccak:
     # T00=D1
 
     # S01,S06,S11,S16,S21 += D1
-    lw \T02l, 06*8(a0)
-    lw \T02h, 06*8+4(a0)
-    XOR1 \S01h, \S01l, \T00h, \T00l
+    lw \T02l, 1*8(a0)
+    lw \T02h, 1*8+4(a0)
+    XOR1 \S16h, \S16l, \T00h, \T00l
     XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 06*8(a0)
-    sw \T02h, 06*8+4(a0)
+    sw \T02l, 1*8(a0)
+    sw \T02h, 1*8+4(a0)
+    lw \T02l, 6*8(a0)
+    lw \T02h, 6*8+4(a0)
+    XOR1 \S21h, \S21l, \T00h, \T00l
+    XOR1 \T02h, \T02l, \T00h, \T00l
+    sw \T02l, 6*8(a0)
+    sw \T02h, 6*8+4(a0)
     lw \T02l, 11*8(a0)
     lw \T02h, 11*8+4(a0)
-    XOR1 \S16h, \S16l, \T00h, \T00l
     XOR1 \T02h, \T02l, \T00h, \T00l
     sw \T02l, 11*8(a0)
     sw \T02h, 11*8+4(a0)
-    lw \T02l, 21*8(a0)
-    lw \T02h, 21*8+4(a0)
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 21*8(a0)
-    sw \T02h, 21*8+4(a0)
 
     # TODO: A00可优化
     # TODO: 流水线有优化空间的，可减少指令间的依赖
-    mv \T00h, \S00h
-    mv \T00l, \S00l
-    # ROLn \T01h, \T01l, \S06h, \S06l, 44
+    lw \T00l, 0*8(a0)
+    lw \T00h, 0*8+4(a0)
+    # ROLn \T01h, \T01l, \S06h, \S06l, \T04, 44
     lw \T02l, 6*8(a0)
     lw \T02h, 6*8+4(a0)
     ROLn \T01h, \T01l, \T02h, \T02l, \T04, 44
-    # ROLn \S00h, \S00l, \S02h, \S02l, 62
-    ROLn \S00h, \S00l, \S02h, \S02l, \T04, 62
-    # ROLn \S02h, \S02l, \S12h, \S12l, 43
-    lw \T02l, 12*8(a0)
-    lw \T02h, 12*8+4(a0)
-    ROLn \S02h, \S02l, \T02h, \T02l, \T04, 43
-    # ROLn \S12h, \S12l, \S13h, \S13l, 25
+    # ROLn \S00h, \S00l, \S21h, \S21l, \T04, 2
+    ROLn \T02h, \T02l, \S21h, \S21l, \T04, 2
+    sw \T02l, 0*8(a0)
+    sw \T02h, 0*8+4(a0)
+    # ROLn \S21h, \S21l, \S08h, \S08l, \T04, 55
+    ROLn \S21h, \S21l, \S08h, \S08l, \T04, 55
+    # ROLn \S08h, \S08l, \S16h, \S16l, \T04, 45
+    ROLn \S08h, \S08l, \S16h, \S16l, \T04, 45
+    # ROLn \S16h, \S16l, \S05h, \S05l, \T04, 36
+    ROLn \S16h, \S16l, \S05h, \S05l, \T04, 36
+    # ROLn \S05h, \S05l, \S03h, \S03l, \T04, 28
+    lw \T02l, 3*8(a0)
+    lw \T02h, 3*8+4(a0)
+    ROLn \S05h, \S05l, \T02h, \T02l, \T04, 28
+    # ROLn \S03h, \S03l, \S18h, \S18l, \T04, 21
+    lw \T03l, 18*8(a0)
+    lw \T03h, 18*8+4(a0)
+    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 21
+    sw \T02l, 3*8(a0)
+    sw \T02h, 3*8+4(a0)
+    # ROLn \S18h, \S18l, \S13h, \S13l, \T04, 25
     lw \T03l, 13*8(a0)
     lw \T03h, 13*8+4(a0)
     ROLn \T02h, \T02l, \T03h, \T03l, \T04, 25
-    sw \T02l, 12*8(a0)
-    sw \T02h, 12*8+4(a0)
-    # ROLn \S13h, \S13l, \S19h, \S19l, 8
-    ROLn \T02h, \T02l, \S19h, \S19l, \T04, 8
+    sw \T02l, 18*8(a0)
+    sw \T02h, 18*8+4(a0)
+    # ROLn \S13h, \S13l, \S10h, \S10l, \T04, 3
+    ROLn \T02h, \T02l, \S10h, \S10l, \T04, 3
     sw \T02l, 13*8(a0)
     sw \T02h, 13*8+4(a0)
-    # ROLn \S19h, \S19l, \S23h, \S23l, 56
-    lw \T02l, 23*8(a0)
-    lw \T02h, 23*8+4(a0)
-    ROLn \S19h, \S19l, \T02h, \T02l, \T04, 56
-    # ROLn \S23h, \S23l, \S15h, \S15l, 41
-    ROLn \T02h, \T02l, \S15h, \S15l, \T04, 41
-    sw \T02l, 23*8(a0)
-    sw \T02h, 23*8+4(a0)
-    # ROLn \S15h, \S15l, \S01h, \S01l, 1
-    ROLn \S15h, \S15l, \S01h, \S01l, \T04, 1
-    # ROLn \S01h, \S01l, \S08h, \S08l, 55
-    ROLn \S01h, \S01l, \S08h, \S08l, \T04, 55
-    # ROLn \S08h, \S08l, \S16h, \S16l, 45
-    ROLn \S08h, \S08l, \S16h, \S16l, \T04, 45
-    # ROLn \S16h, \S16l, \S07h, \S07l, 6
-    ROLn \S16h, \S16l, \S07h, \S07l, \T04, 6
-    # ROLn \S07h, \S07l, \S10h, \S10l, 3
-    lw \T02l, 10*8(a0)
-    lw \T02h, 10*8+4(a0)
-    ROLn \S07h, \S07l, \T02h, \T02l, \T04, 3
-    # ROLn \S10h, \S10l, \S03h, \S03l, 28
-    lw \T03l, 3*8(a0)
-    lw \T03h, 3*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 28
-    sw \T02l, 10*8(a0)
-    sw \T02h, 10*8+4(a0)
-    # ROLn \S03h, \S03l, \S18h, \S18l, 21
-    ROLn \T02h, \T02l, \S18h, \S18l, \T04, 21
-    sw \T02l, 3*8(a0)
-    sw \T02h, 3*8+4(a0)
-    # ROLn \S18h, \S18l, \S17h, \S17l, 15
-    lw \T02l, 17*8(a0)
-    lw \T02h, 17*8+4(a0)
-    ROLn \S18h, \S18l, \T02h, \T02l, \T04, 15
-    # ROLn \S17h, \S17l, \S11h, \S11l, 10
-    lw \T03l, 11*8(a0)
-    lw \T03h, 11*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 10
-    sw \T02l, 17*8(a0)
-    sw \T02h, 17*8+4(a0)
-    # ROLn \S11h, \S11l, \S09h, \S09l, 20
+    # ROLn \S10h, \S10l, \S01h, \S01l, \T04, 1
+    lw \T02l, 1*8(a0)
+    lw \T02h, 1*8+4(a0)
+    ROLn \S10h, \S10l, \T02h, \T02l, \T04, 1
+    # ROLn \S01h, \S01l, \S02h, \S02l, \T04, 62
+    ROLn \T02h, \T02l, \S02h, \S02l, \T04, 62
+    sw \T02l, 1*8(a0)
+    sw \T02h, 1*8+4(a0)
+    # ROLn \S02h, \S02l, \S12h, \S12l, \T04, 43
+    lw \T02l, 12*8(a0)
+    lw \T02h, 12*8+4(a0)
+    ROLn \S02h, \S02l, \T02h, \T02l, \T04, 43
+    # ROLn \S12h, \S12l, \S09h, \S09l, \T04, 20
     lw \T03l, 9*8(a0)
     lw \T03h, 9*8+4(a0)
     ROLn \T02h, \T02l, \T03h, \T03l, \T04, 20
-    sw \T02l, 11*8(a0)
-    sw \T02h, 11*8+4(a0)
-    # ROLn \S09h, \S09l, \S22h, \S22l, 61
+    sw \T02l, 12*8(a0)
+    sw \T02h, 12*8+4(a0)
+    # ROLn \S09h, \S09l, \S22h, \S22l, \T04, 61
     lw \T03l, 22*8(a0)
     lw \T03h, 22*8+4(a0)
     ROLn \T02h, \T02l, \T03h, \T03l, \T04, 61
     sw \T02l, 9*8(a0)
     sw \T02h, 9*8+4(a0)
-    # ROLn \S22h, \S22l, \S14h, \S14l, 39
-    lw \T03l, 14*8(a0)
-    lw \T03h, 14*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 39
+    # ROLn \S22h, \S22l, \S14h, \S14l, \T04, 39
+    ROLn \T02h, \T02l, \S14h, \S14l, \T04, 39
     sw \T02l, 22*8(a0)
     sw \T02h, 22*8+4(a0)
-    # ROLn \S14h, \S14l, \S20h, \S20l, 18
-    lw \T03l, 20*8(a0)
-    lw \T03h, 20*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 18
-    sw \T02l, 14*8(a0)
-    sw \T02h, 14*8+4(a0)
-    # ROLn \S20h, \S20l, \S04h, \S04l, 27
-    ROLn \T02h, \T02l, \S04h, \S04l, \T04, 27
+    # ROLn \S14h, \S14l, \S20h, \S20l, \T04, 18
+    lw \T02l, 20*8(a0)
+    lw \T02h, 20*8+4(a0)
+    ROLn \S14h, \S14l, \T02h, \T02l, \T04, 18
+    # ROLn \S20h, \S20l, \S23h, \S23l, \T04, 56
+    ROLn \T02h, \T02l, \S23h, \S23l, \T04, 56
     sw \T02l, 20*8(a0)
     sw \T02h, 20*8+4(a0)
-    # ROLn \S04h, \S04l, \S24h, \S24l, 14
+    # ROLn \S23h, \S23l, \S15h, \S15l, \T04, 41
+    lw \T02l, 15*8(a0)
+    lw \T02h, 15*8+4(a0)
+    ROLn \S23h, \S23l, \T02h, \T02l, \T04, 41
+    # ROLn \S15h, \S15l, \S04h, \S04l, \T04, 27
+    ROLn \T02h, \T02l, \S04h, \S04l, \T04, 27
+    sw \T02l, 15*8(a0)
+    sw \T02h, 15*8+4(a0)
+    # ROLn \S04h, \S04l, \S24h, \S24l, \T04, 14
     lw \T02l, 24*8(a0)
     lw \T02h, 24*8+4(a0)
     ROLn \S04h, \S04l, \T02h, \T02l, \T04, 14
-    # ROLn \S24h, \S24l, \S21h, \S21l, 2
-    lw \T03l, 21*8(a0)
-    lw \T03h, 21*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 2
+    # ROLn \S24h, \S24l, \S17h, \S17l, \T04, 15
+    ROLn \T02h, \T02l, \S17h, \S17l, \T04, 15
     sw \T02l, 24*8(a0)
     sw \T02h, 24*8+4(a0)
-    # ROLn \S21h, \S21l, \S05h, \S05l, 36
-    lw \T03l, 5*8(a0)
-    lw \T03h, 5*8+4(a0)
-    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 36
-    sw \T02l, 21*8(a0)
-    sw \T02h, 21*8+4(a0)
+    # ROLn \S17h, \S17l, \S11h, \S11l, \T04, 10
+    lw \T02l, 11*8(a0)
+    lw \T02h, 11*8+4(a0)
+    ROLn \S17h, \S17l, \T02h, \T02l, \T04, 10
+    # ROLn \S11h, \S11l, \S07h, \S07l, \T04, 6
+    lw \T03l, 7*8(a0)
+    lw \T03h, 7*8+4(a0)
+    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 6
+    sw \T02l, 11*8(a0)
+    sw \T02h, 11*8+4(a0)
+    # ROLn \S19h, \S19l, \S19h, \S19l, \T04, 8
+    lw \T03l, 19*8(a0)
+    lw \T03h, 19*8+4(a0)
+    ROLn \T02h, \T02l, \T03h, \T03l, \T04, 8
+    sw \T02l, 19*8(a0)
+    sw \T02h, 19*8+4(a0)
 
     # store T00,T01
     sw \T00l, 18*4(sp)
@@ -448,91 +496,81 @@ constants_keccak:
 
     # TODO: 这里也能调优流水
     # chi - start
-    # T00,T01,S07,S08,T02=S'05-S'09
-    lw \T00l, 10*8(a0)
-    lw \T00h, 10*8+4(a0)
-    lw \T01l, 11*8(a0)
-    lw \T01h, 11*8+4(a0)
-    lw \T02l, 9*8(a0)
-    lw \T02h, 9*8+4(a0)
-    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S07h, \S07l, \T03h, \T03l
-    sw \T03l, 5*8(a0)
-    sw \T03h, 5*8+4(a0)
-    ChiOp \T03h, \T03l, \T01h, \T01l, \S07h, \S07l, \S08h, \S08l, \T03h, \T03l
-    sw \T03l, 6*8(a0)
-    sw \T03h, 6*8+4(a0)
-    ChiOp \S07h, \S07l, \S07h, \S07l, \S08h, \S08l, \T02h, \T02l, \T03h, \T03l
-    ChiOp \S08h, \S08l, \S08h, \S08l, \T02h, \T02l, \T00h, \T00l, \T03h, \T03l
-    ChiOp \T02h, \T02l, \T02h, \T02l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
-    sw \T02l, 9*8(a0)
-    sw \T02h, 9*8+4(a0)
-
-    # S15,S16,T00,T01,T02=S'10-S'14
+    # T00,T01,S08,T02,S05=S'06,S'07,S'08,S'09,S'05
     lw \T00l, 12*8(a0)
     lw \T00h, 12*8+4(a0)
     lw \T01l, 13*8(a0)
     lw \T01h, 13*8+4(a0)
-    lw \T02l, 14*8(a0)
-    lw \T02h, 14*8+4(a0)
-    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l
+    lw \T02l, 9*8(a0)
+    lw \T02h, 9*8+4(a0)
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S08h, \S08l, \T03h, \T03l
+    sw \T03l, 6*8(a0)
+    sw \T03h, 6*8+4(a0)
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S08h, \S08l, \T02h, \T02l, \T03h, \T03l
+    sw \T03l, 7*8(a0)
+    sw \T03h, 7*8+4(a0)
+    ChiOp \S08h, \S08l, \S08h, \S08l, \T02h, \T02l, \S05h, \S05l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
+    sw \T02l, 9*8(a0)
+    sw \T02h, 9*8+4(a0)
+    ChiOp \S05h, \S05l, \S05h, \S05l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+
+    # T00,T01,S14,S10,T02=S'12,S'13,S'14,S'10,S'11
+    lw \T00l, 18*8(a0)
+    lw \T00h, 18*8+4(a0)
+    lw \T01l, 19*8(a0)
+    lw \T01h, 19*8+4(a0)
+    lw \T02l, 11*8(a0)
+    lw \T02h, 11*8+4(a0)
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
     sw \T03l, 12*8(a0)
     sw \T03h, 12*8+4(a0)
-    ChiOp \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S15h, \S15l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S14h, \S14l, \S10h, \S10l, \T03h, \T03l
     sw \T03l, 13*8(a0)
     sw \T03h, 13*8+4(a0)
-    ChiOp \T03h, \T03l, \T02h, \T02l, \S15h, \S15l, \S16h, \S16l, \T03h, \T03l
-    sw \T03l, 14*8(a0)
-    sw \T03h, 14*8+4(a0)
-    ChiOp \S15h, \S15l, \S15h, \S15l, \S16h, \S16l, \T00h, \T00l, \T03h, \T03l
-    ChiOp \S16h, \S16l, \S16h, \S16l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    ChiOp \S14h, \S14l, \S14h, \S14l, \S10h, \S10l, \T02h, \T02l, \T03h, \T03l
+    ChiOp \S10h, \S10l, \S10h, \S10l, \T02h, \T02l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    sw \T02l, 11*8(a0)
+    sw \T02h, 11*8+4(a0)
 
-    sw \S15l, 10*8(a0)
-    sw \S15h, 10*8+4(a0)
-    sw \S16l, 11*8(a0)
-    sw \S16h, 11*8+4(a0)
-
-    # T00,T01,T02,S18,S19=S'15-S'19
-    lw \T00l, 20*8(a0)
-    lw \T00h, 20*8+4(a0)
-    lw \T01l, 21*8(a0)
-    lw \T01h, 21*8+4(a0)
-    lw \T02l, 17*8(a0)
-    lw \T02h, 17*8+4(a0)
+    # T00,T01,T02,S16,S17=S'18,S'19,S'15,S'16,S'17
+    lw \T00l, 24*8(a0)
+    lw \T00h, 24*8+4(a0)
+    lw \T01l, 20*8(a0)
+    lw \T01h, 20*8+4(a0)
+    lw \T02l, 15*8(a0)
+    lw \T02h, 15*8+4(a0)
     ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l
-    mv \S15l, \T03l
-    mv \S15h, \T03h
-    ChiOp \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S18h, \S18l, \T03h, \T03l
-    mv \S16l, \T03l
-    mv \S16h, \T03h
-    ChiOp \T03h, \T03l, \T02h, \T02l, \S18h, \S18l, \S19h, \S19l, \T03h, \T03l
-    sw \T03l, 17*8(a0)
-    sw \T03h, 17*8+4(a0)
-    ChiOp \S18h, \S18l, \S18h, \S18l, \S19h, \S19l, \T00h, \T00l, \T03h, \T03l
-    ChiOp \S19h, \S19l, \S19h, \S19l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    sw \T03l, 18*8(a0)
+    sw \T03h, 18*8+4(a0)
+    ChiOp \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S16h, \S16l, \T03h, \T03l
+    sw \T03l, 19*8(a0)
+    sw \T03h, 19*8+4(a0)
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S16h, \S16l, \S17h, \S17l, \T03h, \T03l
+    sw \T02l, 15*8(a0)
+    sw \T02h, 15*8+4(a0)
+    ChiOp \S16h, \S16l, \S16h, \S16l, \S17h, \S17l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \S17h, \S17l, \S17h, \S17l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
 
-    # S00,S01,T00,T01,T02=S'20-S'24
-    lw \T00l, 22*8(a0)
-    lw \T00h, 22*8+4(a0)
-    lw \T01l, 23*8(a0)
-    lw \T01h, 23*8+4(a0)
-    lw \T02l, 24*8(a0)
-    lw \T02h, 24*8+4(a0)
-    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l
-    sw \T03l, 22*8(a0)
-    sw \T03h, 22*8+4(a0)
-    ChiOp \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S00h, \S00l, \T03h, \T03l
-    sw \T03l, 23*8(a0)
-    sw \T03h, 23*8+4(a0)
-    ChiOp \T03h, \T03l, \T02h, \T02l, \S00h, \S00l, \S01h, \S01l, \T03h, \T03l
+    # T00,T01,S21,T02,S23=S'24,S'20,S'21,S'22,S'23
+    lw \T00l, 0*8(a0)
+    lw \T00h, 0*8+4(a0)
+    lw \T01l, 1*8(a0)
+    lw \T01h, 1*8+4(a0)
+    lw \T02l, 22*8(a0)
+    lw \T02h, 22*8+4(a0)
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
     sw \T03l, 24*8(a0)
     sw \T03h, 24*8+4(a0)
-    ChiOp \S00h, \S00l, \S00h, \S00l, \S01h, \S01l, \T00h, \T00l, \T03h, \T03l
-    ChiOp \S01h, \S01l, \S01h, \S01l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
-
-    sw \S00l, 20*8(a0)
-    sw \S00h, 20*8+4(a0)
-    sw \S01l, 21*8(a0)
-    sw \S01h, 21*8+4(a0)
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S21h, \S21l, \T02h, \T02l, \T03h, \T03l
+    sw \T03l, 20*8(a0)
+    sw \T03h, 20*8+4(a0)
+    ChiOp \S21h, \S21l, \S21h, \S21l, \T02h, \T02l, \S23h, \S23l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
+    sw \T02l, 22*8(a0)
+    sw \T02h, 22*8+4(a0)
+    ChiOp \S23h, \S23l, \S23h, \S23l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
 
     # T00,T01,S02,T02,S04=S'00-S'04
     # restore T00,T01 from stack
@@ -540,99 +578,27 @@ constants_keccak:
     lw \T00h, 19*4(sp)
     lw \T01l, 20*4(sp)
     lw \T01h, 21*4(sp)
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
+    # Itoa
+    lw \T04, 17*4(sp)
+    lw \T02l, 0(\T04)
+    lw \T02h, 4(\T04)
+    XOR1 \T03h, \T03l, \T02h, \T02l
+    addi \T04, \T04, 8
+    sw  \T04, 17*4(sp)
+    sw \T03l, 0*8(a0)
+    sw \T03h, 0*8+4(a0)
+
     lw \T02l, 3*8(a0)
     lw \T02h, 3*8+4(a0)
-    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
-    mv \S00h, \T03h
-    mv \S00l, \T03l
     ChiOp \T03h, \T03l, \T01h, \T01l, \S02h, \S02l, \T02h, \T02l, \T03h, \T03l
-    mv \S01h, \T03h
-    mv \S01l, \T03l
+    sw \T03l, 1*8(a0)
+    sw \T03h, 1*8+4(a0)
     ChiOp \S02h, \S02l, \S02h, \S02l, \T02h, \T02l, \S04h, \S04l, \T03h, \T03l
     ChiOp \T03h, \T03l, \T02h, \T02l, \S04h, \S04l, \T00h, \T00l, \T03h, \T03l
     sw \T03l, 3*8(a0)
     sw \T03h, 3*8+4(a0)
     ChiOp \S04h, \S04l, \S04h, \S04l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
-
-    lw \T01l, 17*4(sp)
-    lw \T02l, 0(\T01l)
-    lw \T02h, 4(\T01l)
-    XOR1 \S00h, \S00l, \T02h, \T02l
-    addi \T01l, \T01l, 8
-    sw  \T01l, 17*4(sp)
-
-    # for debug
-    # sw \S00l, 0*8(a0)
-    # sw \S00h, 0*8+4(a0)
-    # sw \S01l, 1*8(a0)
-    # sw \S01h, 1*8+4(a0)
-    # sw \S02l, 2*8(a0)
-    # sw \S02h, 2*8+4(a0)
-    # sw \S04l, 4*8(a0)
-    # sw \S04h, 4*8+4(a0)
-    # sw \S07l, 7*8(a0)
-    # sw \S07h, 7*8+4(a0)
-    # sw \S08l, 8*8(a0)
-    # sw \S08h, 8*8+4(a0)
-    # sw \S15l, 15*8(a0)
-    # sw \S15h, 15*8+4(a0)
-    # sw \S16l, 16*8(a0)
-    # sw \S16h, 16*8+4(a0)
-    # sw \S18l, 18*8(a0)
-    # sw \S18h, 18*8+4(a0)
-    # sw \S19l, 19*8(a0)
-    # sw \S19h, 19*8+4(a0)
-    # chi - end
-.endm
-
-.macro InitLoad1 \
-        S00h, S00l, S01h, S01l, S02h, S02l, S04h, S04l, S07h, S07l, \
-        S08h, S08l, S15h, S15l, S16h, S16l, S18h, S18l, S19h, S19l
-    lw \S00l, 0*8(a0)
-    lw \S00h, 0*8+4(a0)
-    lw \S01l, 1*8(a0)
-    lw \S01h, 1*8+4(a0)
-    lw \S02l, 2*8(a0)
-    lw \S02h, 2*8+4(a0)
-    lw \S04l, 4*8(a0)
-    lw \S04h, 4*8+4(a0)
-    lw \S07l, 7*8(a0)
-    lw \S07h, 7*8+4(a0)
-    lw \S08l, 8*8(a0)
-    lw \S08h, 8*8+4(a0)
-    lw \S15l, 15*8(a0)
-    lw \S15h, 15*8+4(a0)
-    lw \S16l, 16*8(a0)
-    lw \S16h, 16*8+4(a0)
-    lw \S18l, 18*8(a0)
-    lw \S18h, 18*8+4(a0)
-    lw \S19l, 19*8(a0)
-    lw \S19h, 19*8+4(a0)
-.endm
-
-.macro FinalStore1 \
-        S00h, S00l, S01h, S01l, S02h, S02l, S04h, S04l, S07h, S07l, \
-        S08h, S08l, S15h, S15l, S16h, S16l, S18h, S18l, S19h, S19l
-    sw \S00l, 0*8(a0)
-    sw \S00h, 0*8+4(a0)
-    sw \S01l, 1*8(a0)
-    sw \S01h, 1*8+4(a0)
-    sw \S02l, 2*8(a0)
-    sw \S02h, 2*8+4(a0)
-    sw \S04l, 4*8(a0)
-    sw \S04h, 4*8+4(a0)
-    sw \S07l, 7*8(a0)
-    sw \S07h, 7*8+4(a0)
-    sw \S08l, 8*8(a0)
-    sw \S08h, 8*8+4(a0)
-    sw \S15l, 15*8(a0)
-    sw \S15h, 15*8+4(a0)
-    sw \S16l, 16*8(a0)
-    sw \S16h, 16*8+4(a0)
-    sw \S18l, 18*8(a0)
-    sw \S18h, 18*8+4(a0)
-    sw \S19l, 19*8(a0)
-    sw \S19h, 19*8+4(a0)
 .endm
 
 # stack: 
@@ -653,7 +619,7 @@ KeccakF1600_StatePermute_RV32ASM:
     la tp, constants_keccak
     sw tp, 17*4(sp)
 
-    InitLoad1 \
+    InitLoad \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5
 
@@ -661,7 +627,7 @@ KeccakF1600_StatePermute_RV32ASM:
 
 loop_start:
     sw tp, 16*4(sp)
-    ARound1 \
+    ARound \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10,s11,ra, gp, tp
@@ -670,13 +636,9 @@ loop_start:
     addi tp, tp, -1
     bnez tp, loop_start
 
-    FinalStore1 \
+    FinalStore \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5
-    # ARoundInit \
-    #     a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-    #     t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-    #     s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
 
     RestoreRegs
     addi sp, sp, 4*28
