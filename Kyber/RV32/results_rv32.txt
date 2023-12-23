@@ -1,168 +1,168 @@
 Test speed of SHA-3 related subroutines
-"KeccakF1600" instructions retired: 15897
+"KeccakF1600" instructions retired: 15657
 KeccakF1600:
-median: 10710 cycles/ticks
-average: 11028 cycles/ticks
+median: 10590 cycles/ticks
+average: 10903 cycles/ticks
 
 "shake128_absorb_once" instructions retired: 479
 shake128_absorb_once:
-median: 307 cycles/ticks
+median: 310 cycles/ticks
 average: 318 cycles/ticks
 
-"shake128_squeezeblocks_1" instructions retired: 16327
+"shake128_squeezeblocks_1" instructions retired: 16087
 shake128_squeezeblocks_1:
-median: 11001 cycles/ticks
-average: 11274 cycles/ticks
+median: 10881 cycles/ticks
+average: 11152 cycles/ticks
 
-"sha3_256" instructions retired: 16463
+"sha3_256" instructions retired: 16223
 sha3_256:
-median: 11042 cycles/ticks
-average: 11325 cycles/ticks
+median: 10969 cycles/ticks
+average: 11247 cycles/ticks
 
 Test speed of Kyber512
 gen_a: 
-median: 149580 cycles/ticks
-average: 148831 cycles/ticks
+median: 148664 cycles/ticks
+average: 147904 cycles/ticks
 
 poly_getnoise_eta1: 
-median: 24408 cycles/ticks
-average: 25041 cycles/ticks
+median: 24167 cycles/ticks
+average: 24787 cycles/ticks
 
 poly_getnoise_eta2: 
-median: 13855 cycles/ticks
-average: 14213 cycles/ticks
+median: 13736 cycles/ticks
+average: 14092 cycles/ticks
 
 NTT: 
 median: 34120 cycles/ticks
-average: 34940 cycles/ticks
+average: 34938 cycles/ticks
 
 INVNTT: 
-median: 54912 cycles/ticks
-average: 56190 cycles/ticks
+median: 54910 cycles/ticks
+average: 56194 cycles/ticks
 
 polyvec_basemul_acc_montgomery: 
 median: 42588 cycles/ticks
-average: 43590 cycles/ticks
+average: 43587 cycles/ticks
 
 indcpa_keypair: 
-median: 528114 cycles/ticks
-average: 528449 cycles/ticks
+median: 526218 cycles/ticks
+average: 526525 cycles/ticks
 
 indcpa_enc: 
-median: 650481 cycles/ticks
-average: 652871 cycles/ticks
+median: 648316 cycles/ticks
+average: 650665 cycles/ticks
 
 indcpa_dec: 
-median: 193081 cycles/ticks
-average: 193357 cycles/ticks
+median: 193048 cycles/ticks
+average: 193311 cycles/ticks
 
 kyber_keypair: 
-median: 598440 cycles/ticks
-average: 600256 cycles/ticks
+median: 595737 cycles/ticks
+average: 597496 cycles/ticks
 
 kyber_encaps: 
-median: 827808 cycles/ticks
-average: 829669 cycles/ticks
+median: 822844 cycles/ticks
+average: 825220 cycles/ticks
 
 kyber_decaps: 
-median: 940350 cycles/ticks
-average: 941484 cycles/ticks
+median: 936781 cycles/ticks
+average: 937846 cycles/ticks
 
 Test speed of Kyber768
 gen_a: 
-median: 336855 cycles/ticks
-average: 336323 cycles/ticks
+median: 334957 cycles/ticks
+average: 334366 cycles/ticks
 
 poly_getnoise_eta1: 
-median: 13921 cycles/ticks
-average: 14298 cycles/ticks
+median: 13870 cycles/ticks
+average: 14219 cycles/ticks
 
 poly_getnoise_eta2: 
-median: 13991 cycles/ticks
-average: 14340 cycles/ticks
+median: 13871 cycles/ticks
+average: 14222 cycles/ticks
 
 NTT: 
-median: 34112 cycles/ticks
-average: 34919 cycles/ticks
+median: 34108 cycles/ticks
+average: 34917 cycles/ticks
 
 INVNTT: 
-median: 54909 cycles/ticks
-average: 56191 cycles/ticks
-
-polyvec_basemul_acc_montgomery: 
-median: 61834 cycles/ticks
-average: 63286 cycles/ticks
-
-indcpa_keypair: 
-median: 893725 cycles/ticks
-average: 895061 cycles/ticks
-
-indcpa_enc: 
-median: 1073476 cycles/ticks
-average: 1074477 cycles/ticks
-
-indcpa_dec: 
-median: 249778 cycles/ticks
-average: 251335 cycles/ticks
-
-kyber_keypair: 
-median: 996046 cycles/ticks
-average: 999053 cycles/ticks
-
-kyber_encaps: 
-median: 1316578 cycles/ticks
-average: 1318304 cycles/ticks
-
-kyber_decaps: 
-median: 1453293 cycles/ticks
-average: 1455923 cycles/ticks
-
-Test speed of Kyber1024
-gen_a: 
-median: 76780 cycles/ticks
-average: 78539 cycles/ticks
-
-poly_getnoise_eta1: 
-median: 3449 cycles/ticks
-average: 3545 cycles/ticks
-
-poly_getnoise_eta2: 
-median: 3432 cycles/ticks
-average: 3525 cycles/ticks
-
-NTT: 
-median: 34119 cycles/ticks
-average: 35000 cycles/ticks
-
-INVNTT: 
-median: 54913 cycles/ticks
+median: 54910 cycles/ticks
 average: 56193 cycles/ticks
 
 polyvec_basemul_acc_montgomery: 
-median: 81127 cycles/ticks
-average: 83010 cycles/ticks
+median: 61835 cycles/ticks
+average: 63289 cycles/ticks
 
 indcpa_keypair: 
-median: 793973 cycles/ticks
-average: 795572 cycles/ticks
+median: 888922 cycles/ticks
+average: 890135 cycles/ticks
 
 indcpa_enc: 
-median: 1005247 cycles/ticks
-average: 1007611 cycles/ticks
+median: 1068196 cycles/ticks
+average: 1070224 cycles/ticks
 
 indcpa_dec: 
-median: 309320 cycles/ticks
-average: 308189 cycles/ticks
+median: 249859 cycles/ticks
+average: 251333 cycles/ticks
 
 kyber_keypair: 
-median: 804601 cycles/ticks
-average: 806419 cycles/ticks
+median: 992183 cycles/ticks
+average: 995115 cycles/ticks
 
 kyber_encaps: 
-median: 1031236 cycles/ticks
-average: 1033759 cycles/ticks
+median: 1310517 cycles/ticks
+average: 1312121 cycles/ticks
 
 kyber_decaps: 
-median: 1333868 cycles/ticks
-average: 1336005 cycles/ticks
+median: 1447714 cycles/ticks
+average: 1450568 cycles/ticks
+
+Test speed of Kyber1024
+gen_a: 
+median: 600964 cycles/ticks
+average: 602372 cycles/ticks
+
+poly_getnoise_eta1: 
+median: 13820 cycles/ticks
+average: 14166 cycles/ticks
+
+poly_getnoise_eta2: 
+median: 13796 cycles/ticks
+average: 14155 cycles/ticks
+
+NTT: 
+median: 34117 cycles/ticks
+average: 34917 cycles/ticks
+
+INVNTT: 
+median: 54913 cycles/ticks
+average: 56199 cycles/ticks
+
+polyvec_basemul_acc_montgomery: 
+median: 81137 cycles/ticks
+average: 83023 cycles/ticks
+
+indcpa_keypair: 
+median: 1404258 cycles/ticks
+average: 1408095 cycles/ticks
+
+indcpa_enc: 
+median: 1621947 cycles/ticks
+average: 1625378 cycles/ticks
+
+indcpa_dec: 
+median: 309385 cycles/ticks
+average: 308271 cycles/ticks
+
+kyber_keypair: 
+median: 1543750 cycles/ticks
+average: 1547095 cycles/ticks
+
+kyber_encaps: 
+median: 1942964 cycles/ticks
+average: 1945513 cycles/ticks
+
+kyber_decaps: 
+median: 2105752 cycles/ticks
+average: 2108217 cycles/ticks
 

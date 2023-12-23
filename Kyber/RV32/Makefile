@@ -27,9 +27,9 @@ all: \
 
 speed: \
 	test_speed_sha3_rv32 scp_test_speed_sha3_rv32 \
-	test_speed512_rv32  scp_test_speed512_rv32 
-	# test_speed768_rv32  scp_test_speed768_rv32 \
-	# test_speed1024_rv32 scp_test_speed1024_rv32 \
+	test_speed512_rv32  scp_test_speed512_rv32 \
+	test_speed768_rv32  scp_test_speed768_rv32 \
+	test_speed1024_rv32 scp_test_speed1024_rv32
 
 # Get the file results.txt from the target machine. Note that when I execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
 # The command I executed on target machine is ./test_speed_sha3_rv32 > results_rv32.txt; ./test_speed512_rv32 >> results_rv32.txt; ./test_speed768_rv32 >> results_rv32.txt; ./test_speed1024_rv32 >> results_rv32.txt
