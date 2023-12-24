@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "cpucycles.h"
 #include "fips202.h"
@@ -39,15 +40,31 @@ void print_stat(uint64_t s[25])
 void test_sha3_256(void)
 {
     const uint8_t in[] = "Hello world, I am testing sha3!";
+    const uint8_t out_once[32] = {190, 47,  181, 116, 251, 237, 130, 151,
+                                  42,  99,  10,  169, 144, 68,  179, 193,
+                                  166, 122, 99,  80,  249, 221, 224, 191,
+                                  131, 54,  106, 12,  15,  130, 199, 28};
+    const uint8_t out_twice[32] = {144, 122, 237, 223, 209, 118, 6,   246,
+                                   47,  97,  126, 39,  59,  24,  191, 232,
+                                   217, 50,  214, 118, 56,  95,  54,  150,
+                                   36,  116, 79,  85,  156, 160, 53,  103};
     uint8_t out[32];
 
     sha3_256(out, in, sizeof(in));
-    printf("sha3_256 once: ");
-    print_hash(out);
+    if (memcmp(out, out_once, 32) == 0) {
+        printf("sha3_256 once OK!\n");
+    } else {
+        printf("sha3_256 once FAILED: ");
+        print_hash(out);
+    }
 
     sha3_256(out, out, 32);
-    printf("sha3_256 twice: ");
-    print_hash(out);
+    if (memcmp(out, out_twice, 32) == 0) {
+        printf("sha3_256 twice OK!\n");
+    } else {
+        printf("sha3_256 twice FAILED: ");
+        print_hash(out);
+    }
 }
 
 void test_keccakf1600(void)
@@ -89,7 +106,7 @@ int main(void)
     printf("Test speed of SHA-3 related subroutines\n");
 
     PERF_SPEED(KeccakF1600_StatePermute(s.s), KeccakF1600);
-    PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
+    // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),
                shake128_squeezeblocks_1);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 2, &s),
