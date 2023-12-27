@@ -6,7 +6,6 @@
 #include "cpucycles.h"
 #include "indcpa.h"
 #include "kem.h"
-#include "kex.h"
 #include "params.h"
 #include "poly.h"
 #include "polyvec.h"

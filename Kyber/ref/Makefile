@@ -1,17 +1,19 @@
 CC = riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
+
+COMMONDIR = ../common
 CFLAGS_COMMON = -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
-  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static
+  				-Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
+				-I$(COMMONDIR) -I.
 CFLAGS = $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
 CFLAGS_RV32 = $(CFLAGS_COMMON) -DRV32=1 -march=rv32imac -mabi=ilp32
 RM = /bin/rm
 
-SOURCES = kex.c kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c
-SOURCESKECCAK = $(SOURCES) fips202.c symmetric-shake.c
-SOURCESNINETIES = $(SOURCES) sha256.c sha512.c aes256ctr.c symmetric-aes.c
-HEADERS = params.h kex.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
-HEADERSKECCAK = $(HEADERS) fips202.h
-HEADERSNINETIES = $(HEADERS) aes256ctr.h sha2.h
+SOURCES_COMMON = $(COMMONDIR)/cpucycles.c $(COMMONDIR)/fips202.c $(COMMONDIR)/randombytes.c $(COMMONDIR)/speed_print.c
+HEADERS_COMMON = $(COMMONDIR)/cpucycles.h $(COMMONDIR)/fips202.h $(COMMONDIR)/randombytes.h $(COMMONDIR)/speed_print.h
+
+SOURCES = $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
+HEADERS = $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
 TARGET_IP = 192.168.123.99
 
@@ -41,92 +43,92 @@ objdump:
 	$(OBJDUMP) -D out/test_speed512 > out/test_speed512.S
 	$(OBJDUMP) -D out/test_speed512_rv32 > out/test_speed512_rv32.S
 
-test_speed_sha3: fips202.h speed_print.h cpucycles.h fips202.c speed_print.c cpucycles.c test_sha3.c
+test_speed_sha3: $(SOURCES_COMMON) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
-	$(CC) $(CFLAGS) fips202.c speed_print.c cpucycles.c test_sha3.c -o out/test_speed_sha3
+	$(CC) $(CFLAGS) $(SOURCES_COMMON) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3
 	scp out/test_speed_sha3 root@$(TARGET_IP):/sharefs/
 
-test_kyber512: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
+test_kyber512: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber512
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber512
 	scp out/test_kyber512 root@$(TARGET_IP):/sharefs/
 
-test_kyber768: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
-	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber768
+test_kyber768: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
+	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber768
 	scp out/test_kyber768 root@$(TARGET_IP):/sharefs/
 
-test_kyber1024: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
-	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber1024
+test_kyber1024: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
+	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024
 	scp out/test_kyber1024 root@$(TARGET_IP):/sharefs/
 
-test_speed_sha3_rv32: fips202.h speed_print.h cpucycles.h fips202.c speed_print.c cpucycles.c test_sha3.c
+test_speed_sha3_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
-	$(CC) $(CFLAGS_RV32) fips202.c speed_print.c cpucycles.c test_sha3.c -o out/test_speed_sha3_rv32
+	$(CC) $(CFLAGS_RV32) $(SOURCES_COMMON) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3_rv32
 	scp out/test_speed_sha3_rv32 root@$(TARGET_IP):/sharefs/
 
-test_kyber512_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
+test_kyber512_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber512_rv32
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber512_rv32
 	scp out/test_kyber512_rv32 root@$(TARGET_IP):/sharefs/
 
-test_kyber768_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber768_rv32
+test_kyber768_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber768_rv32
 	scp out/test_kyber768_rv32 root@$(TARGET_IP):/sharefs/
 
-test_kyber1024_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kyber.c randombytes.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCESKECCAK) randombytes.c test_kyber.c -o out/test_kyber1024_rv32
+test_kyber1024_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_kyber.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024_rv32
 	scp out/test_kyber1024_rv32 root@$(TARGET_IP):/sharefs/
 
-test_vectors512: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
+test_vectors512: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors512
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors512
 	scp out/test_vectors512 root@$(TARGET_IP):/sharefs/
 
-test_vectors768: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
-	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors768
+test_vectors768: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
+	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors768
 	scp out/test_vectors768 root@$(TARGET_IP):/sharefs/
 
-test_vectors1024: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
-	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors1024
+test_vectors1024: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
+	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024
 	scp out/test_vectors1024 root@$(TARGET_IP):/sharefs/
 
-test_vectors512_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
+test_vectors512_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors512_rv32
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors512_rv32
 	scp out/test_vectors512_rv32 root@$(TARGET_IP):/sharefs/
 
-test_vectors768_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors768_rv32
+test_vectors768_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors768_rv32
 	scp out/test_vectors768_rv32 root@$(TARGET_IP):/sharefs/
 
-test_vectors1024_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) test_vectors.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCESKECCAK) test_vectors.c -o out/test_vectors1024_rv32
+test_vectors1024_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_vectors.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024_rv32
 	scp out/test_vectors1024_rv32 root@$(TARGET_IP):/sharefs/
 
-test_speed512: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
+test_speed512: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_speed.c
 	mkdir -p out
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed512
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed512
 	scp out/test_speed512 root@$(TARGET_IP):/sharefs/
 
-test_speed768: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
-	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed768
+test_speed768: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_speed.c
+	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed768
 	scp out/test_speed768 root@$(TARGET_IP):/sharefs/
 
-test_speed1024: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
-	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed1024
+test_speed1024: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_speed.c
+	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed1024
 	scp out/test_speed1024 root@$(TARGET_IP):/sharefs/
 
-test_speed512_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
+test_speed512_rv32: $(SOURCES) $(HEADERS)
 	mkdir -p out
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed512_rv32
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=2 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed512_rv32
 	scp out/test_speed512_rv32 root@$(TARGET_IP):/sharefs/
 
-test_speed768_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed768_rv32
+test_speed768_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_speed.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=3 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed768_rv32
 	scp out/test_speed768_rv32 root@$(TARGET_IP):/sharefs/
 
-test_speed1024_rv32: $(SOURCESKECCAK) $(HEADERSKECCAK) cpucycles.h cpucycles.c speed_print.h speed_print.c test_speed.c randombytes.c
-	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCESKECCAK) randombytes.c cpucycles.c speed_print.c test_speed.c -o out/test_speed1024_rv32
+test_speed1024_rv32: $(SOURCES) $(HEADERS) $(COMMONDIR)/test_speed.c
+	$(CC) $(CFLAGS_RV32) -DKYBER_K=4 $(SOURCES) $(COMMONDIR)/test_speed.c -o out/test_speed1024_rv32
 	scp out/test_speed1024_rv32 root@$(TARGET_IP):/sharefs/
 
 clean:
