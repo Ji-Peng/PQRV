@@ -49,6 +49,19 @@ static void store64(uint8_t x[8], uint64_t u)
 }
 
 /*************************************************
+ * Name:        KeccakF1600_StatePermute
+ *
+ * Description: The Keccak F1600 Permutation
+ *
+ * Arguments:   - uint64_t *state: pointer to input/output Keccak state
+ **************************************************/
+extern void KeccakF1600_StatePermute_RV64ASM(uint64_t state[25]);
+void KeccakF1600_StatePermute(uint64_t state[25])
+{
+    KeccakF1600_StatePermute_RV64ASM(state);
+}
+
+/*************************************************
  * Name:        keccak_init
  *
  * Description: Initializes the Keccak state.

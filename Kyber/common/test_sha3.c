@@ -20,6 +20,7 @@ void print_hash(uint8_t out[32])
     printf("\n");
 }
 
+#ifdef RV32
 void print_stat(uint64_t s[25])
 {
     for (int i = 0; i < 25; i++) {
@@ -27,6 +28,15 @@ void print_stat(uint64_t s[25])
     }
     printf("\n");
 }
+#else
+void print_stat(uint64_t s[25])
+{
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", s[i]);
+    }
+    printf("\n");
+}
+#endif
 
 /**
  * The correct result should be:

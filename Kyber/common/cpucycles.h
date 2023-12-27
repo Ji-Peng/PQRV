@@ -52,7 +52,7 @@ static inline uint64_t cputime(void)
             start = cpuinstret();                                           \
             FUNC;                                                           \
             end = cpuinstret();                                             \
-            printf("%s instructions retired: %llu\n", #LABEL, end - start); \
+            printf("%s instructions retired: %llu\n", LABEL, end - start); \
         } while (0)
 #else
 static inline uint64_t cpucycles(void)
@@ -88,7 +88,7 @@ static inline uint64_t cputime(void)
             start = cpuinstret();                                          \
             FUNC;                                                          \
             end = cpuinstret();                                            \
-            printf("%s instructions retired: %lu\n", #LABEL, end - start); \
+            printf("%s instructions retired: %lu\n", LABEL, end - start); \
         } while (0)
 #endif
 
