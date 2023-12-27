@@ -230,33 +230,29 @@ constants_keccak:
     lw \S17h, 17*8+4(a0)
     lw \S21l, 21*8(a0)
     lw \S21h, 21*8+4(a0)
-    lw \S23l, 23*8(a0)
-    lw \S23h, 23*8+4(a0)
-    
     # lane complement: 1,2,8,12,17,20
     lw \T00l, 1*8(a0)
     lw \T00h, 1*8+4(a0)
+    lw \S23l, 23*8(a0)
+    lw \S23h, 23*8+4(a0)
     not \T00l, \T00l
     not \T00h, \T00h
-    sw \T00l, 1*8(a0)
-    sw \T00h, 1*8+4(a0)
-
     lw \T01l, 12*8(a0)
     lw \T01h, 12*8+4(a0)
+    sw \T00l, 1*8(a0)
+    sw \T00h, 1*8+4(a0)
     not \T01l, \T01l
     not \T01h, \T01h
-    sw \T01l, 12*8(a0)
-    sw \T01h, 12*8+4(a0)
-
     lw \T00l, 20*8(a0)
     lw \T00h, 20*8+4(a0)
+    sw \T01l, 12*8(a0)
+    sw \T01h, 12*8+4(a0)
     not \T00l, \T00l
     not \T00h, \T00h
-    sw \T00l, 20*8(a0)
-    sw \T00h, 20*8+4(a0)
-
     not \S02l, \S02l
     not \S02h, \S02h
+    sw \T00l, 20*8(a0)
+    sw \T00h, 20*8+4(a0)
     not \S08l, \S08l
     not \S08h, \S08h
     not \S17l, \S17l
@@ -270,31 +266,28 @@ constants_keccak:
     # lane complement: 1,2,8,12,17,20
     lw \T00l, 1*8(a0)
     lw \T00h, 1*8+4(a0)
+    not \S02l, \S02l
+    not \S02h, \S02h
     not \T00l, \T00l
     not \T00h, \T00h
     sw \T00l, 1*8(a0)
     sw \T00h, 1*8+4(a0)
-
     lw \T01l, 12*8(a0)
     lw \T01h, 12*8+4(a0)
+    not \S08l, \S08l
+    not \S08h, \S08h
     not \T01l, \T01l
     not \T01h, \T01h
     sw \T01l, 12*8(a0)
     sw \T01h, 12*8+4(a0)
-
     lw \T00l, 20*8(a0)
     lw \T00h, 20*8+4(a0)
+    not \S17l, \S17l
+    not \S17h, \S17h
     not \T00l, \T00l
     not \T00h, \T00h
     sw \T00l, 20*8(a0)
     sw \T00h, 20*8+4(a0)
-
-    not \S02l, \S02l
-    not \S02h, \S02h
-    not \S08l, \S08l
-    not \S08h, \S08h
-    not \S17l, \S17l
-    not \S17h, \S17h
     
     sw \S02l, 2*8(a0)
     sw \S02h, 2*8+4(a0)
@@ -649,6 +642,7 @@ constants_keccak:
     # ChiOp \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
     xorand \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
     sw \T02l, 9*8(a0)
+    or  \T03l, \T00l, \T01l
     sw \T02h, 9*8+4(a0)
     # ChiOp \S05h, \S05l, \S05h, \S05l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
     # not \T03l, \T00l
@@ -657,15 +651,18 @@ constants_keccak:
     # and \T03h, \T03h, \T01h
     # xor \S05h, \T03h, \S05h
     # xor \S05l, \T03l, \S05l
-    xoror \S05h, \S05l, \S05h, \S05l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
-
-    # T00,T01,S14,S10,T02=S'12,S'13,S'14,S'10,S'11
-    lw \T00l, 18*8(a0)
-    lw \T00h, 18*8+4(a0)
+    # xoror \S05h, \S05l, \S05h, \S05l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    or  \T03h, \T00h, \T01h
     lw \T01l, 19*8(a0)
+    xor \S05h, \S05h, \T03h
     lw \T01h, 19*8+4(a0)
+    xor \S05l, \S05l, \T03l
     lw \T02l, 11*8(a0)
     lw \T02h, 11*8+4(a0)
+    lw \T00l, 18*8(a0)
+    lw \T00h, 18*8+4(a0)
+
+    # T00,T01,S14,S10,T02=S'12,S'13,S'14,S'10,S'11
     # ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
     xornotand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
     sw \T03l, 12*8(a0)
@@ -711,15 +708,21 @@ constants_keccak:
     # and \T03h, \T03h, \T01h
     # xor \S17h, \S17h, \T03h
     # xor \S17l, \S17l, \T03l
-    xornotor \S17h, \S17l, \S17h, \S17l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    # xornotor \S17h, \S17l, \S17h, \S17l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    lw \T02l, 22*8(a0)
+    not \T03h, \T00h
+    lw \T02h, 22*8+4(a0)
+    not \T03l, \T00l
+    lw \T00l, 0*8(a0)
+    or  \T03h, \T03h, \T01h
+    lw \T00h, 0*8+4(a0)
+    or  \T03l, \T03l, \T01l
+    lw \T01l, 1*8(a0)
+    xor \S17h, \S17h, \T03h
+    lw \T01h, 1*8+4(a0)
+    xor \S17l, \S17l, \T03l
 
     # T00,T01,S21,T02,S23=S'24,S'20,S'21,S'22,S'23
-    lw \T00l, 0*8(a0)
-    lw \T00h, 0*8+4(a0)
-    lw \T01l, 1*8(a0)
-    lw \T01h, 1*8+4(a0)
-    lw \T02l, 22*8(a0)
-    lw \T02h, 22*8+4(a0)
     # ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
     xorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
     sw \T03l, 24*8(a0)
@@ -733,6 +736,7 @@ constants_keccak:
     # ChiOp \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
     xorand \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
     sw \T02l, 22*8(a0)
+    or  \T03l, \T00l, \T01l
     sw \T02h, 22*8+4(a0)
     # ChiOp \S23h, \S23l, \S23h, \S23l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
     # not \T03l, \T00l
@@ -741,14 +745,17 @@ constants_keccak:
     # and \T03h, \T03h, \T01h
     # xor \S23h, \S23h, \T03h
     # xor \S23l, \S23l, \T03l
-    xoror \S23h, \S23l, \S23h, \S23l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    # xoror \S23h, \S23l, \S23h, \S23l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    or  \T03h, \T00h, \T01h
+    lw \T00l, 18*4(sp)
+    xor \S23h, \S23h, \T03h
+    lw \T00h, 19*4(sp)
+    xor \S23l, \S23l, \T03l
+    lw \T01l, 20*4(sp)
+    lw \T01h, 21*4(sp)
 
     # T00,T01,S02,T02,S04=S'00-S'04
     # restore T00,T01 from stack
-    lw \T00l, 18*4(sp)
-    lw \T00h, 19*4(sp)
-    lw \T01l, 20*4(sp)
-    lw \T01h, 21*4(sp)
     # ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
     xoror \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
     # Itoa
