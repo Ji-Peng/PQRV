@@ -215,58 +215,58 @@ constants_keccak:
 
     # Rho & Pi & Chi - start
     ROLn \T01, \S06, \T02, 44
-    ROLn \S00, \S02, \T02, 62
+    ROLn \S00, \S02, \T03, 62
     ROLn \S02, \S12, \T02, 43
-    ROLn \S12, \S13, \T02, 25
+    ROLn \S12, \S13, \T03, 25
     ROLn \S13, \S19, \T02, 8
-    ROLn \S19, \S23, \T02, 56
+    ROLn \S19, \S23, \T03, 56
     ROLn \S23, \S15, \T02, 41
-    ROLn \S15, \S01, \T02, 1
+    ROLn \S15, \S01, \T03, 1
     ROLn \S01, \S08, \T02, 55
-    ROLn \S08, \S16, \T02, 45
+    ROLn \S08, \S16, \T03, 45
     ROLn \S16, \S07, \T02, 6
-    ROLn \S07, \S10, \T02, 3
+    ROLn \S07, \S10, \T03, 3
     ROLn \S10, \S03, \T02, 28
-    ROLn \S03, \S18, \T02, 21
+    ROLn \S03, \S18, \T03, 21
     ROLn \S18, \S17, \T02, 15
-    ROLn \S17, \S11, \T02, 10
+    ROLn \S17, \S11, \T03, 10
     ROLn \S11, \S09, \T02, 20
-    ROLn \S09, \S22, \T02, 61
+    ROLn \S09, \S22, \T03, 61
     ROLn \S22, \S14, \T02, 39
-    ROLn \S14, \S20, \T02, 18
+    ROLn \S14, \S20, \T03, 18
     ROLn \S20, \S04, \T02, 27
-    ROLn \S04, \S24, \T02, 14
+    ROLn \S04, \S24, \T03, 14
     ROLn \S24, \S21, \T02, 2
-    ROLn \S21, \S05, \T02, 36
+    ROLn \S21, \S05, \T03, 36
 
     ChiOp1 \S05, \S10, \S11, \S07, \T02
-    ChiOp1 \S06, \S11, \S07, \S08, \T02
+    ChiOp1 \S06, \S11, \S07, \S08, \T03
     ChiOp1 \S07, \S07, \S08, \S09, \T02
-    ChiOp1 \S08, \S08, \S09, \S10, \T02
+    ChiOp1 \S08, \S08, \S09, \S10, \T03
     ChiOp1 \S09, \S09, \S10, \S11, \T02
 
-    ChiOp1 \S10, \S15, \S16, \S12, \T02
+    ChiOp1 \S10, \S15, \S16, \S12, \T03
     ChiOp1 \S11, \S16, \S12, \S13, \T02
-    ChiOp1 \S12, \S12, \S13, \S14, \T02
+    ChiOp1 \S12, \S12, \S13, \S14, \T03
     ChiOp1 \S13, \S13, \S14, \S15, \T02
-    ChiOp1 \S14, \S14, \S15, \S16, \T02
+    ChiOp1 \S14, \S14, \S15, \S16, \T03
 
     ChiOp1 \S15, \S20, \S21, \S17, \T02
-    ChiOp1 \S16, \S21, \S17, \S18, \T02
+    ChiOp1 \S16, \S21, \S17, \S18, \T03
     ChiOp1 \S17, \S17, \S18, \S19, \T02
-    ChiOp1 \S18, \S18, \S19, \S20, \T02
+    ChiOp1 \S18, \S18, \S19, \S20, \T03
     ChiOp1 \S19, \S19, \S20, \S21, \T02
 
-    ChiOp1 \S20, \S00, \S01, \S22, \T02
+    ChiOp1 \S20, \S00, \S01, \S22, \T03
     ChiOp1 \S21, \S01, \S22, \S23, \T02
-    ChiOp1 \S22, \S22, \S23, \S24, \T02
+    ChiOp1 \S22, \S22, \S23, \S24, \T03
     ChiOp1 \S23, \S23, \S24, \S00, \T02
-    ChiOp1 \S24, \S24, \S00, \S01, \T02
+    ChiOp1 \S24, \S24, \S00, \S01, \T03
 
     ChiOp1 \S00, \T00, \T01, \S02, \T02
-    ChiOp1 \S01, \T01, \S02, \S03, \T02
+    ChiOp1 \S01, \T01, \S02, \S03, \T03
     ChiOp1 \S02, \S02, \S03, \S04, \T02
-    ChiOp1 \S03, \S03, \S04, \T00, \T02
+    ChiOp1 \S03, \S03, \S04, \T00, \T03
     ChiOp1 \S04, \S04, \T00, \T01, \T02
     ld   \T02, 17*8(sp)
     ld   \T03, 0(\T02)
