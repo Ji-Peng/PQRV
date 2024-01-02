@@ -1,0 +1,41 @@
+# Allow users to select a different cross compiler.
+CROSS_COMPILE ?= riscv64-unknown-elf
+RISCV_GCC     := $(CROSS_COMPILE)-gcc
+RISCV_OBJDUMP := $(CROSS_COMPILE)-objdump
+RISCV_OBJCOPY := $(CROSS_COMPILE)-objcopy
+RISCV_GDB     := $(CROSS_COMPILE)-gdb
+RISCV_AR      := $(CROSS_COMPILE)-ar
+RISCV_SIZE    := $(CROSS_COMPILE)-size
+
+BSP_DIR = ../bsp/sifive
+
+CFLAGS	+=	-march=rv32imac -mabi=ilp32 -mcmodel=medlow \
+			-ffunction-sections -fdata-sections \
+			-I$(BSP_DIR)/install/include \
+			--specs=nano.specs \
+			-DMTIME_RATE_HZ_DEF=32768 \
+			-Os -DCRYPTO_ITERATIONS=$(CRYPTO_ITERATIONS)
+
+# for speed version: L=2: stack_size=0x1b00, L=3: stack_size=0x2300, L=4: stack_size=0x2900
+# for stack version: L=2: stack_size=0x1b00, L=3: stack_size=0x2900, L=4: stack_size=0x2900
+# for stack: L=2: stack_size=0x1a00, L=3: stack_size=0x1a00, L=4: stack_size=0x1a00
+STACK_SIZE:=0x1b00
+
+LDFLAGS	+=	-Wl,--gc-sections -Wl,-Map,$(basename $@).map \
+			-nostartfiles -nostdlib \
+			-L$(sort $(dir $(abspath $(filter %.a,$^)))) \
+			-T$(abspath $(filter %.lds,$^)) \
+			-Xlinker --defsym=__stack_size=$(STACK_SIZE) \
+			-Xlinker --defsym=__heap_max=1
+
+LDLIBS	+=	-Wl,--start-group -lc -lgcc -lm -lmetal -lmetal-gloss -Wl,--end-group
+
+.PHONY: all speed
+
+speed: \
+	test_speed_sha3_rv32 test_speed512_rv32 test_speed768_rv32 test_speed1024_rv32
+
+test_speed_sha3: fips202.h speed_print.h cpucycles.h fips202.c speed_print.c cpucycles.c test_sha3.c
+	mkdir -p out
+	$(CC) $(CFLAGS) fips202.c speed_print.c cpucycles.c test_sha3.c -o out/test_speed_sha3
+	

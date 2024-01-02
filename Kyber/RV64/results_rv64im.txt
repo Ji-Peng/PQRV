@@ -1,0 +1,57 @@
+sha3_256 once OK!
+sha3_256 twice OK!
+Test speed of SHA-3 related subroutines
+KeccakF1600 instructions retired: 5397
+KeccakF1600:
+median: 3737 cycles/ticks
+average: 3877 cycles/ticks
+
+Test speed of Kyber512
+gen_a: 
+median: 63966 cycles/ticks
+average: 65409 cycles/ticks
+
+poly_getnoise_eta1: 
+median: 10372 cycles/ticks
+average: 10643 cycles/ticks
+
+poly_getnoise_eta2: 
+median: 6785 cycles/ticks
+average: 6963 cycles/ticks
+
+NTT: 
+median: 34986 cycles/ticks
+average: 35813 cycles/ticks
+
+INVNTT: 
+median: 55727 cycles/ticks
+average: 57030 cycles/ticks
+
+polyvec_basemul_acc_montgomery: 
+median: 41813 cycles/ticks
+average: 42798 cycles/ticks
+
+indcpa_keypair: 
+median: 378584 cycles/ticks
+average: 379146 cycles/ticks
+
+indcpa_enc: 
+median: 516054 cycles/ticks
+average: 515855 cycles/ticks
+
+indcpa_dec: 
+median: 194821 cycles/ticks
+average: 195124 cycles/ticks
+
+kyber_keypair: 
+median: 406588 cycles/ticks
+average: 407773 cycles/ticks
+
+kyber_encaps: 
+median: 582445 cycles/ticks
+average: 583501 cycles/ticks
+
+kyber_decaps: 
+median: 747028 cycles/ticks
+average: 747706 cycles/ticks
+

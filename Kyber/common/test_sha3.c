@@ -20,7 +20,7 @@ void print_hash(uint8_t out[32])
     printf("\n");
 }
 
-#ifdef RV32
+#    ifdef RV32
 void print_stat(uint64_t s[25])
 {
     for (int i = 0; i < 25; i++) {
@@ -28,7 +28,7 @@ void print_stat(uint64_t s[25])
     }
     printf("\n");
 }
-#else
+#    else
 void print_stat(uint64_t s[25])
 {
     for (int i = 0; i < 25; i++) {
@@ -36,7 +36,7 @@ void print_stat(uint64_t s[25])
     }
     printf("\n");
 }
-#endif
+#    endif
 
 /**
  * The correct result should be:
@@ -106,8 +106,8 @@ int main(void)
 {
     int i;
     keccak_state s;
-    const uint8_t buff[16] = {0};
-    uint8_t buff_out[4 * SHAKE128_RATE];
+    // const uint8_t buff[16] = {0};
+    // uint8_t buff_out[4 * SHAKE128_RATE];
 
     test_sha3_256();
     // test_keccakf1600();
@@ -117,8 +117,8 @@ int main(void)
 
     PERF_SPEED(KeccakF1600_StatePermute(s.s), KeccakF1600);
     // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
-    PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),
-               shake128_squeezeblocks_1);
+    // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),
+    //            shake128_squeezeblocks_1);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 2, &s),
     // shake128_squeezeblocks_2); PERF_SPEED(shake128_squeezeblocks(buff_out, 4,
     // &s), shake128_squeezeblocks_4);
@@ -130,7 +130,7 @@ int main(void)
     // PERF_SPEED(shake256_squeezeblocks(buff_out, 4, &s),
     // shake256_squeezeblocks_4);
 
-    PERF_SPEED(sha3_256(buff_out, buff, 16), sha3_256);
+    // PERF_SPEED(sha3_256(buff_out, buff, 16), sha3_256);
     // PERF_SPEED(sha3_512(buff_out, buff, 16), sha3_512);
 
     return 0;
