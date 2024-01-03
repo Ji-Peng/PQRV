@@ -108,6 +108,7 @@ constants_keccak:
                    S10, S11, S12, S13, S14, \
                    S15, S16, S17, S18, S19, \
                    S20, S21, S22, S23, S24
+    # lane complement: 1,2,8,12,17,20
     not \S01, \S01
     not \S02, \S02
     not \S08, \S08
@@ -212,9 +213,10 @@ constants_keccak:
     xor \out, \T0, \T
 .endm
 
-.macro ARoundInPlace    S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
-                        S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
-                        S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+.macro ARoundInPlace \
+        S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
+        S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
+        S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
     # theta - start
     # C0 = S00 ^ S05 ^ S10 ^ S15 ^ S20
     XOR5 \T00, \S00, \S05, \S10, \S15, \S20
@@ -356,6 +358,9 @@ constants_keccak:
     # Rho & Pi & Chi - end
 .endm
 
+# 15*8(sp): a0
+# 16*8(sp): loop control variable i
+# 17*8(sp): table index
 .globl KeccakF1600_StatePermute_RV64ASM
 .align 2
 KeccakF1600_StatePermute_RV64ASM:
@@ -371,8 +376,6 @@ KeccakF1600_StatePermute_RV64ASM:
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10
 
-    # 16*8(sp): loop control variable i
-    # 17*8(sp): table index
     li a0, 24
     
 loop:

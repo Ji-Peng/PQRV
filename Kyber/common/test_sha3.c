@@ -15,6 +15,8 @@ void print_hash(uint8_t *out);
 void print_stat(uint64_t *s);
 void test_sha3_256(void);
 void test_keccakf1600(void);
+void print_statx3(uint64_t *s);
+void test_keccakf1600x3(void);
 
 #    ifndef VECTOR128
 void print_hash(uint8_t *out)
@@ -108,6 +110,27 @@ void print_stat(uint64_t *s)
     }
     printf("\n");
 }
+void print_statx3(uint64_t *s)
+{
+    v128 *in = (v128 *)s;
+    uint64_t *in_x1 = (uint64_t *)&in[25];
+
+    printf("lane 0:\n");
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", in[i].val[0]);
+    }
+    printf("\n");
+    printf("lane 1:\n");
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", in[i].val[1]);
+    }
+    printf("\n");
+    printf("lane 2:\n");
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", in_x1[i]);
+    }
+    printf("\n");
+}
 void test_keccakf1600(void)
 {
     v128 s[25];
@@ -116,6 +139,15 @@ void test_keccakf1600(void)
     }
     KeccakF1600x2_StatePermute(s);
     print_stat((uint64_t *)s);
+}
+void test_keccakf1600x3(void)
+{
+    keccakx3_state state;
+    for (int i = 0; i < 25; i++) {
+        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1[i] = 1;
+    }
+    KeccakF1600x3_StatePermute((uint64_t *)&state.s);
+    print_statx3((uint64_t *)&state.s);
 }
 #    endif
 #endif
@@ -143,21 +175,23 @@ int main(void)
 // uint8_t buff_out[4 * SHAKE128_RATE];
 #else
     keccakx2_state s;
+    keccakx3_state sx3;
 #endif
 
 #ifndef VECTOR128
-
     test_sha3_256();
-    // test_keccakf1600();
+    test_keccakf1600();
 #else
     // test_keccakf1600();
+    // test_keccakf1600x3();
 #endif
 
     printf("Test speed of SHA-3 related subroutines\n");
 #ifndef VECTOR128
     PERF_SPEED(KeccakF1600_StatePermute(s.s), KeccakF1600);
 #else
-    PERF_SPEED(KeccakF1600x2_StatePermute(s.s), KeccakF1600);
+    PERF_SPEED(KeccakF1600x2_StatePermute(s.s), KeccakF1600x2);
+    PERF_SPEED(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3);
 #endif
     // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),

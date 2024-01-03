@@ -28,118 +28,40 @@ constants_keccak:
 
 .text
 
-.macro LoadStates S00, S01, S02, S03, S04, \
-                  S05, S06, S07, S08, S09, \
-                  S10, S11, S12, S13, S14, \
-                  S15, S16, S17, S18, S19, \
-                  S20, S21, S22, S23, S24
-    vle64.v \S00, (a0)
-    addi a0, a0, 16
-    vle64.v \S01, (a0)
-    addi a0, a0, 16
-    vle64.v \S02, (a0)
-    addi a0, a0, 16
-    vle64.v \S03, (a0)
-    addi a0, a0, 16
-    vle64.v \S04, (a0)
-    addi a0, a0, 16
-    vle64.v \S05, (a0)
-    addi a0, a0, 16
-    vle64.v \S06, (a0)
-    addi a0, a0, 16
-    vle64.v \S07, (a0)
-    addi a0, a0, 16
-    vle64.v \S08, (a0)
-    addi a0, a0, 16
-    vle64.v \S09, (a0)
-    addi a0, a0, 16
-    vle64.v \S10, (a0)
-    addi a0, a0, 16
-    vle64.v \S11, (a0)
-    addi a0, a0, 16
-    vle64.v \S12, (a0)
-    addi a0, a0, 16
-    vle64.v \S13, (a0)
-    addi a0, a0, 16
-    vle64.v \S14, (a0)
-    addi a0, a0, 16
-    vle64.v \S15, (a0)
-    addi a0, a0, 16
-    vle64.v \S16, (a0)
-    addi a0, a0, 16
-    vle64.v \S17, (a0)
-    addi a0, a0, 16
-    vle64.v \S18, (a0)
-    addi a0, a0, 16
-    vle64.v \S19, (a0)
-    addi a0, a0, 16
-    vle64.v \S20, (a0)
-    addi a0, a0, 16
-    vle64.v \S21, (a0)
-    addi a0, a0, 16
-    vle64.v \S22, (a0)
-    addi a0, a0, 16
-    vle64.v \S23, (a0)
-    addi a0, a0, 16
-    vle64.v \S24, (a0)
+.macro LoadStates
+    # lane complement: 1,2,8,12,17,20
+    vl8re64.v v0, (a0)
+    addi a0, a0, 8*16
+    vl8re64.v v8, (a0)
+    addi a0, a0, 8*16
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vl8re64.v v16, (a0)
+    addi a0, a0, 8*16
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle64.v v24, (a0)
 
-    addi a0, a0, -16*24
+    addi a0, a0, -24*16
 .endm
 
-.macro StoreStates S00, S01, S02, S03, S04, \
-                   S05, S06, S07, S08, S09, \
-                   S10, S11, S12, S13, S14, \
-                   S15, S16, S17, S18, S19, \
-                   S20, S21, S22, S23, S24
-    vse64.v \S00, (a0)
-    addi a0, a0, 16
-    vse64.v \S01, (a0)
-    addi a0, a0, 16
-    vse64.v \S02, (a0)
-    addi a0, a0, 16
-    vse64.v \S03, (a0)
-    addi a0, a0, 16
-    vse64.v \S04, (a0)
-    addi a0, a0, 16
-    vse64.v \S05, (a0)
-    addi a0, a0, 16
-    vse64.v \S06, (a0)
-    addi a0, a0, 16
-    vse64.v \S07, (a0)
-    addi a0, a0, 16
-    vse64.v \S08, (a0)
-    addi a0, a0, 16
-    vse64.v \S09, (a0)
-    addi a0, a0, 16
-    vse64.v \S10, (a0)
-    addi a0, a0, 16
-    vse64.v \S11, (a0)
-    addi a0, a0, 16
-    vse64.v \S12, (a0)
-    addi a0, a0, 16
-    vse64.v \S13, (a0)
-    addi a0, a0, 16
-    vse64.v \S14, (a0)
-    addi a0, a0, 16
-    vse64.v \S15, (a0)
-    addi a0, a0, 16
-    vse64.v \S16, (a0)
-    addi a0, a0, 16
-    vse64.v \S17, (a0)
-    addi a0, a0, 16
-    vse64.v \S18, (a0)
-    addi a0, a0, 16
-    vse64.v \S19, (a0)
-    addi a0, a0, 16
-    vse64.v \S20, (a0)
-    addi a0, a0, 16
-    vse64.v \S21, (a0)
-    addi a0, a0, 16
-    vse64.v \S22, (a0)
-    addi a0, a0, 16
-    vse64.v \S23, (a0)
-    addi a0, a0, 16
-    vse64.v \S24, (a0)
+.macro StoreStates
+    # lane complement: 1,2,8,12,17,20
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vs8r.v v0, (a0)
+    addi a0, a0, 8*16
+    vs8r.v v8, (a0)
+    addi a0, a0, 8*16
+    vs8r.v v16, (a0)
+    addi a0, a0, 8*16
+    vse64.v v24, (a0)
 .endm
 
 .macro XOR5 out, S00, S01, S02, S03, S04
@@ -179,6 +101,46 @@ constants_keccak:
     vnot.v  \T, \S01
     vand.vv \T, \T, \S02
     vxor.vv \out, \T, \S00
+.endm
+
+.macro xoror out, S00, S01, S02, T
+    vor.vv  \T, \S01, \S02
+    vxor.vv \out, \S00, \T
+.endm
+
+.macro xornotor out, S00, S01, S02, T
+    vnot.v \T, \S01
+    vor.vv  \T, \T, \S02
+    vxor.vv \out, \S00, \T
+.endm
+
+.macro xorand out, S00, S01, S02, T
+    vand.vv \T, \S01, \S02
+    vxor.vv \out, \S00, \T
+.endm
+
+.macro xorornot out, S00, S01, S02, T
+    vnot.v \T, \S02
+    vor.vv  \T, \T, \S01
+    vxor.vv \out, \S00, \T
+.endm
+
+.macro xornotand out, S00, S01, S02, T
+    vnot.v \T, \S01
+    vand.vv \T, \T, \S02
+    vxor.vv \out, \S00, \T
+.endm
+
+.macro notxoror out, S00, S01, S02, T, T0
+    vnot.v \T0, \S00
+    vor.vv  \T, \S01, \S02
+    vxor.vv \out, \T0, \T
+.endm
+
+.macro notxorand out, S00, S01, S02, T, T0
+    vnot.v \T0, \S00
+    vand.vv \T, \S01, \S02
+    vxor.vv \out, \T0, \T
 .endm
 
 .macro ARoundInPlace    S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
@@ -262,35 +224,61 @@ constants_keccak:
     ROLn \S24, \S21, \T02, 2
     ROLn \S21, \S05, \T03, 36
 
-    ChiOp \S05, \S10, \S11, \S07, \T02
-    ChiOp \S06, \S11, \S07, \S08, \T03
-    ChiOp \S07, \S07, \S08, \S09, \T02
-    ChiOp \S08, \S08, \S09, \S10, \T03
-    ChiOp \S09, \S09, \S10, \S11, \T02
+    # ChiOp \S05, \S10, \S11, \S07, \T02
+    # ChiOp \S06, \S11, \S07, \S08, \T03
+    # ChiOp \S07, \S07, \S08, \S09, \T02
+    # ChiOp \S08, \S08, \S09, \S10, \T03
+    # ChiOp \S09, \S09, \S10, \S11, \T02
+    xoror    \S05, \S10, \S11, \S07, \T02
+    xorand   \S06, \S11, \S07, \S08, \T03
+    xorornot \S07, \S07, \S08, \S09, \T02
+    xoror    \S08, \S08, \S09, \S10, \T03
+    xorand   \S09, \S09, \S10, \S11, \T02
 
-    ChiOp \S10, \S15, \S16, \S12, \T03
-    ChiOp \S11, \S16, \S12, \S13, \T02
-    ChiOp \S12, \S12, \S13, \S14, \T03
-    ChiOp \S13, \S13, \S14, \S15, \T02
-    ChiOp \S14, \S14, \S15, \S16, \T03
+    # ChiOp \S10, \S15, \S16, \S12, \T03
+    # ChiOp \S11, \S16, \S12, \S13, \T02
+    # ChiOp \S12, \S12, \S13, \S14, \T03
+    # ChiOp \S13, \S13, \S14, \S15, \T02
+    # ChiOp \S14, \S14, \S15, \S16, \T03
+    xoror       \S10, \S15, \S16, \S12, \T03
+    xorand      \S11, \S16, \S12, \S13, \T02
+    xornotand   \S12, \S12, \S13, \S14, \T03
+    notxoror    \S13, \S13, \S14, \S15, \T02, \T03
+    xorand      \S14, \S14, \S15, \S16, \T03
 
-    ChiOp \S15, \S20, \S21, \S17, \T02
-    ChiOp \S16, \S21, \S17, \S18, \T03
-    ChiOp \S17, \S17, \S18, \S19, \T02
-    ChiOp \S18, \S18, \S19, \S20, \T03
-    ChiOp \S19, \S19, \S20, \S21, \T02
+    # ChiOp \S15, \S20, \S21, \S17, \T02
+    # ChiOp \S16, \S21, \S17, \S18, \T03
+    # ChiOp \S17, \S17, \S18, \S19, \T02
+    # ChiOp \S18, \S18, \S19, \S20, \T03
+    # ChiOp \S19, \S19, \S20, \S21, \T02
+    xorand      \S15, \S20, \S21, \S17, \T02
+    xoror       \S16, \S21, \S17, \S18, \T03
+    xornotor    \S17, \S17, \S18, \S19, \T02
+    notxorand   \S18, \S18, \S19, \S20, \T03, \T02
+    xoror       \S19, \S19, \S20, \S21, \T02
 
-    ChiOp \S20, \S00, \S01, \S22, \T03
-    ChiOp \S21, \S01, \S22, \S23, \T02
-    ChiOp \S22, \S22, \S23, \S24, \T03
-    ChiOp \S23, \S23, \S24, \S00, \T02
-    ChiOp \S24, \S24, \S00, \S01, \T03
+    # ChiOp \S20, \S00, \S01, \S22, \T03
+    # ChiOp \S21, \S01, \S22, \S23, \T02
+    # ChiOp \S22, \S22, \S23, \S24, \T03
+    # ChiOp \S23, \S23, \S24, \S00, \T02
+    # ChiOp \S24, \S24, \S00, \S01, \T03
+    xornotand   \S20, \S00, \S01, \S22, \T03
+    notxoror    \S21, \S01, \S22, \S23, \T02, \T03
+    xorand      \S22, \S22, \S23, \S24, \T03
+    xoror       \S23, \S23, \S24, \S00, \T02
+    xorand      \S24, \S24, \S00, \S01, \T03
 
-    ChiOp \S00, \T00, \T01, \S02, \T02
-    ChiOp \S01, \T01, \S02, \S03, \T03
-    ChiOp \S02, \S02, \S03, \S04, \T02
-    ChiOp \S03, \S03, \S04, \T00, \T03
-    ChiOp \S04, \S04, \T00, \T01, \T02
+    # ChiOp \S00, \T00, \T01, \S02, \T02
+    # ChiOp \S01, \T01, \S02, \S03, \T03
+    # ChiOp \S02, \S02, \S03, \S04, \T02
+    # ChiOp \S03, \S03, \S04, \T00, \T03
+    # ChiOp \S04, \S04, \T00, \T01, \T02
+    xoror       \S00, \T00, \T01, \S02, \T02
+    xornotor    \S01, \T01, \S02, \S03, \T03
+    xorand      \S02, \S02, \S03, \S04, \T02
+    xoror       \S03, \S03, \S04, \T00, \T03
+    xorand      \S04, \S04, \T00, \T01, \T02
+
     # Iota
     ld   a4, 0(a3)
     vxor.vx \S00, \S00, a4
@@ -305,10 +293,7 @@ KeccakF1600_StatePermute_RV64V_2x:
     li a1, 128
     vsetvli a1, a1, e64, m1, tu, mu
 
-    LoadStates \
-        v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
-        v10, v11, v12, v13, v14, v15, v16, v17, v18, v19,   \
-        v20, v21, v22, v23, v24
+    LoadStates
 
     # a2: loop control variable i
     # a3: table index
@@ -323,9 +308,6 @@ loop:
     addi a2, a2, -1
     bnez a2, loop
 
-    StoreStates \
-        v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
-        v10, v11, v12, v13, v14, v15, v16, v17, v18, v19,   \
-        v20, v21, v22, v23, v24
+    StoreStates
 
     ret
