@@ -29,16 +29,16 @@ constants_keccak:
 .text
 
 .macro SaveRegs
-    sd s0,  0*8(sp)
-    sd s1,  1*8(sp)
-    sd s2,  2*8(sp)
-    sd s3,  3*8(sp)
-    sd s4,  4*8(sp)
-    sd s5,  5*8(sp)
-    sd s6,  6*8(sp)
-    sd s7,  7*8(sp)
-    sd s8,  8*8(sp)
-    sd s9,  9*8(sp)
+    sd s0,   0*8(sp)
+    sd s1,   1*8(sp)
+    sd s2,   2*8(sp)
+    sd s3,   3*8(sp)
+    sd s4,   4*8(sp)
+    sd s5,   5*8(sp)
+    sd s6,   6*8(sp)
+    sd s7,   7*8(sp)
+    sd s8,   8*8(sp)
+    sd s9,   9*8(sp)
     sd s10, 10*8(sp)
     sd s11, 11*8(sp)
     sd gp,  12*8(sp)
@@ -47,16 +47,16 @@ constants_keccak:
 .endm
 
 .macro RestoreRegs
-    ld s0,  0*8(sp)
-    ld s1,  1*8(sp)
-    ld s2,  2*8(sp)
-    ld s3,  3*8(sp)
-    ld s4,  4*8(sp)
-    ld s5,  5*8(sp)
-    ld s6,  6*8(sp)
-    ld s7,  7*8(sp)
-    ld s8,  8*8(sp)
-    ld s9,  9*8(sp)
+    ld s0,   0*8(sp)
+    ld s1,   1*8(sp)
+    ld s2,   2*8(sp)
+    ld s3,   3*8(sp)
+    ld s4,   4*8(sp)
+    ld s5,   5*8(sp)
+    ld s6,   6*8(sp)
+    ld s7,   7*8(sp)
+    ld s8,   8*8(sp)
+    ld s9,   9*8(sp)
     ld s10, 10*8(sp)
     ld s11, 11*8(sp)
     ld gp,  12*8(sp)
@@ -69,6 +69,7 @@ constants_keccak:
                   S10, S11, S12, S13, S14, \
                   S15, S16, S17, S18, S19, \
                   S20, S21, S22, S23, S24
+    # lane complement: 1,2,8,12,17,20
     ld \S00, 0*8(a0)
     ld \S01, 1*8(a0)
     ld \S02, 2*8(a0)
@@ -87,12 +88,18 @@ constants_keccak:
     ld \S15, 15*8(a0)
     ld \S16, 16*8(a0)
     ld \S17, 17*8(a0)
+    not \S01, \S01
+    not \S02, \S02
+    not \S08, \S08
+    not \S12, \S12
+    not \S17, \S17
     ld \S18, 18*8(a0)
     ld \S19, 19*8(a0)
     ld \S20, 20*8(a0)
     ld \S21, 21*8(a0)
     ld \S22, 22*8(a0)
     ld \S23, 23*8(a0)
+    not \S20, \S20
     ld \S24, 24*8(a0)
 .endm
 
@@ -101,6 +108,12 @@ constants_keccak:
                    S10, S11, S12, S13, S14, \
                    S15, S16, S17, S18, S19, \
                    S20, S21, S22, S23, S24
+    not \S01, \S01
+    not \S02, \S02
+    not \S08, \S08
+    not \S12, \S12
+    not \S17, \S17
+    not \S20, \S20
     sd \S00, 0*8(a0)
     sd \S01, 1*8(a0)
     sd \S02, 2*8(a0)
@@ -157,6 +170,46 @@ constants_keccak:
     not \T, \S01
     and \T, \T, \S02
     xor \out, \T, \S00
+.endm
+
+.macro xoror out, S00, S01, S02, T
+    or  \T, \S01, \S02
+    xor \out, \S00, \T
+.endm
+
+.macro xornotor out, S00, S01, S02, T
+    not \T, \S01
+    or  \T, \T, \S02
+    xor \out, \S00, \T
+.endm
+
+.macro xorand out, S00, S01, S02, T
+    and \T, \S01, \S02
+    xor \out, \S00, \T
+.endm
+
+.macro xorornot out, S00, S01, S02, T
+    not \T, \S02
+    or  \T, \T, \S01
+    xor \out, \S00, \T
+.endm
+
+.macro xornotand out, S00, S01, S02, T
+    not \T, \S01
+    and \T, \T, \S02
+    xor \out, \S00, \T
+.endm
+
+.macro notxoror out, S00, S01, S02, T, T0
+    not \T0, \S00
+    or  \T, \S01, \S02
+    xor \out, \T0, \T
+.endm
+
+.macro notxorand out, S00, S01, S02, T, T0
+    not \T0, \S00
+    and \T, \S01, \S02
+    xor \out, \T0, \T
 .endm
 
 .macro ARoundInPlace    S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
@@ -239,35 +292,62 @@ constants_keccak:
     ROLn \S24, \S21, \T02, 2
     ROLn \S21, \S05, \T03, 36
 
-    ChiOp \S05, \S10, \S11, \S07, \T02
-    ChiOp \S06, \S11, \S07, \S08, \T03
-    ChiOp \S07, \S07, \S08, \S09, \T02
-    ChiOp \S08, \S08, \S09, \S10, \T03
-    ChiOp \S09, \S09, \S10, \S11, \T02
+    # ChiOp \S05, \S10, \S11, \S07, \T02
+    # ChiOp \S06, \S11, \S07, \S08, \T03
+    # ChiOp \S07, \S07, \S08, \S09, \T02
+    # ChiOp \S08, \S08, \S09, \S10, \T03
+    # ChiOp \S09, \S09, \S10, \S11, \T02
+    xoror    \S05, \S10, \S11, \S07, \T02
+    xorand   \S06, \S11, \S07, \S08, \T03
+    xorornot \S07, \S07, \S08, \S09, \T02
+    xoror    \S08, \S08, \S09, \S10, \T03
+    xorand   \S09, \S09, \S10, \S11, \T02
 
-    ChiOp \S10, \S15, \S16, \S12, \T03
-    ChiOp \S11, \S16, \S12, \S13, \T02
-    ChiOp \S12, \S12, \S13, \S14, \T03
-    ChiOp \S13, \S13, \S14, \S15, \T02
-    ChiOp \S14, \S14, \S15, \S16, \T03
+    # ChiOp \S10, \S15, \S16, \S12, \T03
+    # ChiOp \S11, \S16, \S12, \S13, \T02
+    # ChiOp \S12, \S12, \S13, \S14, \T03
+    # ChiOp \S13, \S13, \S14, \S15, \T02
+    # ChiOp \S14, \S14, \S15, \S16, \T03
+    xoror       \S10, \S15, \S16, \S12, \T03
+    xorand      \S11, \S16, \S12, \S13, \T02
+    xornotand   \S12, \S12, \S13, \S14, \T03
+    notxoror    \S13, \S13, \S14, \S15, \T02, \T03
+    xorand      \S14, \S14, \S15, \S16, \T03
 
-    ChiOp \S15, \S20, \S21, \S17, \T02
-    ChiOp \S16, \S21, \S17, \S18, \T03
-    ChiOp \S17, \S17, \S18, \S19, \T02
-    ChiOp \S18, \S18, \S19, \S20, \T03
-    ChiOp \S19, \S19, \S20, \S21, \T02
+    # ChiOp \S15, \S20, \S21, \S17, \T02
+    # ChiOp \S16, \S21, \S17, \S18, \T03
+    # ChiOp \S17, \S17, \S18, \S19, \T02
+    # ChiOp \S18, \S18, \S19, \S20, \T03
+    # ChiOp \S19, \S19, \S20, \S21, \T02
+    xorand      \S15, \S20, \S21, \S17, \T02
+    xoror       \S16, \S21, \S17, \S18, \T03
+    xornotor    \S17, \S17, \S18, \S19, \T02
+    notxorand   \S18, \S18, \S19, \S20, \T03, \T02
+    xoror       \S19, \S19, \S20, \S21, \T02
 
-    ChiOp \S20, \S00, \S01, \S22, \T03
-    ChiOp \S21, \S01, \S22, \S23, \T02
-    ChiOp \S22, \S22, \S23, \S24, \T03
-    ChiOp \S23, \S23, \S24, \S00, \T02
-    ChiOp \S24, \S24, \S00, \S01, \T03
+    # ChiOp \S20, \S00, \S01, \S22, \T03
+    # ChiOp \S21, \S01, \S22, \S23, \T02
+    # ChiOp \S22, \S22, \S23, \S24, \T03
+    # ChiOp \S23, \S23, \S24, \S00, \T02
+    # ChiOp \S24, \S24, \S00, \S01, \T03
+    xornotand   \S20, \S00, \S01, \S22, \T03
+    notxoror    \S21, \S01, \S22, \S23, \T02, \T03
+    xorand      \S22, \S22, \S23, \S24, \T03
+    xoror       \S23, \S23, \S24, \S00, \T02
+    xorand      \S24, \S24, \S00, \S01, \T03
 
-    ChiOp \S00, \T00, \T01, \S02, \T02
-    ChiOp \S01, \T01, \S02, \S03, \T03
-    ChiOp \S02, \S02, \S03, \S04, \T02
-    ChiOp \S03, \S03, \S04, \T00, \T03
-    ChiOp \S04, \S04, \T00, \T01, \T02
+    # ChiOp \S00, \T00, \T01, \S02, \T02
+    # ChiOp \S01, \T01, \S02, \S03, \T03
+    # ChiOp \S02, \S02, \S03, \S04, \T02
+    # ChiOp \S03, \S03, \S04, \T00, \T03
+    # ChiOp \S04, \S04, \T00, \T01, \T02
+    xoror       \S00, \T00, \T01, \S02, \T02
+    xornotor    \S01, \T01, \S02, \S03, \T03
+    xorand      \S02, \S02, \S03, \S04, \T02
+    xoror       \S03, \S03, \S04, \T00, \T03
+    xorand      \S04, \S04, \T00, \T01, \T02
+
+    # Iota
     ld   \T04, 17*8(sp)
     ld   \T03, 0(\T04)
     xor  \S00, \S00, \T03
@@ -295,7 +375,7 @@ KeccakF1600_StatePermute_RV64ASM:
     # 17*8(sp): table index
     li a0, 24
     
-rounds1_loop_start:
+loop:
     sd a0, 16*8(sp)
     ARoundInPlace \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
@@ -303,7 +383,7 @@ rounds1_loop_start:
         s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
     ld a0, 16*8(sp)
     addi a0, a0, -1
-    bnez a0, rounds1_loop_start
+    bnez a0, loop
 
     ld a0, 15*8(sp)
     StoreStates \

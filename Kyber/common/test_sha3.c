@@ -2,17 +2,22 @@
 #include <string.h>
 
 #include "cpucycles.h"
-#include "fips202.h"
 #include "speed_print.h"
+#ifndef VECTOR128
+#    include "fips202.h"
+#else
+#    include "fips202x2.h"
+#endif
 
 #if (1)
 // for debug
-void print_hash(uint8_t out[32]);
-void print_stat(uint64_t s[25]);
+void print_hash(uint8_t *out);
+void print_stat(uint64_t *s);
 void test_sha3_256(void);
 void test_keccakf1600(void);
 
-void print_hash(uint8_t out[32])
+#    ifndef VECTOR128
+void print_hash(uint8_t *out)
 {
     for (int i = 0; i < 32; i++) {
         printf("%d ", out[i]);
@@ -20,23 +25,23 @@ void print_hash(uint8_t out[32])
     printf("\n");
 }
 
-#    ifdef RV32
-void print_stat(uint64_t s[25])
+#        ifdef RV32
+void print_stat(uint64_t *s)
 {
     for (int i = 0; i < 25; i++) {
         printf("%llu ", s[i]);
     }
     printf("\n");
 }
-#    else
-void print_stat(uint64_t s[25])
+#        else
+void print_stat(uint64_t *s)
 {
     for (int i = 0; i < 25; i++) {
         printf("%lu ", s[i]);
     }
     printf("\n");
 }
-#    endif
+#        endif
 
 /**
  * The correct result should be:
@@ -81,11 +86,38 @@ void test_keccakf1600(void)
 {
     uint64_t s[25];
     for (int i = 0; i < 25; i++) {
-        s[i] = i * 10 + 1;
+        s[i] = 1;
     }
     KeccakF1600_StatePermute(s);
     print_stat(s);
 }
+
+#    else
+void print_stat(uint64_t *s)
+{
+    v128 *in = (v128 *)s;
+
+    printf("lane 0:\n");
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", in[i].val[0]);
+    }
+    printf("\n");
+    printf("lane 1:\n");
+    for (int i = 0; i < 25; i++) {
+        printf("%lu ", in[i].val[1]);
+    }
+    printf("\n");
+}
+void test_keccakf1600(void)
+{
+    v128 s[25];
+    for (int i = 0; i < 25; i++) {
+        s[i].val[0] = s[i].val[1] = 1;
+    }
+    KeccakF1600x2_StatePermute(s);
+    print_stat((uint64_t *)s);
+}
+#    endif
 #endif
 
 #define NTESTS 10000
@@ -105,17 +137,28 @@ uint64_t t[NTESTS];
 int main(void)
 {
     int i;
+#ifndef VECTOR128
     keccak_state s;
-    // const uint8_t buff[16] = {0};
-    // uint8_t buff_out[4 * SHAKE128_RATE];
+// const uint8_t buff[16] = {0};
+// uint8_t buff_out[4 * SHAKE128_RATE];
+#else
+    keccakx2_state s;
+#endif
+
+#ifndef VECTOR128
 
     test_sha3_256();
     // test_keccakf1600();
-    // return 0;
+#else
+    // test_keccakf1600();
+#endif
 
     printf("Test speed of SHA-3 related subroutines\n");
-
+#ifndef VECTOR128
     PERF_SPEED(KeccakF1600_StatePermute(s.s), KeccakF1600);
+#else
+    PERF_SPEED(KeccakF1600x2_StatePermute(s.s), KeccakF1600);
+#endif
     // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),
     //            shake128_squeezeblocks_1);

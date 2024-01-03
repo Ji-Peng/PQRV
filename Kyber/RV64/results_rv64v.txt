@@ -1,0 +1,6 @@
+Test speed of SHA-3 related subroutines
+KeccakF1600 instructions retired: 6013
+KeccakF1600:
+median: 14601 cycles/ticks
+average: 14979 cycles/ticks
+
