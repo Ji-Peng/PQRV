@@ -182,7 +182,7 @@ int main(void)
     test_sha3_256();
     test_keccakf1600();
 #else
-    // test_keccakf1600();
+    test_keccakf1600();
     // test_keccakf1600x3();
 #endif
 

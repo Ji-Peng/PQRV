@@ -16,8 +16,8 @@ SOURCES_RAND 	= $(COMMONDIR)/randombytes.c
 HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(COMMONDIR)/fips202.h
-SOURCES_RV64IM	= fips202.c fips202_rv64im.S
-SOURCES_RV64IMB	= fips202.c fips202_rv64imb.S
+SOURCES_RV64IM	= fips202.c fips202_rv64im_unroll.S
+SOURCES_RV64IMB	= fips202.c fips202_rv64imb_unroll.S
 SOURCES_RV64V	= fips202x2.c fips202_rv64v.S fips202_rv64imv_hybrid_x3.S
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
