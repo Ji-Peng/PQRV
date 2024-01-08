@@ -1,5 +1,5 @@
-#ifndef FIPS202x2_H
-#define FIPS202x2_H
+#ifndef FIPS202x_H
+#define FIPS202x_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -13,22 +13,34 @@ typedef struct uint64x2_t {
     uint64_t val[2];
 } v128;
 
-typedef struct keccak_x2 {
-    v128 s[25];
-    unsigned int pos;
-} __attribute__((aligned(64))) keccakx2_state;
-
 typedef struct state_3x {
     v128 s_x2[25];
     uint64_t s_x1[25];
 } s_x3;
+
+typedef struct state_4x {
+    v128 s_x2[25];
+    uint64_t s_x1_0[25];
+    uint64_t s_x1_1[25];
+} s_x4;
+
+typedef struct keccak_x2 {
+    v128 s[25];
+    unsigned int pos;
+} __attribute__((aligned(64))) keccakx2_state;
 
 typedef struct keccak_x3 {
     s_x3 s;
     unsigned int pos;
 } __attribute__((aligned(64))) keccakx3_state;
 
+typedef struct keccak_x4 {
+    s_x4 s;
+    unsigned int pos;
+} __attribute__((aligned(64))) keccakx4_state;
+
 void KeccakF1600x2_StatePermute(v128 state[25]);
 void KeccakF1600x3_StatePermute(uint64_t *state);
+void KeccakF1600x4_StatePermute(uint64_t *state);
 
 #endif

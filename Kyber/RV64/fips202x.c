@@ -3,7 +3,7 @@
  * domain "TweetFips202" implementation from https://twitter.com/tweetfips202 by
  * Gilles Van Assche, Daniel J. Bernstein, and Peter Schwabe */
 
-#include "fips202x2.h"
+#include "fips202x.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -65,6 +65,12 @@ extern void KeccakF1600_StatePermute_RV64V_3x(uint64_t *state);
 void KeccakF1600x3_StatePermute(uint64_t *state)
 {
     KeccakF1600_StatePermute_RV64V_3x(state);
+}
+
+extern void KeccakF1600_StatePermute_RV64V_4x(uint64_t *state);
+void KeccakF1600x4_StatePermute(uint64_t *state)
+{
+    KeccakF1600_StatePermute_RV64V_4x(state);
 }
 
 /*************************************************
