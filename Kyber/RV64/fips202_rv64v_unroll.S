@@ -67,115 +67,76 @@ constants_keccak:
 .macro ARoundInPlace    S00_v, S01_v, S02_v, S03_v, S04_v, S05_v, S06_v, S07_v, S08_v, S09_v, \
                         S10_v, S11_v, S12_v, S13_v, S14_v, S15_v, S16_v, S17_v, S18_v, S19_v, \
                         S20_v, S21_v, S22_v, S23_v, S24_v, T00_v, T01_v, T02_v, T03_v, T04_v
-    # theta - start
-    # C0 = S00_v ^ S05_v ^ S10_v ^ S15_v ^ S20_v
     vxor.vv \T00_v, \S00_v, \S05_v
     vxor.vv \T00_v, \T00_v, \S10_v
     vxor.vv \T00_v, \T00_v, \S15_v
     vxor.vv \T00_v, \T00_v, \S20_v
-    # C2 = S02_v ^ S07_v ^ S12_v ^ S17_v ^ S22_v
     vxor.vv \T01_v, \S02_v, \S07_v
     vxor.vv \T01_v, \T01_v, \S12_v
     vxor.vv \T01_v, \T01_v, \S17_v
     vxor.vv \T01_v, \T01_v, \S22_v
-    # T00_v=C0 T01_v=C2
-    # D1 = C0 ^ ROL(C2, 1)
     li a4, 64-1
     vsll.vi \T03_v, \T01_v, 1
     vsrl.vx \T02_v, \T01_v, a4
     vxor.vv \T02_v, \T02_v, \T03_v
     vxor.vv  \T02_v, \T02_v, \T00_v
-    # T00_v=C0 T01_v=C2 T02_v=D1
-
-    # C1 = S01_v ^ S06_v ^ S11_v ^ S16_v ^ S21_v
     vxor.vv \T03_v, \S01_v, \S06_v
     vxor.vv \T03_v, \T03_v, \S11_v
     vxor.vv \T03_v, \T03_v, \S16_v
     vxor.vv \T03_v, \T03_v, \S21_v
-    # T00_v=C0 T01_v=C2 T02_v=D1 T03_v=C1
-    # S06_v ^= D1; S16_v ^= D1; S01_v ^= D1; S11_v ^= D1; S21_v ^= D1
     vxor.vv \S01_v, \S01_v, \T02_v
     vxor.vv \S06_v, \S06_v, \T02_v
     vxor.vv \S11_v, \S11_v, \T02_v
     vxor.vv \S16_v, \S16_v, \T02_v
     vxor.vv \S21_v, \S21_v, \T02_v
-    # T00_v=C0 T01_v=C2 T03_v=C1
-
-    # C4 = S04_v ^ S09_v ^ S14_v ^ S19_v ^ S24_v
     vxor.vv \T02_v, \S04_v, \S09_v
     vxor.vv \T02_v, \T02_v, \S14_v
     vxor.vv \T02_v, \T02_v, \S19_v
     vxor.vv \T02_v, \T02_v, \S24_v
-    # T00_v=C0 T01_v=C2 T03_v=C1 T02_v=C4
-    # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
     vsll.vi \T04_v, \T02_v, 1
     vxor.vv \T01_v, \T01_v, \T04_v
     li a4, 63
     vsrl.vx \T04_v, \T02_v, a4
     vxor.vv \T01_v, \T01_v, \T04_v
-    # T00_v=C0 T01_v=D3 T03_v=C1 T02_v=C4
-
-    # C3 = S03_v ^ S08_v ^ S13_v ^ S18_v ^ S23_v
     vxor.vv \T04_v, \S03_v, \S08_v
     vxor.vv \T04_v, \T04_v, \S13_v
     vxor.vv \T04_v, \T04_v, \S18_v
     vxor.vv \T04_v, \T04_v, \S23_v
-    # T00_v=C0 T01_v=D3 T03_v=C1 T02_v=C4 T04_v=C3
-    # S18_v ^= D3; S03_v ^= D3; S13_v ^= D3; S23_v ^= D3; S08_v ^= D3
     vxor.vv \S03_v, \S03_v, \T01_v
     vxor.vv \S08_v, \S08_v, \T01_v
     vxor.vv \S13_v, \S13_v, \T01_v
     vxor.vv \S18_v, \S18_v, \T01_v
     vxor.vv \S23_v, \S23_v, \T01_v
-    # T00_v=C0 T03_v=C1 T02_v=C4 T04_v=C3
-
-    # D4 = C3 ^ ROL(C0, 1); C0 can be overwritten
     li a4, 64-1
     vsll.vi \T01_v, \T00_v, 1
     vsrl.vx \T00_v, \T00_v, a4
     vxor.vv \T00_v, \T00_v, \T01_v
     vxor.vv \T00_v, \T00_v, \T04_v
-    # T00_v=D4 T03_v=C1 T02_v=C4 T04_v=C3
-    # S24_v ^= D4; S09_v ^= D4; S19_v ^= D4; S04_v ^= D4; S14_v ^= D4
     vxor.vv \S04_v, \S04_v, \T00_v
     vxor.vv \S09_v, \S09_v, \T00_v
     vxor.vv \S14_v, \S14_v, \T00_v
     vxor.vv \S19_v, \S19_v, \T00_v
     vxor.vv \S24_v, \S24_v, \T00_v
-    # T03_v=C1 T02_v=C4 T04_v=C3
-
-    # D2 = C1 ^ ROL(C3, 1)
     li a4, 64-1
     vsll.vi \T01_v, \T04_v, 1
     vsrl.vx \T04_v, \T04_v, a4
     vxor.vv \T04_v, \T04_v, \T01_v
     vxor.vv  \T04_v, \T04_v, \T03_v
-    # T03_v=C1 T02_v=C4 T04_v=D2
-    # S12_v ^= D2; S22_v ^= D2; S07_v ^= D2; S17_v ^= D2; S02_v ^= D2
     vxor.vv \S02_v, \S02_v, \T04_v
     vxor.vv \S07_v, \S07_v, \T04_v
     vxor.vv \S12_v, \S12_v, \T04_v
     vxor.vv \S17_v, \S17_v, \T04_v
     vxor.vv \S22_v, \S22_v, \T04_v
-    # T03_v=C1 T02_v=C4
-
-    # D0 = C4 ^ ROL(C1, 1)
     li a4, 64-1
     vsll.vi \T01_v, \T03_v, 1
     vsrl.vx \T03_v, \T03_v, a4
     vxor.vv \T03_v, \T03_v, \T01_v
     vxor.vv  \T03_v, \T03_v, \T02_v
-    # T03_v=D0
-    # S00_v ^= D0; S05_v ^= D0; S10_v ^= D0; S15_v ^= D0; S20_v ^= D0
-    # EachXOR \S00_v, \S05_v, \S10_v, \S15_v, \S20_v, \T03_v
     vxor.vv \S05_v, \S05_v, \T03_v
     vxor.vv \S10_v, \S10_v, \T03_v
     vxor.vv \S15_v, \S15_v, \T03_v
     vxor.vv \S20_v, \S20_v, \T03_v
     vxor.vv \T00_v, \S00_v, \T03_v
-    # theta - end
-
-    # Rho & Pi & Chi - start
     li a4, 44
     vsll.vx \T02_v, \S06_v, a4
     vsrl.vi \T01_v, \S06_v, 64-44
@@ -272,7 +233,6 @@ constants_keccak:
     vsll.vx \T03_v, \S05_v, a4
     vsrl.vi \S21_v, \S05_v, 64-36
     vxor.vv \S21_v, \S21_v, \T03_v
-
     vor.vv \T02_v, \S11_v, \S07_v
     vxor.vv \S05_v, \S10_v, \T02_v
     vand.vv \T03_v, \S07_v, \S08_v
@@ -284,7 +244,6 @@ constants_keccak:
     vxor.vv \S08_v, \S08_v, \T03_v
     vand.vv \T02_v, \S10_v, \S11_v
     vxor.vv \S09_v, \S09_v, \T02_v
-
     vor.vv \T03_v, \S16_v, \S12_v
     vxor.vv \S10_v, \S15_v, \T03_v
     vand.vv \T02_v, \S12_v, \S13_v
@@ -297,7 +256,6 @@ constants_keccak:
     vxor.vv \S13_v, \T03_v, \T02_v
     vand.vv \T03_v, \S15_v, \S16_v
     vxor.vv \S14_v, \S14_v, \T03_v
-
     vand.vv \T02_v, \S21_v, \S17_v
     vxor.vv \S15_v, \S20_v, \T02_v
     vor.vv \T03_v, \S17_v, \S18_v
@@ -310,7 +268,6 @@ constants_keccak:
     vxor.vv \S18_v, \T02_v, \T03_v
     vor.vv \T02_v, \S20_v, \S21_v
     vxor.vv \S19_v, \S19_v, \T02_v
-
     vnot.v \T03_v, \S01_v
     vand.vv \T03_v, \T03_v, \S22_v
     vxor.vv \S20_v, \S00_v, \T03_v
@@ -323,7 +280,6 @@ constants_keccak:
     vxor.vv \S23_v, \S23_v, \T02_v
     vand.vv \T03_v, \S00_v, \S01_v
     vxor.vv \S24_v, \S24_v, \T03_v
-
     vor.vv \T02_v, \T01_v, \S02_v
     vxor.vv \S00_v, \T00_v, \T02_v
     vnot.v \T03_v, \S02_v
@@ -335,12 +291,9 @@ constants_keccak:
     vxor.vv \S03_v, \S03_v, \T03_v
     vand.vv \T02_v, \T00_v, \T01_v
     vxor.vv \S04_v, \S04_v, \T02_v
-
-    # Iota
     ld   a4, 0(a3)
     vxor.vx \S00_v, \S00_v, a4
     addi a3, a3, 8
-    # Rho & Pi & Chi - end
 .endm
 
 .globl KeccakF1600_StatePermute_RV64V_2x

@@ -369,6 +369,212 @@ constants_keccak:
     # Rho & Pi & Chi - end
 .endm
 
+.macro ARoundInPlace_clear \
+        S00_s, S01_s, S02_s, S03_s, S04_s, S05_s, S06_s, S07_s, S08_s, S09_s, \
+        S10_s, S11_s, S12_s, S13_s, S14_s, S15_s, S16_s, S17_s, S18_s, S19_s, \
+        S20_s, S21_s, S22_s, S23_s, S24_s, T00_s, T01_s, T02_s, T03_s, T04_s
+    xor \T00_s, \S00_s, \S05_s
+    xor \T00_s, \T00_s, \S10_s
+    xor \T00_s, \T00_s, \S15_s
+    xor \T00_s, \T00_s, \S20_s
+    xor \T01_s, \S02_s, \S07_s
+    xor \T01_s, \T01_s, \S12_s
+    xor \T01_s, \T01_s, \S17_s
+    xor \T01_s, \T01_s, \S22_s
+    slli \T03_s, \T01_s, 1
+    srli \T02_s, \T01_s, 64-1
+    xor  \T02_s, \T02_s, \T03_s
+    xor  \T02_s, \T02_s, \T00_s
+    xor \T03_s, \S01_s, \S06_s
+    xor \T03_s, \T03_s, \S11_s
+    xor \T03_s, \T03_s, \S16_s
+    xor \T03_s, \T03_s, \S21_s
+    xor \S01_s, \S01_s, \T02_s
+    xor \S06_s, \S06_s, \T02_s
+    xor \S11_s, \S11_s, \T02_s
+    xor \S16_s, \S16_s, \T02_s
+    xor \S21_s, \S21_s, \T02_s
+    xor \T02_s, \S04_s, \S09_s
+    xor \T02_s, \T02_s, \S14_s
+    xor \T02_s, \T02_s, \S19_s
+    xor \T02_s, \T02_s, \S24_s
+    slli \T04_s, \T02_s, 1
+    xor  \T01_s, \T01_s, \T04_s
+    srli \T04_s, \T02_s, 63
+    xor  \T01_s, \T01_s, \T04_s
+    xor \T04_s, \S03_s, \S08_s
+    xor \T04_s, \T04_s, \S13_s
+    xor \T04_s, \T04_s, \S18_s
+    xor \T04_s, \T04_s, \S23_s
+    xor \S03_s, \S03_s, \T01_s
+    xor \S08_s, \S08_s, \T01_s
+    xor \S13_s, \S13_s, \T01_s
+    xor \S18_s, \S18_s, \T01_s
+    xor \S23_s, \S23_s, \T01_s
+    slli \T01_s, \T00_s, 1
+    srli \T00_s, \T00_s, 64-1
+    xor  \T00_s, \T00_s, \T01_s
+    xor  \T00_s, \T00_s, \T04_s
+    xor \S04_s, \S04_s, \T00_s
+    xor \S09_s, \S09_s, \T00_s
+    xor \S14_s, \S14_s, \T00_s
+    xor \S19_s, \S19_s, \T00_s
+    xor \S24_s, \S24_s, \T00_s
+    slli \T01_s, \T04_s, 1
+    srli \T04_s, \T04_s, 64-1
+    xor  \T04_s, \T04_s, \T01_s
+    xor  \T04_s, \T04_s, \T03_s
+    xor \S02_s, \S02_s, \T04_s
+    xor \S07_s, \S07_s, \T04_s
+    xor \S12_s, \S12_s, \T04_s
+    xor \S17_s, \S17_s, \T04_s
+    xor \S22_s, \S22_s, \T04_s
+    slli \T01_s, \T03_s, 1
+    srli \T03_s, \T03_s, 64-1
+    xor  \T03_s, \T03_s, \T01_s
+    xor  \T03_s, \T03_s, \T02_s
+    xor \S05_s, \S05_s, \T03_s
+    xor \S10_s, \S10_s, \T03_s
+    xor \S15_s, \S15_s, \T03_s
+    xor \S20_s, \S20_s, \T03_s
+    xor \T00_s, \S00_s, \T03_s
+    slli \T02_s, \S06_s, 44
+    srli \T01_s, \S06_s, 64-44
+    xor  \T01_s, \T01_s, \T02_s
+    slli \T03_s, \S02_s, 62
+    srli \S00_s, \S02_s, 64-62
+    xor  \S00_s, \S00_s, \T03_s
+    slli \T02_s, \S12_s, 43
+    srli \S02_s, \S12_s, 64-43
+    xor  \S02_s, \S02_s, \T02_s
+    slli \T03_s, \S13_s, 25
+    srli \S12_s, \S13_s, 64-25
+    xor  \S12_s, \S12_s, \T03_s
+    slli \T02_s, \S19_s, 8
+    srli \S13_s, \S19_s, 64-8
+    xor  \S13_s, \S13_s, \T02_s
+    slli \T03_s, \S23_s, 56
+    srli \S19_s, \S23_s, 64-56
+    xor  \S19_s, \S19_s, \T03_s
+    slli \T02_s, \S15_s, 41
+    srli \S23_s, \S15_s, 64-41
+    xor  \S23_s, \S23_s, \T02_s
+    slli \T03_s, \S01_s, 1
+    srli \S15_s, \S01_s, 64-1
+    xor  \S15_s, \S15_s, \T03_s
+    slli \T02_s, \S08_s, 55
+    srli \S01_s, \S08_s, 64-55
+    xor  \S01_s, \S01_s, \T02_s
+    slli \T03_s, \S16_s, 45
+    srli \S08_s, \S16_s, 64-45
+    xor  \S08_s, \S08_s, \T03_s
+    slli \T02_s, \S07_s, 6
+    srli \S16_s, \S07_s, 64-6
+    xor  \S16_s, \S16_s, \T02_s
+    slli \T03_s, \S10_s, 3
+    srli \S07_s, \S10_s, 64-3
+    xor  \S07_s, \S07_s, \T03_s
+    slli \T02_s, \S03_s, 28
+    srli \S10_s, \S03_s, 64-28
+    xor  \S10_s, \S10_s, \T02_s
+    slli \T03_s, \S18_s, 21
+    srli \S03_s, \S18_s, 64-21
+    xor  \S03_s, \S03_s, \T03_s
+    slli \T02_s, \S17_s, 15
+    srli \S18_s, \S17_s, 64-15
+    xor  \S18_s, \S18_s, \T02_s
+    slli \T03_s, \S11_s, 10
+    srli \S17_s, \S11_s, 64-10
+    xor  \S17_s, \S17_s, \T03_s
+    slli \T02_s, \S09_s, 20
+    srli \S11_s, \S09_s, 64-20
+    xor  \S11_s, \S11_s, \T02_s
+    slli \T03_s, \S22_s, 61
+    srli \S09_s, \S22_s, 64-61
+    xor  \S09_s, \S09_s, \T03_s
+    slli \T02_s, \S14_s, 39
+    srli \S22_s, \S14_s, 64-39
+    xor  \S22_s, \S22_s, \T02_s
+    slli \T03_s, \S20_s, 18
+    srli \S14_s, \S20_s, 64-18
+    xor  \S14_s, \S14_s, \T03_s
+    slli \T02_s, \S04_s, 27
+    srli \S20_s, \S04_s, 64-27
+    xor  \S20_s, \S20_s, \T02_s
+    slli \T03_s, \S24_s, 14
+    srli \S04_s, \S24_s, 64-14
+    xor  \S04_s, \S04_s, \T03_s
+    slli \T02_s, \S21_s, 2
+    srli \S24_s, \S21_s, 64-2
+    xor  \S24_s, \S24_s, \T02_s
+    slli \T03_s, \S05_s, 36
+    srli \S21_s, \S05_s, 64-36
+    xor  \S21_s, \S21_s, \T03_s
+    or  \T02_s, \S11_s, \S07_s
+    xor \S05_s, \S10_s, \T02_s
+    and \T03_s, \S07_s, \S08_s
+    xor \S06_s, \S11_s, \T03_s
+    not \T02_s, \S09_s
+    or  \T02_s, \T02_s, \S08_s
+    xor \S07_s, \S07_s, \T02_s
+    or  \T03_s, \S09_s, \S10_s
+    xor \S08_s, \S08_s, \T03_s
+    and \T02_s, \S10_s, \S11_s
+    xor \S09_s, \S09_s, \T02_s
+    or  \T03_s, \S16_s, \S12_s
+    xor \S10_s, \S15_s, \T03_s
+    and \T02_s, \S12_s, \S13_s
+    xor \S11_s, \S16_s, \T02_s
+    not \T03_s, \S13_s
+    and \T03_s, \T03_s, \S14_s
+    xor \S12_s, \S12_s, \T03_s
+    not \T03_s, \S13_s
+    or  \T02_s, \S14_s, \S15_s
+    xor \S13_s, \T03_s, \T02_s
+    and \T03_s, \S15_s, \S16_s
+    xor \S14_s, \S14_s, \T03_s
+    and \T02_s, \S21_s, \S17_s
+    xor \S15_s, \S20_s, \T02_s
+    or  \T03_s, \S17_s, \S18_s
+    xor \S16_s, \S21_s, \T03_s
+    not \T02_s, \S18_s
+    or  \T02_s, \T02_s, \S19_s
+    xor \S17_s, \S17_s, \T02_s
+    not \T02_s, \S18_s
+    and \T03_s, \S19_s, \S20_s
+    xor \S18_s, \T02_s, \T03_s
+    or  \T02_s, \S20_s, \S21_s
+    xor \S19_s, \S19_s, \T02_s
+    not \T03_s, \S01_s
+    and \T03_s, \T03_s, \S22_s
+    xor \S20_s, \S00_s, \T03_s
+    not \T03_s, \S01_s
+    or  \T02_s, \S22_s, \S23_s
+    xor \S21_s, \T03_s, \T02_s
+    and \T03_s, \S23_s, \S24_s
+    xor \S22_s, \S22_s, \T03_s
+    or  \T02_s, \S24_s, \S00_s
+    xor \S23_s, \S23_s, \T02_s
+    and \T03_s, \S00_s, \S01_s
+    xor \S24_s, \S24_s, \T03_s
+    or  \T02_s, \T01_s, \S02_s
+    xor \S00_s, \T00_s, \T02_s
+    not \T03_s, \S02_s
+    or  \T03_s, \T03_s, \S03_s
+    xor \S01_s, \T01_s, \T03_s
+    and \T02_s, \S03_s, \S04_s
+    xor \S02_s, \S02_s, \T02_s
+    or  \T03_s, \S04_s, \T00_s
+    xor \S03_s, \S03_s, \T03_s
+    and \T02_s, \T00_s, \T01_s
+    xor \S04_s, \S04_s, \T02_s
+    ld   \T04_s, 17*8(sp)
+    ld   \T03_s, 0(\T04_s)
+    xor  \S00_s, \S00_s, \T03_s
+    addi \T04_s, \T04_s, 8
+    sd   \T04_s, 17*8(sp)
+.endm
+
 # 15*8(sp): a0
 # 16*8(sp): loop control variable i
 # 17*8(sp): table index

@@ -13,12 +13,12 @@
 // for debug
 void print_hash(uint8_t *out);
 void print_stat(uint64_t *s);
+void print_statx(uint64_t *s, int x);
 void test_sha3_256(void);
 void test_keccakf1600(void);
-void print_statx3(uint64_t *s);
 void test_keccakf1600x3(void);
-void print_statx4(uint64_t *s);
 void test_keccakf1600x4(void);
+void test_keccakf1600x5(void);
 
 #    ifndef VECTOR128
 void print_hash(uint8_t *out)
@@ -97,66 +97,34 @@ void test_keccakf1600(void)
 }
 
 #    else
-void print_stat(uint64_t *s)
+void print_statx(uint64_t *s, int x)
 {
     v128 *in = (v128 *)s;
-
-    printf("lane 0:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in[i].val[0]);
-    }
-    printf("\n");
-    printf("lane 1:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in[i].val[1]);
-    }
-    printf("\n");
-}
-void print_statx3(uint64_t *s)
-{
-    v128 *in = (v128 *)s;
-    uint64_t *in_x1 = (uint64_t *)&in[25];
-
-    printf("lane 0:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in[i].val[0]);
-    }
-    printf("\n");
-    printf("lane 1:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in[i].val[1]);
-    }
-    printf("\n");
-    printf("lane 2:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in_x1[i]);
-    }
-    printf("\n");
-}
-void print_statx4(uint64_t *s)
-{
-    v128 *in = (v128 *)s;
+    uint64_t t0, t1;
     uint64_t *in_x1_0 = (uint64_t *)&in[25];
-    uint64_t *in_x1_1 = (uint64_t *)&in_x1_0[25];
+    uint64_t *pt0;
 
-    printf("lane 0:\n");
+    printf("vector-lane 0:\n");
     for (int i = 0; i < 25; i++) {
+        if (in[i].val[0] != in[i].val[1]) {
+            printf("ERROR, in[%d].val[0]!=val[1]\n", i);
+        }
         printf("%lu ", in[i].val[0]);
     }
     printf("\n");
-    printf("lane 1:\n");
+    if (x == 0)
+        return;
+    printf("scale-lane 0:\n");
     for (int i = 0; i < 25; i++) {
-        printf("%lu ", in[i].val[1]);
-    }
-    printf("\n");
-    printf("lane 2:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in_x1_0[i]);
-    }
-    printf("\n");
-    printf("lane 3:\n");
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", in_x1_1[i]);
+        t0 = in_x1_0[i];
+        for (int j = 1; j < x; j++) {
+            pt0 = &in_x1_0[j * 25];
+            t1 = pt0[i];
+            if (t0 != t1) {
+                printf("ERROR, scale-lane[0]!=lane[%d] for s[%d]\n", j, i);
+            }
+        }
+        printf("%lu ", t0);
     }
     printf("\n");
 }
@@ -167,7 +135,7 @@ void test_keccakf1600(void)
         s[i].val[0] = s[i].val[1] = i;
     }
     KeccakF1600x2_StatePermute(s);
-    print_stat((uint64_t *)s);
+    print_statx((uint64_t *)s, 2 - 2);
 }
 void test_keccakf1600x3(void)
 {
@@ -176,7 +144,7 @@ void test_keccakf1600x3(void)
         state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1[i] = i;
     }
     KeccakF1600x3_StatePermute((uint64_t *)&state.s);
-    print_statx3((uint64_t *)&state.s);
+    print_statx((uint64_t *)&state.s, 3 - 2);
 }
 void test_keccakf1600x4(void)
 {
@@ -186,7 +154,17 @@ void test_keccakf1600x4(void)
             state.s.s_x1_1[i] = i;
     }
     KeccakF1600x4_StatePermute((uint64_t *)&state.s);
-    print_statx4((uint64_t *)&state.s);
+    print_statx((uint64_t *)&state.s, 4 - 2);
+}
+void test_keccakf1600x5(void)
+{
+    keccakx5_state state;
+    for (int i = 0; i < 25; i++) {
+        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
+            state.s.s_x1_1[i] = state.s.s_x1_2[i] = i;
+    }
+    KeccakF1600x4_StatePermute((uint64_t *)&state.s);
+    print_statx((uint64_t *)&state.s, 4 - 2);
 }
 #    endif
 #endif
@@ -216,15 +194,17 @@ int main(void)
     keccakx2_state s;
     keccakx3_state sx3;
     keccakx4_state sx4;
+    keccakx5_state sx5;
 #endif
 
 #ifndef VECTOR128
     test_sha3_256();
     test_keccakf1600();
 #else
-    test_keccakf1600();
-    test_keccakf1600x3();
-    test_keccakf1600x4();
+    // test_keccakf1600();
+    // test_keccakf1600x3();
+    // test_keccakf1600x4();
+    test_keccakf1600x5();
 #endif
 
     printf("Test speed of SHA-3 related subroutines\n");
@@ -234,6 +214,7 @@ int main(void)
     PERF_SPEED(KeccakF1600x2_StatePermute(s.s), KeccakF1600x2);
     PERF_SPEED(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3);
     PERF_SPEED(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4);
+    PERF_SPEED(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5);
 #endif
     // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),

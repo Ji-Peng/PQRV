@@ -73,6 +73,12 @@ void KeccakF1600x4_StatePermute(uint64_t *state)
     KeccakF1600_StatePermute_RV64V_4x(state);
 }
 
+extern void KeccakF1600_StatePermute_RV64V_5x(uint64_t *state);
+void KeccakF1600x5_StatePermute(uint64_t *state)
+{
+    KeccakF1600_StatePermute_RV64V_5x(state);
+}
+
 /*************************************************
  * Name:        keccak_init
  *

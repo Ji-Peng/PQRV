@@ -743,14 +743,14 @@ KeccakF1600_StatePermute_RV64V_4x:
     SaveRegs
     sd a0, 15*8(sp)
     
+    # set VPU
+    li a1, 128
+    vsetvli a1, a1, e64, m1, tu, mu
+    
     # prepare table index
     la a1, constants_keccak
     sd a1, 17*8(sp)
     sd a1, 18*8(sp)
-
-    # set VPU
-    li a1, 128
-    vsetvli a1, a1, e64, m1, tu, mu
 
     # load states for vector and scalar implementations
     LoadStates \
