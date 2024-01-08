@@ -19,6 +19,7 @@ void test_keccakf1600(void);
 void test_keccakf1600x3(void);
 void test_keccakf1600x4(void);
 void test_keccakf1600x5(void);
+void test_keccakf1600x6(void);
 
 #    ifndef VECTOR128
 void print_hash(uint8_t *out)
@@ -163,8 +164,18 @@ void test_keccakf1600x5(void)
         state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
             state.s.s_x1_1[i] = state.s.s_x1_2[i] = i;
     }
-    KeccakF1600x4_StatePermute((uint64_t *)&state.s);
-    print_statx((uint64_t *)&state.s, 4 - 2);
+    KeccakF1600x5_StatePermute((uint64_t *)&state.s);
+    print_statx((uint64_t *)&state.s, 5 - 2);
+}
+void test_keccakf1600x6(void)
+{
+    keccakx6_state state;
+    for (int i = 0; i < 25; i++) {
+        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
+            state.s.s_x1_1[i] = state.s.s_x1_2[i] = state.s.s_x1_3[i] = i;
+    }
+    KeccakF1600x6_StatePermute((uint64_t *)&state.s);
+    print_statx((uint64_t *)&state.s, 6 - 2);
 }
 #    endif
 #endif
@@ -195,6 +206,7 @@ int main(void)
     keccakx3_state sx3;
     keccakx4_state sx4;
     keccakx5_state sx5;
+    keccakx6_state sx6;
 #endif
 
 #ifndef VECTOR128
@@ -204,7 +216,8 @@ int main(void)
     // test_keccakf1600();
     // test_keccakf1600x3();
     // test_keccakf1600x4();
-    test_keccakf1600x5();
+    // test_keccakf1600x5();
+    test_keccakf1600x6();
 #endif
 
     printf("Test speed of SHA-3 related subroutines\n");
@@ -215,6 +228,7 @@ int main(void)
     PERF_SPEED(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3);
     PERF_SPEED(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4);
     PERF_SPEED(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5);
+    PERF_SPEED(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6);
 #endif
     // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),

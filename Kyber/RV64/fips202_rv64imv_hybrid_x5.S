@@ -994,7 +994,7 @@ loop3:
 
     ld a0, 15*8(sp)
     StoreStates_v
-    addi a0, a0, 25*(16+8+8)
+    addi a0, a0, 25*(8+8)
     StoreStates_s \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \

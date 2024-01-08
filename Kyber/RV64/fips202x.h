@@ -31,6 +31,14 @@ typedef struct state_5x {
     uint64_t s_x1_2[25];
 } s_x5;
 
+typedef struct state_6x {
+    v128 s_x2[25];
+    uint64_t s_x1_0[25];
+    uint64_t s_x1_1[25];
+    uint64_t s_x1_2[25];
+    uint64_t s_x1_3[25];
+} s_x6;
+
 typedef struct keccak_x2 {
     v128 s[25];
     unsigned int pos;
@@ -51,9 +59,15 @@ typedef struct keccak_x5 {
     unsigned int pos;
 } __attribute__((aligned(64))) keccakx5_state;
 
+typedef struct keccak_x6 {
+    s_x6 s;
+    unsigned int pos;
+} __attribute__((aligned(64))) keccakx6_state;
+
 void KeccakF1600x2_StatePermute(v128 state[25]);
 void KeccakF1600x3_StatePermute(uint64_t *state);
 void KeccakF1600x4_StatePermute(uint64_t *state);
 void KeccakF1600x5_StatePermute(uint64_t *state);
+void KeccakF1600x6_StatePermute(uint64_t *state);
 
 #endif
