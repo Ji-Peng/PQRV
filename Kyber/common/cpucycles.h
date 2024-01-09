@@ -46,14 +46,6 @@ static inline uint64_t cputime(void)
     return result;
 }
 
-#    define perf_profile(FUNC, LABEL)                                       \
-        do {                                                                \
-            uint64_t start, end;                                            \
-            start = cpuinstret();                                           \
-            FUNC;                                                           \
-            end = cpuinstret();                                             \
-            printf("%s instructions retired: %llu\n", LABEL, end - start); \
-        } while (0)
 #else
 static inline uint64_t cpucycles(void)
 {
@@ -82,15 +74,26 @@ static inline uint64_t cputime(void)
     return result;
 }
 
-#    define perf_profile(FUNC, LABEL)                                      \
-        do {                                                               \
-            uint64_t start, end;                                           \
-            start = cpuinstret();                                          \
-            FUNC;                                                          \
-            end = cpuinstret();                                            \
-            printf("%s instructions retired: %lu\n", LABEL, end - start); \
-        } while (0)
 #endif
+
+#define perf_profile(FUNC, LABEL)                        \
+    do {                                                 \
+        uint64_t start, end;                             \
+        start = cpuinstret();                            \
+        FUNC;                                            \
+        end = cpuinstret();                              \
+        printf("%s instructions retired: %llu\n", LABEL, \
+               (unsigned long long)(end - start));       \
+    } while (0)
+
+#define get_cpuinstret(FUNC, VALUE) \
+    do {                            \
+        uint64_t start, end;        \
+        start = cpuinstret();       \
+        FUNC;                       \
+        end = cpuinstret();         \
+        VALUE = end - start;        \
+    } while (0)
 
 uint64_t cpucycles_overhead(void);
 

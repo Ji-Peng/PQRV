@@ -119,6 +119,25 @@ constants_keccak:
     ld \S24, 24*8(a0)
 .endm
 
+.macro LoadStates_v
+    # load states for vector impl
+    # lane complement: 1,2,8,12,17,20
+    vl8re64.v v0, (a0)
+    addi a0, a0, 8*16
+    vl8re64.v v8, (a0)
+    addi a0, a0, 8*16
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vl8re64.v v16, (a0)
+    addi a0, a0, 8*16
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle64.v v24, (a0)
+    addi a0, a0, 1*16
+.endm
+
 .macro LoadStates_s \
         S00, S01, S02, S03, S04, \
         S05, S06, S07, S08, S09, \

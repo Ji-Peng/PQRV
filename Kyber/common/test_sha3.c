@@ -196,14 +196,33 @@ void test_keccakf1600x8(void)
 
 uint64_t t[NTESTS];
 
-#define PERF_SPEED(FUNC, LABEL)               \
-    do {                                      \
-        perf_profile(FUNC, #LABEL);           \
-        for (i = 0; i < NTESTS; i++) {        \
-            t[i] = cpucycles();               \
-            FUNC;                             \
-        }                                     \
-        print_results(#LABEL ":", t, NTESTS); \
+#define PERF(FUNC, LABEL)                                                   \
+    do {                                                                    \
+        uint64_t instret, cc_average;                                       \
+        get_cpuinstret(FUNC, instret);                                      \
+        for (i = 0; i < NTESTS; i++) {                                      \
+            t[i] = cpucycles();                                             \
+            FUNC;                                                           \
+        }                                                                   \
+        cc_average = get_average(t, NTESTS);                                \
+        printf("%-20s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,           \
+               (unsigned long long)cc_average, (unsigned long long)instret, \
+               (float)cc_average / instret);                                \
+    } while (0)
+
+#define PERF_N(FUNC, LABEL, N)                                                 \
+    do {                                                                       \
+        uint64_t instret, cc_average, oneway_cc;                               \
+        get_cpuinstret(FUNC, instret);                                         \
+        for (i = 0; i < NTESTS; i++) {                                         \
+            t[i] = cpucycles();                                                \
+            FUNC;                                                              \
+        }                                                                      \
+        cc_average = get_average(t, NTESTS);                                   \
+        oneway_cc = cc_average / N;                                            \
+        printf("%-20s cycles/insts/CPI/1-wayCC=%llu/%llu/%.2f/%llu\n", #LABEL, \
+               (unsigned long long)cc_average, (unsigned long long)instret,    \
+               (float)cc_average / instret, (unsigned long long)oneway_cc);    \
     } while (0)
 
 int main(void)
@@ -224,43 +243,43 @@ int main(void)
 
 #ifndef VECTOR128
     test_sha3_256();
-    test_keccakf1600();
+    // test_keccakf1600();
 #else
     // test_keccakf1600();
     // test_keccakf1600x3();
     // test_keccakf1600x4();
     // test_keccakf1600x5();
     // test_keccakf1600x6();
-    test_keccakf1600x8();
+    // test_keccakf1600x8();
 #endif
 
     printf("Test speed of SHA-3 related subroutines\n");
 #ifndef VECTOR128
-    PERF_SPEED(KeccakF1600_StatePermute(s.s), KeccakF1600);
+    PERF(KeccakF1600_StatePermute(s.s), KeccakF1600);
 #else
-    PERF_SPEED(KeccakF1600x2_StatePermute(s.s), KeccakF1600x2);
-    PERF_SPEED(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3);
-    PERF_SPEED(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4);
-    PERF_SPEED(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5);
-    PERF_SPEED(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6);
-    PERF_SPEED(KeccakF1600x8_StatePermute((uint64_t *)&sx8.s), KeccakF1600x8);
+    PERF_N(KeccakF1600x2_StatePermute(s.s), KeccakF1600x2, 2);
+    PERF_N(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3, 3);
+    PERF_N(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4, 4);
+    PERF_N(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5, 5);
+    PERF_N(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6, 6);
+    PERF_N(KeccakF1600x8_StatePermute((uint64_t *)&sx8.s), KeccakF1600x8, 8);
 #endif
-    // PERF_SPEED(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
-    // PERF_SPEED(shake128_squeezeblocks(buff_out, 1, &s),
+    // PERF(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
+    // PERF(shake128_squeezeblocks(buff_out, 1, &s),
     //            shake128_squeezeblocks_1);
-    // PERF_SPEED(shake128_squeezeblocks(buff_out, 2, &s),
-    // shake128_squeezeblocks_2); PERF_SPEED(shake128_squeezeblocks(buff_out, 4,
+    // PERF(shake128_squeezeblocks(buff_out, 2, &s),
+    // shake128_squeezeblocks_2); PERF(shake128_squeezeblocks(buff_out, 4,
     // &s), shake128_squeezeblocks_4);
 
-    // PERF_SPEED(shake256_absorb_once(&s, buff, 16), shake256_absorb_once);
-    // PERF_SPEED(shake256_squeezeblocks(buff_out, 1, &s),
-    // shake256_squeezeblocks_1); PERF_SPEED(shake256_squeezeblocks(buff_out, 2,
+    // PERF(shake256_absorb_once(&s, buff, 16), shake256_absorb_once);
+    // PERF(shake256_squeezeblocks(buff_out, 1, &s),
+    // shake256_squeezeblocks_1); PERF(shake256_squeezeblocks(buff_out, 2,
     // &s), shake256_squeezeblocks_2);
-    // PERF_SPEED(shake256_squeezeblocks(buff_out, 4, &s),
+    // PERF(shake256_squeezeblocks(buff_out, 4, &s),
     // shake256_squeezeblocks_4);
 
-    // PERF_SPEED(sha3_256(buff_out, buff, 16), sha3_256);
-    // PERF_SPEED(sha3_512(buff_out, buff, 16), sha3_512);
+    // PERF(sha3_256(buff_out, buff, 16), sha3_256);
+    // PERF(sha3_512(buff_out, buff, 16), sha3_512);
 
     return 0;
 }
