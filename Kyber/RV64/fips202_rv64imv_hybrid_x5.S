@@ -119,6 +119,25 @@ constants_keccak:
     ld \S24, 24*8(a0)
 .endm
 
+.macro LoadStates_v
+    # load states for vector impl
+    # lane complement: 1,2,8,12,17,20
+    vl8re64.v v0, (a0)
+    addi a0, a0, 8*16
+    vl8re64.v v8, (a0)
+    addi a0, a0, 8*16
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vl8re64.v v16, (a0)
+    addi a0, a0, 8*16
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle64.v v24, (a0)
+    addi a0, a0, 1*16
+.endm
+
 .macro LoadStates_s \
         S00, S01, S02, S03, S04, \
         S05, S06, S07, S08, S09, \
@@ -896,31 +915,37 @@ constants_keccak:
 # 17*8(sp): table index for scalar impl
 # 18*8(sp): table index for vector impl
 # 19*8(sp): temp
+# 20*8(sp): outer loop control variable j
 .globl KeccakF1600_StatePermute_RV64V_5x
 .align 2
 KeccakF1600_StatePermute_RV64V_5x:
-    addi sp, sp, -8*20
+    addi sp, sp, -8*21
     SaveRegs
     sd a0, 15*8(sp)
-
     # set VPU
     li a1, 128
     vsetvli a1, a1, e64, m1, tu, mu
     
+    li s11, 0
+outer_loop:
+    sd s11, 20*8(sp)
     # prepare table index
-    la a1, constants_keccak
-    sd a1, 17*8(sp)
-    sd a1, 18*8(sp)
-
-    # load states for vector and scalar implementations
-    LoadStates \
+    la ra, constants_keccak
+    sd ra, 17*8(sp)
+    bnez s11, init_1th_loop
+init_0th_loop:
+    sd ra, 18*8(sp)
+    LoadStates_v
+    j init_end
+init_1th_loop:
+    addi a0, a0, 25*8
+init_end:
+    LoadStates_s \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10
-    
     li a0, 8
-
-loop1:
+inner_loop:
     sd a0, 16*8(sp)
     ARoundInPlace \
         v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
@@ -931,75 +956,29 @@ loop1:
         s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
     ld a0, 16*8(sp)
     addi a0, a0, -1
-    bnez a0, loop1
+    bnez a0, inner_loop
 
     ld a0, 15*8(sp)
+    ld s11, 20*8(sp)
+    addi gp, s11, -2
+    beqz gp, final_last_loop
+final_no_last_loop:
     addi a0, a0, 25*16
-    StoreStates_s \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10
-
-    addi a0, a0, 25*8
-    LoadStates_s \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10
-    
-    la s11, constants_keccak
-    sd s11, 17*8(sp)
-
-    li a0, 8
-loop2:
-    sd a0, 16*8(sp)
-    ARoundInPlace \
-        v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
-        v10, v11, v12, v13, v14, v15, v16, v17, v18, v19,   \
-        v20, v21, v22, v23, v24, v25, v26, v27, v28, v29,   \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2,             \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5,             \
-        s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
-    ld a0, 16*8(sp)
-    addi a0, a0, -1
-    bnez a0, loop2
-
-    ld a0, 15*8(sp)
-    addi a0, a0, 25*(16+8)
-    StoreStates_s \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10
-
-    addi a0, a0, 25*8
-    LoadStates_s \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10
-
-    la s11, constants_keccak
-    sd s11, 17*8(sp)
-    li a0, 8
-loop3:
-    sd a0, 16*8(sp)
-    ARoundInPlace \
-        v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
-        v10, v11, v12, v13, v14, v15, v16, v17, v18, v19,   \
-        v20, v21, v22, v23, v24, v25, v26, v27, v28, v29,   \
-        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2,             \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5,             \
-        s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
-    ld a0, 16*8(sp)
-    addi a0, a0, -1
-    bnez a0, loop3
-
-    ld a0, 15*8(sp)
+    j final_end
+final_last_loop:
     StoreStates_v
-    addi a0, a0, 25*(8+8)
+final_end:
+    li ra, 25*8
+    mul ra, ra, s11
+    add a0, a0, ra
     StoreStates_s \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10
+    addi s11, s11, 1
+    li   ra, 3
+    blt  s11, ra, outer_loop
 
     RestoreRegs
-    addi sp, sp, 8*20
+    addi sp, sp, 8*21
     ret
