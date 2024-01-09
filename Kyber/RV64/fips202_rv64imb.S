@@ -176,9 +176,7 @@ constants_keccak:
     # C4 = S04 ^ S09 ^ S14 ^ S19 ^ S24
     XOR5 \T02, \S04, \S09, \S14, \S19, \S24 // T00=C0 T01=C2 T03=C1 T02=C4
     # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
-    slli \T04, \T02, 1
-    xor  \T01, \T01, \T04
-    srli \T04, \T02, 63
+    rori \T04, \T02, 63
     xor  \T01, \T01, \T04 // T00=C0 T01=D3 T03=C1 T02=C4
 
     # C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23

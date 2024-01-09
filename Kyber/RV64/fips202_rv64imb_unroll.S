@@ -131,88 +131,61 @@ constants_keccak:
 .macro ARoundInPlace    S00_s, S01_s, S02_s, S03_s, S04_s, S05_s, S06_s, S07_s, S08_s, S09_s, \
                         S10_s, S11_s, S12_s, S13_s, S14_s, S15_s, S16_s, S17_s, S18_s, S19_s, \
                         S20_s, S21_s, S22_s, S23_s, S24_s, T00_s, T01_s, T02_s, T03_s, T04_s
-    # theta - start
-    # C0 = S00_s ^ S05_s ^ S10_s ^ S15_s ^ S20_s
     xor \T00_s, \S00_s, \S05_s
     xor \T00_s, \T00_s, \S10_s
     xor \T00_s, \T00_s, \S15_s
     xor \T00_s, \T00_s, \S20_s
-    # C2 = S02_s ^ S07_s ^ S12_s ^ S17_s ^ S22_s
     xor \T01_s, \S02_s, \S07_s
     xor \T01_s, \T01_s, \S12_s
     xor \T01_s, \T01_s, \S17_s
     xor \T01_s, \T01_s, \S22_s
-    # D1 = C0 ^ ROL(C2, 1)
     rori \T02_s, \T01_s, 64-1
-    xor  \T02_s, \T02_s, \T00_s // T00_s=C0 T01_s=C2 T02_s=D1
-
-    # C1 = S01_s ^ S06_s ^ S11_s ^ S16_s ^ S21_s
+    xor  \T02_s, \T02_s, \T00_s
     xor \T03_s, \S01_s, \S06_s
     xor \T03_s, \T03_s, \S11_s
     xor \T03_s, \T03_s, \S16_s
     xor \T03_s, \T03_s, \S21_s
-    # S06_s ^= D1; S16_s ^= D1; S01_s ^= D1; S11_s ^= D1; S21_s ^= D1
     xor \S01_s, \S01_s, \T02_s
     xor \S06_s, \S06_s, \T02_s
     xor \S11_s, \S11_s, \T02_s
     xor \S16_s, \S16_s, \T02_s
     xor \S21_s, \S21_s, \T02_s
-
-    # C4 = S04_s ^ S09_s ^ S14_s ^ S19_s ^ S24_s
     xor \T02_s, \S04_s, \S09_s
     xor \T02_s, \T02_s, \S14_s
     xor \T02_s, \T02_s, \S19_s
     xor \T02_s, \T02_s, \S24_s
-    # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
-    slli \T04_s, \T02_s, 1
+    rori \T04_s, \T02_s, 63
     xor  \T01_s, \T01_s, \T04_s
-    srli \T04_s, \T02_s, 63
-    xor  \T01_s, \T01_s, \T04_s // T00_s=C0 T01_s=D3 T03_s=C1 T02_s=C4
-
-    # C3 = S03_s ^ S08_s ^ S13_s ^ S18_s ^ S23_s
     xor \T04_s, \S03_s, \S08_s
     xor \T04_s, \T04_s, \S13_s
     xor \T04_s, \T04_s, \S18_s
     xor \T04_s, \T04_s, \S23_s
-    # S18_s ^= D3; S03_s ^= D3; S13_s ^= D3; S23_s ^= D3; S08_s ^= D3
     xor \S03_s, \S03_s, \T01_s
     xor \S08_s, \S08_s, \T01_s
     xor \S13_s, \S13_s, \T01_s
     xor \S18_s, \S18_s, \T01_s
     xor \S23_s, \S23_s, \T01_s
-
-    # D4 = C3 ^ ROL(C0, 1); C0 can be overwritten
     rori \T00_s, \T00_s, 64-1
-    xor  \T00_s, \T00_s, \T04_s // T00_s=D4 T03_s=C1 T02_s=C4 T04_s=C3
-    # S24_s ^= D4; S09_s ^= D4; S19_s ^= D4; S04_s ^= D4; S14_s ^= D4
+    xor  \T00_s, \T00_s, \T04_s
     xor \S04_s, \S04_s, \T00_s
     xor \S09_s, \S09_s, \T00_s
     xor \S14_s, \S14_s, \T00_s
     xor \S19_s, \S19_s, \T00_s
     xor \S24_s, \S24_s, \T00_s
-
-    # D2 = C1 ^ ROL(C3, 1)
     rori \T04_s, \T04_s, 64-1
-    xor  \T04_s, \T04_s, \T03_s // T03_s=C1 T02_s=C4 T04_s=D2
-    # S12_s ^= D2; S22_s ^= D2; S07_s ^= D2; S17_s ^= D2; S02_s ^= D2
+    xor  \T04_s, \T04_s, \T03_s
     xor \S02_s, \S02_s, \T04_s
     xor \S07_s, \S07_s, \T04_s
     xor \S12_s, \S12_s, \T04_s
     xor \S17_s, \S17_s, \T04_s
     xor \S22_s, \S22_s, \T04_s
-
-    # D0 = C4 ^ ROL(C1, 1)
     rori \T03_s, \T03_s, 64-1
-    xor  \T03_s, \T03_s, \T02_s // T03_s=D0
-    # S00_s ^= D0; S05_s ^= D0; S10_s ^= D0; S15_s ^= D0; S20_s ^= D0
+    xor  \T03_s, \T03_s, \T02_s
     xor \S05_s, \S05_s, \T03_s
     xor \S10_s, \S10_s, \T03_s
     xor \S15_s, \S15_s, \T03_s
     xor \S20_s, \S20_s, \T03_s
     xor \T00_s, \S00_s, \T03_s
-    # theta - end
-
-    # Rho & Pi & Chi - start
     rori \T01_s, \S06_s, 64-44
     rori \S00_s, \S02_s, 64-62
     rori \S02_s, \S12_s, 64-43
@@ -237,8 +210,6 @@ constants_keccak:
     rori \S04_s, \S24_s, 64-14
     rori \S24_s, \S21_s, 64-2
     rori \S21_s, \S05_s, 64-36
-
-
     andn \T02_s, \S07_s, \S11_s
     xor \S05_s, \T02_s, \S10_s
     andn \T03_s, \S08_s, \S07_s
@@ -249,7 +220,6 @@ constants_keccak:
     xor \S08_s, \T03_s, \S08_s
     andn \T02_s, \S11_s, \S10_s
     xor \S09_s, \T02_s, \S09_s
-
     andn \T03_s, \S12_s, \S16_s
     xor \S10_s, \T03_s, \S15_s
     andn \T02_s, \S13_s, \S12_s
@@ -260,7 +230,6 @@ constants_keccak:
     xor \S13_s, \T02_s, \S13_s
     andn \T03_s, \S16_s, \S15_s
     xor \S14_s, \T03_s, \S14_s
-
     andn \T02_s, \S17_s, \S21_s
     xor \S15_s, \T02_s, \S20_s
     andn \T03_s, \S18_s, \S17_s
@@ -271,7 +240,6 @@ constants_keccak:
     xor \S18_s, \T03_s, \S18_s
     andn \T02_s, \S21_s, \S20_s
     xor \S19_s, \T02_s, \S19_s
-
     andn \T03_s, \S22_s, \S01_s
     xor \S20_s, \T03_s, \S00_s
     andn \T02_s, \S23_s, \S22_s
@@ -282,7 +250,6 @@ constants_keccak:
     xor \S23_s, \T02_s, \S23_s
     andn \T03_s, \S01_s, \S00_s
     xor \S24_s, \T03_s, \S24_s
-
     andn \T02_s, \S02_s, \T01_s
     xor \S00_s, \T02_s, \T00_s
     andn \T03_s, \S03_s, \S02_s
@@ -293,13 +260,11 @@ constants_keccak:
     xor \S03_s, \T03_s, \S03_s
     andn \T02_s, \T01_s, \T00_s
     xor \S04_s, \T02_s, \S04_s
-
     ld   \T04_s, 17*8(sp)
     ld   \T03_s, 0(\T04_s)
     xor  \S00_s, \S00_s, \T03_s
     addi \T04_s, \T04_s, 8
     sd   \T04_s, 17*8(sp)
-    # Rho & Pi & Chi - end
 .endm
 
 .globl KeccakF1600_StatePermute_RV64ASM
