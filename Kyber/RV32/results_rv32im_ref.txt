@@ -1,0 +1,31 @@
+sha3_256 once OK!
+sha3_256 twice OK!
+Test speed of SHA-3 related subroutines
+KeccakF1600          cycles/insts/CPI=16271/24487/0.66
+Test speed of Kyber512
+gen_a:                         211886 cycles
+poly_getnoise_eta1:             35465 cycles
+NTT:                            34918 cycles
+INVNTT:                         56184 cycles
+polyvec_basemul_acc_mont:       43581 cycles
+kyber_keypair:                 742720 cycles
+kyber_encaps:                 1009385 cycles
+kyber_decaps:                 1083953 cycles
+Test speed of Kyber768
+gen_a:                         481748 cycles
+poly_getnoise_eta1:             19429 cycles
+NTT:                            34905 cycles
+INVNTT:                         56196 cycles
+polyvec_basemul_acc_mont:       63300 cycles
+kyber_keypair:                1229961 cycles
+kyber_encaps:                 1612144 cycles
+kyber_decaps:                 1695398 cycles
+Test speed of Kyber1024
+gen_a:                         861114 cycles
+poly_getnoise_eta1:             19482 cycles
+NTT:                            34919 cycles
+INVNTT:                         56179 cycles
+polyvec_basemul_acc_mont:       83039 cycles
+kyber_keypair:                1925877 cycles
+kyber_encaps:                 2387516 cycles
+kyber_decaps:                 2478336 cycles

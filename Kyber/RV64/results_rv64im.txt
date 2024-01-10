@@ -1,57 +1,31 @@
 sha3_256 once OK!
 sha3_256 twice OK!
 Test speed of SHA-3 related subroutines
-KeccakF1600 instructions retired: 5001
-KeccakF1600:
-median: 3334 cycles/ticks
-average: 3460 cycles/ticks
-
+KeccakF1600          cycles/insts/CPI=3450/5001/0.69
 Test speed of Kyber512
-gen_a: 
-median: 58273 cycles/ticks
-average: 59817 cycles/ticks
-
-poly_getnoise_eta1: 
-median: 9558 cycles/ticks
-average: 9808 cycles/ticks
-
-poly_getnoise_eta2: 
-median: 6379 cycles/ticks
-average: 6544 cycles/ticks
-
-NTT: 
-median: 34986 cycles/ticks
-average: 35816 cycles/ticks
-
-INVNTT: 
-median: 55722 cycles/ticks
-average: 57031 cycles/ticks
-
-polyvec_basemul_acc_montgomery: 
-median: 41812 cycles/ticks
-average: 42804 cycles/ticks
-
-indcpa_keypair: 
-median: 368905 cycles/ticks
-average: 369301 cycles/ticks
-
-indcpa_enc: 
-median: 507446 cycles/ticks
-average: 506916 cycles/ticks
-
-indcpa_dec: 
-median: 194881 cycles/ticks
-average: 195223 cycles/ticks
-
-kyber_keypair: 
-median: 394128 cycles/ticks
-average: 395113 cycles/ticks
-
-kyber_encaps: 
-median: 567250 cycles/ticks
-average: 567976 cycles/ticks
-
-kyber_decaps: 
-median: 734758 cycles/ticks
-average: 735252 cycles/ticks
-
+gen_a:                          64276 cycles
+poly_getnoise_eta1:              9857 cycles
+NTT:                            36274 cycles
+INVNTT:                         57717 cycles
+polyvec_basemul_acc_mont:       43107 cycles
+kyber_keypair:                 397760 cycles
+kyber_encaps:                  570509 cycles
+kyber_decaps:                  737418 cycles
+Test speed of Kyber768
+gen_a:                         137109 cycles
+poly_getnoise_eta1:              6550 cycles
+NTT:                            35812 cycles
+INVNTT:                         57020 cycles
+polyvec_basemul_acc_mont:       61573 cycles
+kyber_keypair:                 672595 cycles
+kyber_encaps:                  896783 cycles
+kyber_decaps:                 1111772 cycles
+Test speed of Kyber1024
+gen_a:                         245107 cycles
+poly_getnoise_eta1:              6541 cycles
+NTT:                            35811 cycles
+INVNTT:                         57013 cycles
+polyvec_basemul_acc_mont:       80388 cycles
+kyber_keypair:                1027879 cycles
+kyber_encaps:                 1306415 cycles
+kyber_decaps:                 1568814 cycles

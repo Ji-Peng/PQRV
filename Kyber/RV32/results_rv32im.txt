@@ -1,155 +1,31 @@
 sha3_256 once OK!
 sha3_256 twice OK!
 Test speed of SHA-3 related subroutines
-KeccakF1600 instructions retired: 14890
-KeccakF1600:
-median: 8895 cycles/ticks
-average: 9161 cycles/ticks
-
+KeccakF1600          cycles/insts/CPI=9161/14890/0.62
 Test speed of Kyber512
-gen_a: 
-median: 127777 cycles/ticks
-average: 126764 cycles/ticks
-
-poly_getnoise_eta1: 
-median: 20748 cycles/ticks
-average: 21272 cycles/ticks
-
-poly_getnoise_eta2: 
-median: 12084 cycles/ticks
-average: 12387 cycles/ticks
-
-NTT: 
-median: 34109 cycles/ticks
-average: 34910 cycles/ticks
-
-INVNTT: 
-median: 54914 cycles/ticks
-average: 56200 cycles/ticks
-
-polyvec_basemul_acc_montgomery: 
-median: 42552 cycles/ticks
-average: 43559 cycles/ticks
-
-indcpa_keypair: 
-median: 489414 cycles/ticks
-average: 489249 cycles/ticks
-
-indcpa_enc: 
-median: 624290 cycles/ticks
-average: 626173 cycles/ticks
-
-indcpa_dec: 
-median: 192939 cycles/ticks
-average: 193209 cycles/ticks
-
-kyber_keypair: 
-median: 548730 cycles/ticks
-average: 549397 cycles/ticks
-
-kyber_encaps: 
-median: 764529 cycles/ticks
-average: 765744 cycles/ticks
-
-kyber_decaps: 
-median: 889954 cycles/ticks
-average: 890381 cycles/ticks
-
+gen_a:                         126620 cycles
+poly_getnoise_eta1:             21295 cycles
+NTT:                            34920 cycles
+INVNTT:                         56191 cycles
+polyvec_basemul_acc_mont:       43592 cycles
+kyber_keypair:                 550654 cycles
+kyber_encaps:                  766168 cycles
+kyber_decaps:                  890656 cycles
 Test speed of Kyber768
-gen_a: 
-median: 289214 cycles/ticks
-average: 290422 cycles/ticks
-
-poly_getnoise_eta1: 
-median: 12086 cycles/ticks
-average: 12390 cycles/ticks
-
-poly_getnoise_eta2: 
-median: 12083 cycles/ticks
-average: 12388 cycles/ticks
-
-NTT: 
-median: 34104 cycles/ticks
-average: 34925 cycles/ticks
-
-INVNTT: 
-median: 54909 cycles/ticks
-average: 56198 cycles/ticks
-
-polyvec_basemul_acc_montgomery: 
-median: 61850 cycles/ticks
-average: 63340 cycles/ticks
-
-indcpa_keypair: 
-median: 830467 cycles/ticks
-average: 833211 cycles/ticks
-
-indcpa_enc: 
-median: 1011783 cycles/ticks
-average: 1014329 cycles/ticks
-
-indcpa_dec: 
-median: 249824 cycles/ticks
-average: 251391 cycles/ticks
-
-kyber_keypair: 
-median: 921261 cycles/ticks
-average: 922879 cycles/ticks
-
-kyber_encaps: 
-median: 1215301 cycles/ticks
-average: 1218083 cycles/ticks
-
-kyber_decaps: 
-median: 1370689 cycles/ticks
-average: 1373394 cycles/ticks
-
+gen_a:                         287704 cycles
+poly_getnoise_eta1:             12406 cycles
+NTT:                            34914 cycles
+INVNTT:                         56183 cycles
+polyvec_basemul_acc_mont:       63326 cycles
+kyber_keypair:                 921043 cycles
+kyber_encaps:                 1217955 cycles
+kyber_decaps:                 1373064 cycles
 Test speed of Kyber1024
-gen_a: 
-median: 510939 cycles/ticks
-average: 510417 cycles/ticks
-
-poly_getnoise_eta1: 
-median: 12099 cycles/ticks
-average: 12407 cycles/ticks
-
-poly_getnoise_eta2: 
-median: 12104 cycles/ticks
-average: 12410 cycles/ticks
-
-NTT: 
-median: 34101 cycles/ticks
-average: 34920 cycles/ticks
-
-INVNTT: 
-median: 54914 cycles/ticks
-average: 56237 cycles/ticks
-
-polyvec_basemul_acc_montgomery: 
-median: 81094 cycles/ticks
-average: 82988 cycles/ticks
-
-indcpa_keypair: 
-median: 1305406 cycles/ticks
-average: 1307665 cycles/ticks
-
-indcpa_enc: 
-median: 1524797 cycles/ticks
-average: 1526981 cycles/ticks
-
-indcpa_dec: 
-median: 309357 cycles/ticks
-average: 308269 cycles/ticks
-
-kyber_keypair: 
-median: 1419927 cycles/ticks
-average: 1423935 cycles/ticks
-
-kyber_encaps: 
-median: 1792966 cycles/ticks
-average: 1796307 cycles/ticks
-
-kyber_decaps: 
-median: 1980462 cycles/ticks
-average: 1983926 cycles/ticks
-
+gen_a:                         514292 cycles
+poly_getnoise_eta1:             12415 cycles
+NTT:                            34911 cycles
+INVNTT:                         56196 cycles
+polyvec_basemul_acc_mont:       83032 cycles
+kyber_keypair:                1427566 cycles
+kyber_encaps:                 1794793 cycles
+kyber_decaps:                 1981184 cycles
