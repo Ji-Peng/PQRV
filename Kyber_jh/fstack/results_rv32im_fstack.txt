@@ -1,0 +1,21 @@
+Test speed of Kyber512
+NTT:                            13571 cycles
+basemul:                         7029 cycles
+poly_invntt:                    11698 cycles
+kyber_keypair:                 665246 cycles
+kyber_encaps:                  798918 cycles
+kyber_decaps:                  744936 cycles
+Test speed of Kyber768
+NTT:                            13567 cycles
+basemul:                         7025 cycles
+poly_invntt:                    11697 cycles
+kyber_keypair:                1085490 cycles
+kyber_encaps:                 1296901 cycles
+kyber_decaps:                 1217119 cycles
+Test speed of Kyber1024
+NTT:                            13569 cycles
+basemul:                         7023 cycles
+poly_invntt:                    11696 cycles
+kyber_keypair:                1720615 cycles
+kyber_encaps:                 1967873 cycles
+kyber_decaps:                 1861627 cycles
