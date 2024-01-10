@@ -10,7 +10,7 @@ RM = /bin/rm
 
 SOURCES_RAND 	= $(COMMONDIR)/randombytes.c
 HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
-SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c fips202.c keccakf1600.c
+SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c fips202.c keccakf1600.c fips202_rv32im.S
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h fips202.h keccakf1600.h
 SOURCES_RV32IM  = fastaddsub.S fastbasemul.S fastinvntt.S fastntt.S kyber.S matacc_asm.S reduce.S
 
