@@ -14,16 +14,10 @@ typedef struct {
     unsigned int pos;
 } keccak_state;
 
-void shake128_init(keccak_state *state);
-void shake128_absorb(keccak_state *state, const uint8_t *in, size_t inlen);
-void shake128_finalize(keccak_state *state);
 void shake128_squeeze(uint8_t *out, size_t outlen, keccak_state *state);
 void shake128_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen);
 void shake128_squeezeblocks(uint8_t *out, size_t nblocks, keccak_state *state);
 
-void shake256_init(keccak_state *state);
-void shake256_absorb(keccak_state *state, const uint8_t *in, size_t inlen);
-void shake256_finalize(keccak_state *state);
 void shake256_squeeze(uint8_t *out, size_t outlen, keccak_state *state);
 void shake256_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen);
 void shake256_squeezeblocks(uint8_t *out, size_t nblocks, keccak_state *state);
