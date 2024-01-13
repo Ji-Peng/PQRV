@@ -12,43 +12,6 @@
 #define ROL(a, offset) ((a << offset) ^ (a >> (64 - offset)))
 
 /*************************************************
- * Name:        load64
- *
- * Description: Load 8 bytes into uint64_t in little-endian order
- *
- * Arguments:   - const uint8_t *x: pointer to input byte array
- *
- * Returns the loaded 64-bit unsigned integer
- **************************************************/
-static uint64_t load64(const uint8_t x[8])
-{
-    unsigned int i;
-    uint64_t r = 0;
-
-    for (i = 0; i < 8; i++)
-        r |= (uint64_t)x[i] << 8 * i;
-
-    return r;
-}
-
-/*************************************************
- * Name:        store64
- *
- * Description: Store a 64-bit integer to array of 8 bytes in little-endian
- *order
- *
- * Arguments:   - uint8_t *x: pointer to the output byte array (allocated)
- *              - uint64_t u: input 64-bit unsigned integer
- **************************************************/
-static void store64(uint8_t x[8], uint64_t u)
-{
-    unsigned int i;
-
-    for (i = 0; i < 8; i++)
-        x[i] = u >> 8 * i;
-}
-
-/*************************************************
  * Name:        KeccakF1600_StatePermute
  *
  * Description: The Keccak F1600 Permutation
@@ -113,13 +76,16 @@ static void keccak_absorb_once(uint64_t s[25], unsigned int r,
                                const uint8_t *in, size_t inlen, uint8_t p)
 {
     unsigned int i;
+    uint64_t *p0;
 
     for (i = 0; i < 25; i++)
         s[i] = 0;
 
     while (inlen >= r) {
-        for (i = 0; i < r / 8; i++)
-            s[i] ^= load64(in + 8 * i);
+        for (i = 0; i < r / 8; i++) {
+            p0 = (uint64_t *)(in + 8 * i);
+            s[i] ^= *p0;
+        }
         in += r;
         inlen -= r;
         KeccakF1600_StatePermute(s);
@@ -150,11 +116,14 @@ static void keccak_squeezeblocks(uint8_t *out, size_t nblocks, uint64_t s[25],
                                  unsigned int r)
 {
     unsigned int i;
+    uint64_t *p0;
 
     while (nblocks) {
         KeccakF1600_StatePermute(s);
-        for (i = 0; i < r / 8; i++)
-            store64(out + 8 * i, s[i]);
+        for (i = 0; i < r / 8; i++) {
+            p0 = (uint64_t *)(out + 8 * i);
+            *p0 = s[i];
+        }
         out += r;
         nblocks -= 1;
     }
@@ -323,11 +292,14 @@ void sha3_256(uint8_t h[32], const uint8_t *in, size_t inlen)
 {
     unsigned int i;
     uint64_t s[25];
+    uint64_t *p0;
 
     keccak_absorb_once(s, SHA3_256_RATE, in, inlen, 0x06);
     KeccakF1600_StatePermute(s);
-    for (i = 0; i < 4; i++)
-        store64(h + 8 * i, s[i]);
+    for (i = 0; i < 4; i++) {
+        p0 = (uint64_t *)(h + 8 * i);
+        *p0 = s[i];
+    }
 }
 
 /*************************************************
@@ -343,9 +315,12 @@ void sha3_512(uint8_t h[64], const uint8_t *in, size_t inlen)
 {
     unsigned int i;
     uint64_t s[25];
+    uint64_t *p0;
 
     keccak_absorb_once(s, SHA3_512_RATE, in, inlen, 0x06);
     KeccakF1600_StatePermute(s);
-    for (i = 0; i < 8; i++)
-        store64(h + 8 * i, s[i]);
+    for (i = 0; i < 8; i++) {
+        p0 = (uint64_t *)(h + 8 * i);
+        *p0 = s[i];
+    }
 }

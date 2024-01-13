@@ -3,9 +3,8 @@
 
 #include "cpucycles.h"
 #include "speed_print.h"
-#ifndef VECTOR128
 #    include "fips202.h"
-#else
+#ifdef VECTOR128
 #    include "fips202x.h"
 #endif
 
@@ -234,12 +233,11 @@ uint64_t t[NTESTS];
 int main(void)
 {
     int i;
-#ifndef VECTOR128
     keccak_state s;
     const uint8_t buff[16] = {0};
     uint8_t buff_out[4 * SHAKE128_RATE];
-#else
-    keccakx2_state s;
+#ifdef VECTOR128
+    keccakx2_state sx2;
     keccakx3_state sx3;
     keccakx4_state sx4;
     keccakx5_state sx5;
@@ -247,10 +245,9 @@ int main(void)
     keccakx8_state sx8;
 #endif
 
-#ifndef VECTOR128
     test_sha3_256();
     // test_keccakf1600();
-#else
+#ifdef VECTOR128
     // test_keccakf1600();
     // test_keccakf1600x3();
     // test_keccakf1600x4();
@@ -260,10 +257,9 @@ int main(void)
 #endif
 
     printf("Test speed of SHA-3 related subroutines\n");
-#ifndef VECTOR128
     PERF(KeccakF1600_StatePermute(s.s), KeccakF1600);
-#else
-    PERF_N(KeccakF1600x2_StatePermute(s.s), KeccakF1600x2, 2);
+#ifdef VECTOR128
+    PERF_N(KeccakF1600x2_StatePermute(sx2.s), KeccakF1600x2, 2);
     PERF_N(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3, 3);
     PERF_N(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4, 4);
     PERF_N(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5, 5);
