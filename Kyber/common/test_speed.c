@@ -72,6 +72,12 @@ int main()
     }
     print_results("polyvec_basemul_acc_mont: ", t, NTESTS);
 
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_montgomery(&ap, &matrix[0].vec[0], &matrix[1].vec[0]);
+    }
+    print_results("poly_basemul_montgomery: ", t, NTESTS);
+
     // for(i=0;i<NTESTS;i++) {
     //   t[i] = cpucycles();
     //   poly_tomsg(ct,&ap);

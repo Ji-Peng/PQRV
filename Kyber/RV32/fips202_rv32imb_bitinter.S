@@ -1,30 +1,54 @@
 .data
 .align 2
 constants_keccak:
-.quad 0x0000000000000001
-.quad 0x0000000000008082
-.quad 0x800000000000808a
-.quad 0x8000000080008000
-.quad 0x000000000000808b
-.quad 0x0000000080000001
-.quad 0x8000000080008081
-.quad 0x8000000000008009
-.quad 0x000000000000008a
-.quad 0x0000000000000088
-.quad 0x0000000080008009
-.quad 0x000000008000000a
-.quad 0x000000008000808b
-.quad 0x800000000000008b
-.quad 0x8000000000008089
-.quad 0x8000000000008003
-.quad 0x8000000000008002
-.quad 0x8000000000000080
-.quad 0x000000000000800a
-.quad 0x800000008000000a
-.quad 0x8000000080008081
-.quad 0x8000000000008080
-.quad 0x0000000080000001
-.quad 0x8000000080008008
+.word 0x00000001
+.word 0x00000000
+.word 0x00000000
+.word 0x00000089
+.word 0x00000000
+.word 0x8000008b
+.word 0x00000000
+.word 0x80008080
+.word 0x00000001
+.word 0x0000008b
+.word 0x00000001
+.word 0x00008000
+.word 0x00000001
+.word 0x80008088
+.word 0x00000001
+.word 0x80000082
+.word 0x00000000
+.word 0x0000000b
+.word 0x00000000
+.word 0x0000000a
+.word 0x00000001
+.word 0x00008082
+.word 0x00000000
+.word 0x00008003
+.word 0x00000001
+.word 0x0000808b
+.word 0x00000001
+.word 0x8000000b
+.word 0x00000001
+.word 0x8000008a
+.word 0x00000001
+.word 0x80000081
+.word 0x00000000
+.word 0x80000081
+.word 0x00000000
+.word 0x80000008
+.word 0x00000000
+.word 0x00000083
+.word 0x00000000
+.word 0x80008003
+.word 0x00000001
+.word 0x80008088
+.word 0x00000000
+.word 0x80000088
+.word 0x00000001
+.word 0x00008000
+.word 0x00000000
+.word 0x80008082
 
 .text
 
@@ -99,107 +123,42 @@ constants_keccak:
     XOR1 \S04h, \S04l, \Dh, \Dl
 .endm
 
-.macro ROLn outh, outl, S00h, S00l, n
-.if \n < 32
-    slli \outl, \S00l, \n
-    srli \S00l, \S00l, 32-\n
-    srli \outh, \S00h, 32-\n
-    xor  \outl, \outl, \outh
-    slli \outh, \S00h, \n
-    xor  \outh, \outh, \S00l
-.else
-    slli \outl, \S00h, \n-32
-    srli \S00h, \S00h, 64-\n
-    srli \outh, \S00l, 64-\n
-    xor  \outl, \outl, \outh
-    slli \outh, \S00l, \n-32
-    xor  \outh, \outh, \S00h
-.endif
+.macro ROLn_e outh, outl, inh, inl, n
+    rori \outh, \inh, 32-\n
+    rori \outl, \inl, 32-\n
 .endm
 
-.macro ROLnInplace S00h, S00l, T0, T1, n
-.if \n < 32
-    srli \T0,   \S00l, 32-\n
-    slli \S00l, \S00l, \n
-    srli \T1,   \S00h, 32-\n
-    slli \S00h, \S00h, \n
-    xor  \S00l, \S00l, \T1
-    xor  \S00h, \S00h, \T0
-.else
-    slli \T0,  \S00l, \n-32
-    srli \S00l,\S00l, 64-\n
-    slli \T1,  \S00h, \n-32
-    xor  \S00l,\S00l, \T1
-    srli \S00h,\S00h, 64-\n
-    xor  \S00h,\S00h, \T0
-.endif
+.macro ROLn_o outh, outl, inh, inl, n
+    rori \outh, \inl, 32-\n
+    rori \outl, \inh, 32-(\n+1)
 .endm
 
-.macro xoror outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    or \Th, \S01h, \S02h
-    or \Tl, \S01l, \S02l
-    xor \outh, \S00h, \Th
-    xor \outl, \S00l, \Tl
+.macro ROL1 outh, outl, inh, inl
+    mv \outh, \inl
+    rori \outl, \inh, 32-1
 .endm
 
-.macro xornotor outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Th, \S01h
-    not \Tl, \S01l
-    or \Th, \Th, \S02h
-    or \Tl, \Tl, \S02l
-    xor \outh, \S00h, \Th
-    xor \outl, \S00l, \Tl
+# ROL1 for outh,outl and then xor with inh,inl
+.macro ROL1XORInplace outh, outl, inh, inl, T
+    # ROL1(outh,outl) = (outl,ROL1_32b(outh,1))
+    rori \T, \outh, 32-1
+    xor  \outh, \outl, \inh
+    xor  \outl, \T, \inl
 .endm
 
-.macro xorand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    and \Th, \S01h, \S02h
-    and \Tl, \S01l, \S02l
-    xor \outh, \S00h, \Th
-    xor \outl, \S00l, \Tl
-.endm
-
-.macro xorornot outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Th, \S02h
-    not \Tl, \S02l
-    or \Th, \Th, \S01h
-    or \Tl, \Tl, \S01l
-    xor \outh, \S00h, \Th
-    xor \outl, \S00l, \Tl
-.endm
-
-.macro xornotand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Th, \S01h
-    not \Tl, \S01l
-    and \Th, \Th, \S02h
-    and \Tl, \Tl, \S02l
-    xor \outh, \S00h, \Th
-    xor \outl, \S00l, \Tl
-.endm
-
-.macro notxoror outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl, T0
-    not \T0, \S00h
-    or  \Th, \S01h, \S02h
-    xor \outh, \Th, \T0
-
-    not \T0, \S00l
-    or  \Tl, \S01l, \S02l
-    xor \outl, \Tl, \T0
-.endm
-
-.macro notxorand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl, T0
-    not \T0, \S00h
-    and \Th, \S01h, \S02h
-    xor \outh, \Th, \T0
-
-    not \T0, \S00l
-    and \Tl, \S01l, \S02l
-    xor \outl, \Tl, \T0
+.macro ChiOp \
+        outh, outl, \
+        S00h, S00l, S01h, S01l, S02h, S02l, \
+        Th, Tl
+    andn \Th, \S02h, \S01h
+    andn \Tl, \S02l, \S01l
+    xor \outh, \Th, \S00h
+    xor \outl, \Tl, \S00l
 .endm
 
 .macro InitLoad \
         S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
-        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
-        T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
+        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l
     lw \S02l, 2*8(a0)
     lw \S02h, 2*8+4(a0)
     lw \S04l, 4*8(a0)
@@ -218,65 +177,13 @@ constants_keccak:
     lw \S17h, 17*8+4(a0)
     lw \S21l, 21*8(a0)
     lw \S21h, 21*8+4(a0)
-    # lane complement: 1,2,8,12,17,20
-    lw \T00l, 1*8(a0)
-    lw \T00h, 1*8+4(a0)
     lw \S23l, 23*8(a0)
     lw \S23h, 23*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    lw \T01l, 12*8(a0)
-    lw \T01h, 12*8+4(a0)
-    sw \T00l, 1*8(a0)
-    sw \T00h, 1*8+4(a0)
-    not \T01l, \T01l
-    not \T01h, \T01h
-    lw \T00l, 20*8(a0)
-    lw \T00h, 20*8+4(a0)
-    sw \T01l, 12*8(a0)
-    sw \T01h, 12*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    not \S02l, \S02l
-    not \S02h, \S02h
-    sw \T00l, 20*8(a0)
-    sw \T00h, 20*8+4(a0)
-    not \S08l, \S08l
-    not \S08h, \S08h
-    not \S17l, \S17l
-    not \S17h, \S17h
 .endm
 
 .macro FinalStore \
         S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
-        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
-        T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
-    # lane complement: 1,2,8,12,17,20
-    lw \T00l, 1*8(a0)
-    lw \T00h, 1*8+4(a0)
-    not \S02l, \S02l
-    not \S02h, \S02h
-    not \T00l, \T00l
-    not \T00h, \T00h
-    sw \T00l, 1*8(a0)
-    sw \T00h, 1*8+4(a0)
-    lw \T01l, 12*8(a0)
-    lw \T01h, 12*8+4(a0)
-    not \S08l, \S08l
-    not \S08h, \S08h
-    not \T01l, \T01l
-    not \T01h, \T01h
-    sw \T01l, 12*8(a0)
-    sw \T01h, 12*8+4(a0)
-    lw \T00l, 20*8(a0)
-    lw \T00h, 20*8+4(a0)
-    not \S17l, \S17l
-    not \S17h, \S17h
-    not \T00l, \T00l
-    not \T00h, \T00h
-    sw \T00l, 20*8(a0)
-    sw \T00h, 20*8+4(a0)
-    
+        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l
     sw \S02l, 2*8(a0)
     sw \S02h, 2*8+4(a0)
     sw \S04l, 4*8(a0)
@@ -336,8 +243,7 @@ constants_keccak:
 
     # T00=C0, T01=C3
     # D4=C3^ROL(C0,1);
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    XOR1 \T00h, \T00l, \T01h, \T01l
+    ROL1XORInplace \T00h, \T00l, \T01h, \T01l, \T03h
     # T00=D4
 
     # C4=S04+S09+S14+S19+S24
@@ -385,8 +291,7 @@ constants_keccak:
     # T01=C4,T00=C1
 
     # D0=C4^ROL(C1,1)
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    XOR1 \T00h, \T00l, \T01h, \T01l
+    ROL1XORInplace \T00h, \T00l, \T01h, \T01l, \T03h
     # T01=C4,T00=D0
 
     # S00,S05,S10,S15,S20 += D0
@@ -414,8 +319,7 @@ constants_keccak:
     lw \T02h, 25*4(sp)
     lw \T00l, 20*4(sp)
     lw \T00h, 21*4(sp)
-    ROLnInplace \T02h, \T02l, \T03h, \T03l, 1
-    XOR1 \T02h, \T02l, \T00h, \T00l
+    ROL1XORInplace \T02h, \T02l, \T00h, \T00l, \T03h
 
     # T01=C4,T02=D2
     # C2=S02+S07+S12+S17+S22
@@ -449,8 +353,7 @@ constants_keccak:
     # T01=C4,T00=C2
 
     # D3=C2^ROL(C4,1)
-    ROLnInplace \T01h, \T01l, \T03h, \T03l, 1
-    XOR1 \T01h, \T01l, \T00h, \T00l
+    ROL1XORInplace \T01h, \T01l, \T00h, \T00l, \T03h
     # T01=D3
 
     # S03,S08,S13,S18,S23 += D3
@@ -476,8 +379,7 @@ constants_keccak:
     # D1=C0^ROL(C2,1)
     lw \T01l, 18*4(sp)
     lw \T01h, 19*4(sp)
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    XOR1 \T00h, \T00l, \T01h, \T01l
+    ROL1XORInplace \T00h, \T00l, \T01h, \T01l, \T03h
     # T00=D1
 
     # S01,S06,S11,S16,S21 += D1
@@ -499,49 +401,49 @@ constants_keccak:
     sw \T02l, 11*8(a0)
     sw \T02h, 11*8+4(a0)
 
+    # ROLn \S00h, \S00l, \S21h, \S21l,  2
+    # ROLn \T01h, \T01l, \S06h, \S06l, 44
+    lw \T02l, 6*8(a0)
+    lw \T02h, 6*8+4(a0)
     lw \T00l, 0*8(a0)
     lw \T00h, 0*8+4(a0)
-    # ROLn \T01h, \T01l, \S06h, \S06l, 44
-    # ROLn \S00h, \S00l, \S21h, \S21l,  2
-    lw \T01l, 6*8(a0)
-    lw \T01h, 6*8+4(a0)
-    ROLn \T03h, \T03l, \S21h, \S21l, 2
-    ROLnInplace \T01h, \T01l, \T02h, \T02l, 44
+    ROLn_e \T03h, \T03l, \S21h, \S21l, 1
+    ROLn_e \T01h, \T01l, \T02h, \T02l, 22
     sw \T03l, 0*8(a0)
     sw \T03h, 0*8+4(a0)
     # ROLn \S21h, \S21l, \S08h, \S08l, 55
-    ROLn \S21h, \S21l, \S08h, \S08l, 55
+    ROLn_o \S21h, \S21l, \S08h, \S08l, 27
     # ROLn \S08h, \S08l, \S16h, \S16l, 45
-    ROLn \S08h, \S08l, \S16h, \S16l, 45
+    ROLn_o \S08h, \S08l, \S16h, \S16l, 22
     # ROLn \S16h, \S16l, \S05h, \S05l, 36
     # ROLn \S05h, \S05l, \S03h, \S03l, 28
     # ROLn \S03h, \S03l, \S18h, \S18l, 21
-    lw \T02l, 3*8(a0)
+    lw \T02l, 3*8(a0)    
     lw \T02h, 3*8+4(a0)
-    ROLn \S16h, \S16l, \S05h, \S05l, 36
+    ROLn_e \S16h, \S16l, \S05h, \S05l, 18
     lw \T03l, 18*8(a0)
     lw \T03h, 18*8+4(a0)
-    ROLn \S05h, \S05l, \T02h, \T02l, 28
-    ROLn \T02h, \T02l, \T03h, \T03l, 21
+    ROLn_e \S05h, \S05l, \T02h, \T02l, 14
+    ROLn_o \T02h, \T02l, \T03h, \T03l, 10
     # ROLn \S18h, \S18l, \S13h, \S13l, 25
-    lw \T03l, 13*8(a0)
-    lw \T03h, 13*8+4(a0)
     sw \T02l, 3*8(a0)
+    lw \T04, 13*8(a0)
+    lw \T02l, 13*8+4(a0)
     sw \T02h, 3*8+4(a0)
-    ROLnInplace \T03h, \T03l, \T04, \T02l, 25
+    ROLn_o \T03h, \T03l, \T02l, \T04, 12
     sw \T03l, 18*8(a0)
     sw \T03h, 18*8+4(a0)
     # ROLn \S13h, \S13l, \S10h, \S10l, 3
     # ROLn \S10h, \S10l, \S01h, \S01l, 1
-    ROLn \T02h, \T02l, \S10h, \S10l, 3
+    ROLn_o \T02h, \T02l, \S10h, \S10l, 1
     lw \T03l, 1*8(a0)
     lw \T03h, 1*8+4(a0)
     sw \T02l, 13*8(a0)
     sw \T02h, 13*8+4(a0)
-    ROLn \S10h, \S10l, \T03h, \T03l, 1
+    ROL1 \S10h, \S10l, \T03h, \T03l
     # ROLn \S01h, \S01l, \S02h, \S02l, 62
     # ROLn \S02h, \S02l, \S12h, \S12l, 43
-    ROLn \T02h, \T02l, \S02h, \S02l, 62
+    ROLn_e \T02h, \T02l, \S02h, \S02l, 31
     lw \T03l, 12*8(a0)
     lw \T03h, 12*8+4(a0)
     sw \T02l, 1*8(a0)
@@ -550,42 +452,42 @@ constants_keccak:
     # ROLn \S09h, \S09l, \S22h, \S22l, 61
     lw \T02l, 9*8(a0)
     lw \T02h, 9*8+4(a0)
-    ROLn \S02h, \S02l, \T03h, \T03l, 43
-    ROLn \T03h, \T03l, \T02h, \T02l, 20
-    lw \T02l, 22*8(a0)
-    lw \T02h, 22*8+4(a0)
-    sw \T03l, 12*8(a0)
+    ROLn_o \S02h, \S02l, \T03h, \T03l, 21
+    ROLn_e \T03h, \T03l, \T02h, \T02l, 10
+    lw \T04, 22*8(a0)
     sw \T03h, 12*8+4(a0)
-    ROLnInplace \T02h, \T02l, \T04, \T03l, 61
+    lw \T03h, 22*8+4(a0)
+    sw \T03l, 12*8(a0)
+    ROLn_o \T02h, \T02l, \T03h, \T04, 30
     sw \T02l, 9*8(a0)
     sw \T02h, 9*8+4(a0)
-    # ROLn \S22h, \S22l, \S14h, \S14l,  39
+    # ROLn \S22h, \S22l, \S14h, \S14l, 39
     # ROLn \S14h, \S14l, \S20h, \S20l, 18
-    ROLn \T03h, \T03l, \S14h, \S14l, 39
+    ROLn_o \T03h, \T03l, \S14h, \S14l, 19
     lw \T02l, 20*8(a0)
     lw \T02h, 20*8+4(a0)
     sw \T03l, 22*8(a0)
     sw \T03h, 22*8+4(a0)
-    ROLn \S14h, \S14l, \T02h, \T02l, 18
+    ROLn_e \S14h, \S14l, \T02h, \T02l, 9
     # ROLn \S20h, \S20l, \S23h, \S23l, 56
     # ROLn \S23h, \S23l, \S15h, \S15l, 41
-    ROLn \T02h, \T02l, \S23h, \S23l, 56
+    ROLn_e \T02h, \T02l, \S23h, \S23l, 28
     lw \T03l, 15*8(a0)
     lw \T03h, 15*8+4(a0)
     sw \T02l, 20*8(a0)
     sw \T02h, 20*8+4(a0)
-    ROLn \S23h, \S23l, \T03h, \T03l, 41
+    ROLn_o \S23h, \S23l, \T03h, \T03l, 20
     # ROLn \S15h, \S15l, \S04h, \S04l, 27
     # ROLn \S04h, \S04l, \S24h, \S24l, 14
-    ROLn \T02h, \T02l, \S04h, \S04l, 27
+    ROLn_o \T02h, \T02l, \S04h, \S04l, 13
     lw \T03l, 24*8(a0)
     lw \T03h, 24*8+4(a0)
     sw \T02l, 15*8(a0)
     sw \T02h, 15*8+4(a0)
-    ROLn \S04h, \S04l, \T03h, \T03l, 14
+    ROLn_e \S04h, \S04l, \T03h, \T03l, 7
     # ROLn \S24h, \S24l, \S17h, \S17l, 15
     # ROLn \S17h, \S17l, \S11h, \S11l, 10
-    ROLn \T02h, \T02l, \S17h, \S17l, 15
+    ROLn_o \T02h, \T02l, \S17h, \S17l, 7
     lw \T03l, 11*8(a0)
     lw \T03h, 11*8+4(a0)
     sw \T02l, 24*8(a0)
@@ -593,14 +495,14 @@ constants_keccak:
     # ROLn \S11h, \S11l, \S07h, \S07l, 6
     lw \T04, 7*8(a0)
     lw \T02l, 7*8+4(a0)
-    ROLn \S17h, \S17l, \T03h, \T03l, 10
-    ROLnInplace \T02l, \T04, \T03h, \T03l, 6
+    ROLn_e \S17h, \S17l, \T03h, \T03l, 5
+    ROLn_e \T03h, \T03l, \T02l, \T04, 3
     # ROLn \S19h, \S19l, \S19h, \S19l, \T04, 8
-    lw \T03l, 19*8(a0)
-    lw \T03h, 19*8+4(a0)
-    sw \T04, 11*8(a0)
-    sw \T02l, 11*8+4(a0)
-    ROLnInplace \T03h, \T03l, \T02h, \T04, 8
+    lw \T04, 19*8(a0)
+    lw \T02h, 19*8+4(a0)
+    sw \T03l, 11*8(a0)
+    sw \T03h, 11*8+4(a0)
+    ROLn_e \T03h, \T03l, \T02h, \T04, 4
     # store T00,T01
     sw \T00l, 18*4(sp)
     sw \T00h, 19*4(sp)
@@ -615,39 +517,44 @@ constants_keccak:
     lw \T01h, 13*8+4(a0)
     lw \T00l, 12*8(a0)
     lw \T00h, 12*8+4(a0)
-    xorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S08h, \S08l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S08h, \S08l, \T03h, \T03l
     lw \T02l, 9*8(a0)
     lw \T02h, 9*8+4(a0)
     sw \T03l, 6*8(a0)
     sw \T03h, 6*8+4(a0)
-    xorornot \T03h, \T03l, \T01h, \T01l, \S08h, \S08l, \T02h, \T02l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S08h, \S08l, \T02h, \T02l, \T03h, \T03l
     sw \T03l, 7*8(a0)
     sw \T03h, 7*8+4(a0)
-    xoror \S08h, \S08l, \S08h, \S08l, \T02h, \T02l, \S05h, \S05l, \T03h, \T03l
-    xorand \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \S08h, \S08l, \S08h, \S08l, \T02h, \T02l, \S05h, \S05l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
     sw \T02l, 9*8(a0)
-    or  \T03l, \T00l, \T01l
     sw \T02h, 9*8+4(a0)
-    or  \T03h, \T00h, \T01h
-    lw \T01l, 19*8(a0)
-    xor \S05h, \S05h, \T03h
-    lw \T01h, 19*8+4(a0)
-    xor \S05l, \S05l, \T03l
-    lw \T02l, 11*8(a0)
-    lw \T02h, 11*8+4(a0)
+    # ChiOp \S05h, \S05l, \S05h, \S05l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    andn \T03l, \T01l, \T00l
+    andn \T03h, \T01h, \T00h
     lw \T00l, 18*8(a0)
+    xor \S05h, \T03h, \S05h
     lw \T00h, 18*8+4(a0)
+    xor \S05l, \T03l, \S05l
+    lw \T01l, 19*8(a0)
+    lw \T01h, 19*8+4(a0)
 
     # T00,T01,S14,S10,T02=S'12,S'13,S'14,S'10,S'11
-    xornotand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
+    # ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
+    andn \T03l, \S14l, \T01l
+    lw \T02l, 11*8(a0)
+    andn \T03h, \S14h, \T01h
+    lw \T02h, 11*8+4(a0)
+    xor  \T03l, \T03l, \T00l
+    xor  \T03h, \T03h, \T00h
     sw \T03l, 12*8(a0)
     sw \T03h, 12*8+4(a0)
-    notxoror \T03h, \T03l, \T01h, \T01l, \S14h, \S14l, \S10h, \S10l, \T03h, \T03l, \T04
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S14h, \S14l, \S10h, \S10l, \T03h, \T03l
     sw \T03l, 13*8(a0)
     sw \T03h, 13*8+4(a0)
-    xorand \S14h, \S14l, \S14h, \S14l, \S10h, \S10l, \T02h, \T02l, \T03h, \T03l
-    xoror \S10h, \S10l, \S10h, \S10l, \T02h, \T02l, \T00h, \T00l, \T03h, \T03l
-    xorand \T02h, \T02l, \T02h, \T02l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    ChiOp \S14h, \S14l, \S14h, \S14l, \S10h, \S10l, \T02h, \T02l, \T03h, \T03l
+    ChiOp \S10h, \S10l, \S10h, \S10l, \T02h, \T02l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
     lw \T01l, 20*8(a0)
     lw \T01h, 20*8+4(a0)
     sw \T02l, 11*8(a0)
@@ -658,52 +565,52 @@ constants_keccak:
     lw \T00h, 24*8+4(a0)
     lw \T02l, 15*8(a0)
     lw \T02h, 15*8+4(a0)
-    notxorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l, \T04
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l
     sw \T03l, 18*8(a0)
     sw \T03h, 18*8+4(a0)
-    xoror \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S16h, \S16l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S16h, \S16l, \T03h, \T03l
     sw \T03l, 19*8(a0)
     sw \T03h, 19*8+4(a0)
-    xorand \T02h, \T02l, \T02h, \T02l, \S16h, \S16l, \S17h, \S17l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S16h, \S16l, \S17h, \S17l, \T03h, \T03l
     sw \T02l, 15*8(a0)
     sw \T02h, 15*8+4(a0)
-    xoror \S16h, \S16l, \S16h, \S16l, \S17h, \S17l, \T00h, \T00l, \T03h, \T03l
-    lw \T02l, 22*8(a0)
-    not \T03h, \T00h
-    lw \T02h, 22*8+4(a0)
-    not \T03l, \T00l
+    ChiOp \S16h, \S16l, \S16h, \S16l, \S17h, \S17l, \T00h, \T00l, \T03h, \T03l
+    # ChiOp \S17h, \S17l, \S17h, \S17l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    andn \T03l, \T01l, \T00l
+    andn \T03h, \T01h, \T00h
     lw \T00l, 0*8(a0)
-    or  \T03h, \T03h, \T01h
     lw \T00h, 0*8+4(a0)
-    or  \T03l, \T03l, \T01l
-    lw \T01l, 1*8(a0)
     xor \S17h, \S17h, \T03h
-    lw \T01h, 1*8+4(a0)
+    lw \T01l, 1*8(a0)
     xor \S17l, \S17l, \T03l
+    lw \T01h, 1*8+4(a0)
 
     # T00,T01,S21,T02,S23=S'24,S'20,S'21,S'22,S'23
-    xorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
+    lw \T02l, 22*8(a0)
+    lw \T02h, 22*8+4(a0)
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
     sw \T03l, 24*8(a0)
     sw \T03h, 24*8+4(a0)
-    xornotand \T03h, \T03l, \T01h, \T01l, \S21h, \S21l, \T02h, \T02l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S21h, \S21l, \T02h, \T02l, \T03h, \T03l
     sw \T03l, 20*8(a0)
     sw \T03h, 20*8+4(a0)
-    notxoror \S21h, \S21l, \S21h, \S21l, \T02h, \T02l, \S23h, \S23l, \T03h, \T03l, \T04
-    xorand \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \S21h, \S21l, \S21h, \S21l, \T02h, \T02l, \S23h, \S23l, \T03h, \T03l
+    ChiOp \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
     sw \T02l, 22*8(a0)
-    or  \T03l, \T00l, \T01l
     sw \T02h, 22*8+4(a0)
-    or  \T03h, \T00h, \T01h
+    # ChiOp \S23h, \S23l, \S23h, \S23l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    andn \T03l, \T01l, \T00l
+    andn \T03h, \T01h, \T00h
     lw \T00l, 18*4(sp)
-    xor \S23h, \S23h, \T03h
     lw \T00h, 19*4(sp)
-    xor \S23l, \S23l, \T03l
+    xor \S23h, \S23h, \T03h
     lw \T01l, 20*4(sp)
     lw \T01h, 21*4(sp)
+    xor \S23l, \S23l, \T03l
 
     # T00,T01,S02,T02,S04=S'00-S'04
     # restore T00,T01 from stack
-    xoror \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
     # Itoa
     lw \T04, 17*4(sp)
     lw \T02l, 0(\T04)
@@ -716,14 +623,14 @@ constants_keccak:
     sw \T03l, 0*8(a0)
     sw \T03h, 0*8+4(a0)
 
-    xornotor \T03h, \T03l, \T01h, \T01l, \S02h, \S02l, \T02h, \T02l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T01h, \T01l, \S02h, \S02l, \T02h, \T02l, \T03h, \T03l
     sw \T03l, 1*8(a0)
     sw \T03h, 1*8+4(a0)
-    xorand \S02h, \S02l, \S02h, \S02l, \T02h, \T02l, \S04h, \S04l, \T03h, \T03l
-    xoror \T03h, \T03l, \T02h, \T02l, \S04h, \S04l, \T00h, \T00l, \T03h, \T03l
+    ChiOp \S02h, \S02l, \S02h, \S02l, \T02h, \T02l, \S04h, \S04l, \T03h, \T03l
+    ChiOp \T03h, \T03l, \T02h, \T02l, \S04h, \S04l, \T00h, \T00l, \T03h, \T03l
     sw \T03l, 3*8(a0)
     sw \T03h, 3*8+4(a0)
-    xorand \S04h, \S04l, \S04h, \S04l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+    ChiOp \S04h, \S04l, \S04h, \S04l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
 .endm
 
 # stack: 
@@ -746,8 +653,7 @@ KeccakF1600_StatePermute_RV32ASM:
 
     InitLoad \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10,s11,ra, gp, tp
+        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5
 
     li tp, 24
 
@@ -764,8 +670,7 @@ loop_start:
 
     FinalStore \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-        s6, s7, s8, s9, s10,s11,ra, gp, tp
+        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5
 
     RestoreRegs
     addi sp, sp, 4*28

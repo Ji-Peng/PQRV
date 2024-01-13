@@ -11,7 +11,7 @@
 
 #if (1)
 // for debug
-void print_hash(uint8_t *out);
+void print_bytes(uint8_t *out, int len);
 void print_stat(uint64_t *s);
 void print_statx(uint64_t *s, int x);
 void test_sha3_256(void);
@@ -23,11 +23,13 @@ void test_keccakf1600x6(void);
 void test_keccakf1600x8(void);
 
 #    ifndef VECTOR128
-void print_hash(uint8_t *out)
+void print_bytes(uint8_t *out, int len)
 {
-    for (int i = 0; i < 32; i++) {
-        printf("%d ", out[i]);
+    int i;
+    for (i = 0; i < len - 1; i++) {
+        printf("%d, ", out[i]);
     }
+    printf("%d", out[i]);
     printf("\n");
 }
 
@@ -60,31 +62,35 @@ void print_stat(uint64_t *s)
  */
 void test_sha3_256(void)
 {
-    const uint8_t in[] = "Hello world, I am testing sha3!";
-    const uint8_t out_once[32] = {190, 47,  181, 116, 251, 237, 130, 151,
-                                  42,  99,  10,  169, 144, 68,  179, 193,
-                                  166, 122, 99,  80,  249, 221, 224, 191,
-                                  131, 54,  106, 12,  15,  130, 199, 28};
-    const uint8_t out_twice[32] = {144, 122, 237, 223, 209, 118, 6,   246,
-                                   47,  97,  126, 39,  59,  24,  191, 232,
-                                   217, 50,  214, 118, 56,  95,  54,  150,
-                                   36,  116, 79,  85,  156, 160, 53,  103};
-    uint8_t out[32];
+    const uint8_t in1[] =
+        "Hello world, I am testing sha3!Hello world, I am testing sha3!Hello "
+        "world, I am testing sha3!Hello world, I am testing sha3!Hello world, "
+        "I am testing sha3!Hello world, I am testing sha3!Hello world, I am "
+        "testing sha3!Hello world, I am testing sha3!";
+    const uint8_t out1[32] = {31,  139, 27,  72,  175, 159, 157, 39,
+                              238, 238, 215, 9,   141, 60,  72,  150,
+                              84,  233, 116, 90,  148, 220, 111, 29,
+                              35,  200, 145, 232, 5,   6,   106, 167};
+    const uint8_t out2[64] = {
+        102, 185, 231, 18,  88,  159, 91,  48,  197, 118, 109, 20,  250,
+        240, 235, 20,  28,  13,  96,  246, 117, 111, 28,  124, 111, 219,
+        10,  171, 67,  35,  247, 184, 62,  117, 106, 151, 224, 166, 106,
+        247, 183, 80,  8,   141, 1,   108, 211, 248, 91,  32,  75,  219,
+        104, 242, 38,  144, 37,  83,  156, 231, 22,  86,  13,  183};
+    uint8_t out[64];
 
-    sha3_256(out, in, sizeof(in));
-    if (memcmp(out, out_once, 32) == 0) {
-        printf("sha3_256 once OK!\n");
+    sha3_256(out, in1, sizeof(in1));
+    if (memcmp(out, out1, 32) == 0) {
     } else {
-        printf("sha3_256 once FAILED: ");
-        print_hash(out);
+        printf("sha3_256 FAILED: ");
+        print_bytes(out, 32);
     }
 
-    sha3_256(out, out, 32);
-    if (memcmp(out, out_twice, 32) == 0) {
-        printf("sha3_256 twice OK!\n");
+    sha3_512(out, in1, sizeof(in1));
+    if (memcmp(out, out2, 64) == 0) {
     } else {
-        printf("sha3_256 twice FAILED: ");
-        print_hash(out);
+        printf("sha3_512 FAILED: ");
+        print_bytes(out, 64);
     }
 }
 
@@ -230,8 +236,8 @@ int main(void)
     int i;
 #ifndef VECTOR128
     keccak_state s;
-// const uint8_t buff[16] = {0};
-// uint8_t buff_out[4 * SHAKE128_RATE];
+    const uint8_t buff[16] = {0};
+    uint8_t buff_out[4 * SHAKE128_RATE];
 #else
     keccakx2_state s;
     keccakx3_state sx3;
@@ -278,7 +284,7 @@ int main(void)
     // PERF(shake256_squeezeblocks(buff_out, 4, &s),
     // shake256_squeezeblocks_4);
 
-    // PERF(sha3_256(buff_out, buff, 16), sha3_256);
+    PERF(sha3_256(buff_out, buff, 16), sha3_256);
     // PERF(sha3_512(buff_out, buff, 16), sha3_512);
 
     return 0;
