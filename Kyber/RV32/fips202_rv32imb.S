@@ -64,20 +64,6 @@ constants_keccak:
     lw ra,  14*4(sp)
 .endm
 
-.macro XOR5 outh, outl, \
-            S00h, S00l, S05h, S05l,\
-            S10h, S10l, S15h, S15l,\
-            S20h, S20l
-    xor \outh, \S00h, \S05h
-    xor \outl, \S00l, \S05l
-    xor \outh, \outh, \S10h
-    xor \outl, \outl, \S10l
-    xor \outh, \outh, \S15h
-    xor \outl, \outl, \S15l
-    xor \outh, \outh, \S20h
-    xor \outl, \outl, \S20l
-.endm
-
 .macro XOR1Init outh, outl, in0h, in0l, in1h, in1l
     xor \outh, \in0h, \in1h
     xor \outl, \in0l, \in1l
