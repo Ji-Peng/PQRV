@@ -8,8 +8,10 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 
 CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
 CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64
-CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DVECTOR128
-CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DVECTOR128
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 \
+	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 \
+	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
 
 RM = /bin/rm
 
@@ -45,12 +47,14 @@ all: \
 # test_vectors768_rv64imv 	test_vectors1024_rv64imv
 
 speed: \
-	test_speed_sha3_rv64im 	\
-	test_speed512_rv64im 	test_speed768_rv64im   	test_speed1024_rv64im	\
-	test_speed_sha3_rv64imb \
-	test_speed512_rv64imb	test_speed768_rv64imb   test_speed1024_rv64imb	\
-	test_speed_sha3_rv64imv \
-	test_speed_sha3_rv64imbv
+	test_speed_sha3_rv64im test_speed_sha3_rv64imv
+
+# test_speed_sha3_rv64im 	\
+# test_speed512_rv64im 	test_speed768_rv64im   	test_speed1024_rv64im	\
+# test_speed_sha3_rv64imb \
+# test_speed512_rv64imb	test_speed768_rv64imb   test_speed1024_rv64imb	\
+# test_speed_sha3_rv64imv \
+# test_speed_sha3_rv64imbv
 	
 # \
 # test_speed512_rv64imv		test_speed768_rv64imv   	test_speed1024_rv64imv
