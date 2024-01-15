@@ -2,28 +2,52 @@
 .align 2
 constants_keccak:
 .quad 0x0000000000000001
+.quad 0x0000000000000001
+.quad 0x0000000000008082
 .quad 0x0000000000008082
 .quad 0x800000000000808a
+.quad 0x800000000000808a
+.quad 0x8000000080008000
 .quad 0x8000000080008000
 .quad 0x000000000000808b
+.quad 0x000000000000808b
 .quad 0x0000000080000001
+.quad 0x0000000080000001
+.quad 0x8000000080008081
 .quad 0x8000000080008081
 .quad 0x8000000000008009
+.quad 0x8000000000008009
+.quad 0x000000000000008a
 .quad 0x000000000000008a
 .quad 0x0000000000000088
+.quad 0x0000000000000088
+.quad 0x0000000080008009
 .quad 0x0000000080008009
 .quad 0x000000008000000a
+.quad 0x000000008000000a
+.quad 0x000000008000808b
 .quad 0x000000008000808b
 .quad 0x800000000000008b
+.quad 0x800000000000008b
+.quad 0x8000000000008089
 .quad 0x8000000000008089
 .quad 0x8000000000008003
+.quad 0x8000000000008003
+.quad 0x8000000000008002
 .quad 0x8000000000008002
 .quad 0x8000000000000080
+.quad 0x8000000000000080
+.quad 0x000000000000800a
 .quad 0x000000000000800a
 .quad 0x800000008000000a
+.quad 0x800000008000000a
+.quad 0x8000000080008081
 .quad 0x8000000080008081
 .quad 0x8000000000008080
+.quad 0x8000000000008080
 .quad 0x0000000080000001
+.quad 0x0000000080000001
+.quad 0x8000000080008008
 .quad 0x8000000080008008
 
 .text
@@ -145,7 +169,8 @@ constants_keccak:
 
 .macro ARoundInPlace    S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, \
                         S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
-                        S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
+                        S20, S21, S22, S23, S24, T00, T01, T02, T03, T04, \
+                        Ts0, Ts1
     # theta - start
     # C0 = S00 ^ S05 ^ S10 ^ S15 ^ S20
     XOR5 \T00, \S00, \S05, \S10, \S15, \S20
@@ -165,8 +190,8 @@ constants_keccak:
     # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
     vsll.vi \T04, \T02, 1
     vxor.vv \T01, \T01, \T04
-    li a4, 63
-    vsrl.vx \T04, \T02, a4
+    li \Ts0, 63
+    vsrl.vx \T04, \T02, \Ts0
     vxor.vv \T01, \T01, \T04 // T00=C0 T01=D3 T03=C1 T02=C4
 
     # C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23
@@ -255,15 +280,15 @@ constants_keccak:
     xorand      \S04, \S04, \T00, \T01, \T02
 
     # Iota
-    ld   a4, 0(a3)
-    vxor.vx \S00, \S00, a4
-    addi a3, a3, 8
+    vle64.v  \T00, 0(\Ts1)
+    vxor.vv  \S00, \S00, \T00
+    addi \Ts1, \Ts1, 16
     # Rho & Pi & Chi - end
 .endm
 
-.globl KeccakF1600_StatePermute_RV64V_2x
+.globl KeccakF1600_StatePermute_RV32V_2x
 .align 2
-KeccakF1600_StatePermute_RV64V_2x:
+KeccakF1600_StatePermute_RV32V_2x:
 
     li a1, 128
     vsetvli a1, a1, e64, m1, tu, mu
@@ -279,7 +304,8 @@ loop:
     ARoundInPlace \
         v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7,  v8,  v9,    \
         v10, v11, v12, v13, v14, v15, v16, v17, v18, v19,   \
-        v20, v21, v22, v23, v24, v25, v26, v27, v28, v29
+        v20, v21, v22, v23, v24, v25, v26, v27, v28, v29,   \
+        a4, a3
     addi a2, a2, -1
     bnez a2, loop
 

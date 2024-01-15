@@ -2,8 +2,8 @@
 #include <string.h>
 
 #include "cpucycles.h"
+#include "fips202.h"
 #include "speed_print.h"
-#    include "fips202.h"
 #ifdef VECTOR128
 #    include "fips202x.h"
 #endif
@@ -15,13 +15,13 @@ void print_stat(uint64_t *s);
 void print_statx(uint64_t *s, int x);
 void test_sha3_256(void);
 void test_keccakf1600(void);
+void test_keccakf1600x2(void);
 void test_keccakf1600x3(void);
 void test_keccakf1600x4(void);
 void test_keccakf1600x5(void);
 void test_keccakf1600x6(void);
 void test_keccakf1600x8(void);
 
-#    ifndef VECTOR128
 void print_bytes(uint8_t *out, int len)
 {
     int i;
@@ -32,23 +32,13 @@ void print_bytes(uint8_t *out, int len)
     printf("\n");
 }
 
-#        ifdef RV32
 void print_stat(uint64_t *s)
 {
     for (int i = 0; i < 25; i++) {
-        printf("%llu ", s[i]);
+        printf("%llu ", (unsigned long long)s[i]);
     }
     printf("\n");
 }
-#        else
-void print_stat(uint64_t *s)
-{
-    for (int i = 0; i < 25; i++) {
-        printf("%lu ", s[i]);
-    }
-    printf("\n");
-}
-#        endif
 
 /**
  * The correct result should be:
@@ -103,7 +93,7 @@ void test_keccakf1600(void)
     print_stat(s);
 }
 
-#    else
+#    ifdef VECTOR128
 void print_statx(uint64_t *s, int x)
 {
     v128 *in = (v128 *)s;
@@ -116,7 +106,7 @@ void print_statx(uint64_t *s, int x)
         if (in[i].val[0] != in[i].val[1]) {
             printf("ERROR, in[%d].val[0]!=val[1]\n", i);
         }
-        printf("%lu ", in[i].val[0]);
+        printf("%llu ", (unsigned long long)in[i].val[0]);
     }
     printf("\n");
     if (x == 0)
@@ -131,11 +121,11 @@ void print_statx(uint64_t *s, int x)
                 printf("ERROR, scale-lane[0]!=lane[%d] for s[%d]\n", j, i);
             }
         }
-        printf("%lu ", t0);
+        printf("%llu ", (unsigned long long)t0);
     }
     printf("\n");
 }
-void test_keccakf1600(void)
+void test_keccakf1600x2(void)
 {
     v128 s[25];
     for (int i = 0; i < 25; i++) {
@@ -148,7 +138,8 @@ void test_keccakf1600x3(void)
 {
     keccakx3_state state;
     for (int i = 0; i < 25; i++) {
-        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1[i] = i;
+        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1[i] =
+        i;
     }
     KeccakF1600x3_StatePermute((uint64_t *)&state.s);
     print_statx((uint64_t *)&state.s, 3 - 2);
@@ -163,37 +154,37 @@ void test_keccakf1600x4(void)
     KeccakF1600x4_StatePermute((uint64_t *)&state.s);
     print_statx((uint64_t *)&state.s, 4 - 2);
 }
-void test_keccakf1600x5(void)
-{
-    keccakx5_state state;
-    for (int i = 0; i < 25; i++) {
-        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
-            state.s.s_x1_1[i] = state.s.s_x1_2[i] = i;
-    }
-    KeccakF1600x5_StatePermute((uint64_t *)&state.s);
-    print_statx((uint64_t *)&state.s, 5 - 2);
-}
-void test_keccakf1600x6(void)
-{
-    keccakx6_state state;
-    for (int i = 0; i < 25; i++) {
-        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
-            state.s.s_x1_1[i] = state.s.s_x1_2[i] = state.s.s_x1_3[i] = i;
-    }
-    KeccakF1600x6_StatePermute((uint64_t *)&state.s);
-    print_statx((uint64_t *)&state.s, 6 - 2);
-}
-void test_keccakf1600x8(void)
-{
-    keccakx8_state state;
-    for (int i = 0; i < 25; i++) {
-        state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
-            state.s.s_x1_1[i] = state.s.s_x1_2[i] = state.s.s_x1_3[i] =
-                state.s.s_x1_4[i] = state.s.s_x1_5[i] = i;
-    }
-    KeccakF1600x8_StatePermute((uint64_t *)&state.s);
-    print_statx((uint64_t *)&state.s, 8 - 2);
-}
+// void test_keccakf1600x5(void)
+// {
+//     keccakx5_state state;
+//     for (int i = 0; i < 25; i++) {
+//         state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
+//             state.s.s_x1_1[i] = state.s.s_x1_2[i] = i;
+//     }
+//     KeccakF1600x5_StatePermute((uint64_t *)&state.s);
+//     print_statx((uint64_t *)&state.s, 5 - 2);
+// }
+// void test_keccakf1600x6(void)
+// {
+//     keccakx6_state state;
+//     for (int i = 0; i < 25; i++) {
+//         state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
+//             state.s.s_x1_1[i] = state.s.s_x1_2[i] = state.s.s_x1_3[i] = i;
+//     }
+//     KeccakF1600x6_StatePermute((uint64_t *)&state.s);
+//     print_statx((uint64_t *)&state.s, 6 - 2);
+// }
+// void test_keccakf1600x8(void)
+// {
+//     keccakx8_state state;
+//     for (int i = 0; i < 25; i++) {
+//         state.s.s_x2[i].val[0] = state.s.s_x2[i].val[1] = state.s.s_x1_0[i] =
+//             state.s.s_x1_1[i] = state.s.s_x1_2[i] = state.s.s_x1_3[i] =
+//                 state.s.s_x1_4[i] = state.s.s_x1_5[i] = i;
+//     }
+//     KeccakF1600x8_StatePermute((uint64_t *)&state.s);
+//     print_statx((uint64_t *)&state.s, 8 - 2);
+// }
 #    endif
 #endif
 
@@ -240,17 +231,17 @@ int main(void)
     keccakx2_state sx2;
     keccakx3_state sx3;
     keccakx4_state sx4;
-    keccakx5_state sx5;
-    keccakx6_state sx6;
-    keccakx8_state sx8;
+    // keccakx5_state sx5;
+    // keccakx6_state sx6;
+    // keccakx8_state sx8;
 #endif
 
     test_sha3_256();
-    // test_keccakf1600();
+    test_keccakf1600();
 #ifdef VECTOR128
-    // test_keccakf1600();
-    // test_keccakf1600x3();
-    // test_keccakf1600x4();
+    // test_keccakf1600x2();
+    test_keccakf1600x3();
+    test_keccakf1600x4();
     // test_keccakf1600x5();
     // test_keccakf1600x6();
     // test_keccakf1600x8();
@@ -262,9 +253,9 @@ int main(void)
     PERF_N(KeccakF1600x2_StatePermute(sx2.s), KeccakF1600x2, 2);
     PERF_N(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3, 3);
     PERF_N(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4, 4);
-    PERF_N(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5, 5);
-    PERF_N(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6, 6);
-    PERF_N(KeccakF1600x8_StatePermute((uint64_t *)&sx8.s), KeccakF1600x8, 8);
+    // PERF_N(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5, 5);
+    // PERF_N(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6, 6);
+    // PERF_N(KeccakF1600x8_StatePermute((uint64_t *)&sx8.s), KeccakF1600x8, 8);
 #endif
     // PERF(shake128_absorb_once(&s, buff, 16), shake128_absorb_once);
     // PERF(shake128_squeezeblocks(buff_out, 1, &s),

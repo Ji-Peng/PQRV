@@ -219,7 +219,7 @@ static void keccak_squeezeblocks(uint8_t *out, size_t nblocks, uint64_t s[25],
     uint32_t *s_32b = (uint32_t *)s;
     uint32_t *p0, *p1;
 #ifdef BIT_INTERLEAVING
-    uint32_t t, t0, t1, low, high;
+    uint32_t t, t0, t1;
 #endif
 
     while (nblocks) {
