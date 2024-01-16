@@ -3,28 +3,301 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
 #define SHA3_256_RATE 136
 #define SHA3_512_RATE 72
 
-#define DEFINE_SHA3_APIS(N)                                                               \
-    void KeccakF1600x##N##_StatePermute(uint64_t *state);                                 \
-    void shake128x##N##_squeeze(uint8_t **out, size_t outlen, keccakx##N##_state *state); \
-    void shake128x##N##_absorb_once(keccakx##N##_state *state, const uint8_t **in,        \
-                                    size_t inlen);                                        \
-    void shake128x##N##_squeezeblocks(uint8_t **out, size_t nblocks,                      \
-                                      keccakx##N##_state *state);                         \
-    void shake256x##N##_squeeze(uint8_t **out, size_t outlen, keccakx##N##_state *state); \
-    void shake256x##N##_absorb_once(keccakx##N##_state *state, const uint8_t **in,        \
-                                    size_t inlen);                                        \
-    void shake256x##N##_squeezeblocks(uint8_t **out, size_t nblocks,                      \
-                                      keccakx##N##_state *state);                         \
-    void shake128x##N(uint8_t **out, size_t outlen, const uint8_t **in, size_t inlen);    \
-    void shake256x##N(uint8_t **out, size_t outlen, const uint8_t **in, size_t inlen);    \
-    void sha3_256x##N(uint8_t **out, const uint8_t **in, size_t inlen);                   \
-    void sha3_512x##N(uint8_t **out, const uint8_t **in, size_t inlen)
+#define CONCAT(P1, N, P2) P1##N##P2
+#define FUNC(P1, N, P2) CONCAT(P1, N, P2)
+#define KECCAK(P1, N, P2) CONCAT(P1, N, P2)
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define S(j, i) s[(i) * (((j) <= 1) + 1) + (j) * ((j) <= 1) + ((j) > 1) * j * 25]
+
+#define DEFINE_SHA3_APIS(N)                                                      \
+    void FUNC(KeccakF1600x, N, _StatePermute)(uint64_t * state);                 \
+    void FUNC(shake128x, N, _squeeze)(uint8_t * *out, size_t outlen,             \
+                                      KECCAK(keccakx, N, _state) * state);       \
+    void FUNC(shake128x, N, _absorb_once)(KECCAK(keccakx, N, _state) * state,    \
+                                          const uint8_t **in, size_t inlen);     \
+    void FUNC(shake128x, N, _squeezeblocks)(uint8_t * *out, size_t nblocks,      \
+                                            KECCAK(keccakx, N, _state) * state); \
+    void FUNC(shake256x, N, _squeeze)(uint8_t * *out, size_t outlen,             \
+                                      KECCAK(keccakx, N, _state) * state);       \
+    void FUNC(shake256x, N, _absorb_once)(KECCAK(keccakx, N, _state) * state,    \
+                                          const uint8_t **in, size_t inlen);     \
+    void FUNC(shake256x, N, _squeezeblocks)(uint8_t * *out, size_t nblocks,      \
+                                            KECCAK(keccakx, N, _state) * state); \
+    void FUNC(shake128x, N, )(uint8_t * *out, size_t outlen, const uint8_t **in, \
+                              size_t inlen);                                     \
+    void FUNC(shake256x, N, )(uint8_t * *out, size_t outlen, const uint8_t **in, \
+                              size_t inlen);                                     \
+    void FUNC(sha3_256x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen); \
+    void FUNC(sha3_512x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen)
+
+#define IMPL_SHA3_APIS(N)                                                                     \
+    extern void FUNC(KeccakF1600_StatePermute_RV64V_, N, x)(uint64_t * state);                \
+    void FUNC(KeccakF1600x, N, _StatePermute)(uint64_t * state)                               \
+    {                                                                                         \
+        FUNC(KeccakF1600_StatePermute_RV64V_, N, x)(state);                                   \
+    }                                                                                         \
+    static void FUNC(keccakx, N, _absorb_once)(uint64_t * s, unsigned int r,                  \
+                                               const uint8_t **in, size_t inlen, uint8_t p)   \
+    {                                                                                         \
+        unsigned int i, j;                                                                    \
+        const uint8_t *in_t[N];                                                               \
+                                                                                              \
+        memcpy(in_t, in, sizeof(uint8_t *) * N);                                              \
+        memset(s, 0, 25 * N * sizeof(uint64_t));                                              \
+                                                                                              \
+        while (inlen >= r) {                                                                  \
+            for (i = 0; i < r / 8; i++)                                                       \
+                for (j = 0; j < N; j++)                                                       \
+                    S(j, (i)) ^= *(uint64_t *)(in_t[j] + 8 * i);                              \
+                                                                                              \
+            for (j = 0; j < N; j++)                                                           \
+                in_t[j] += r;                                                                 \
+            inlen -= r;                                                                       \
+            FUNC(KeccakF1600x, N, _StatePermute)(s);                                          \
+        }                                                                                     \
+                                                                                              \
+        for (i = 0; i < inlen; i++) {                                                         \
+            for (j = 0; j < N; j++)                                                           \
+                S(j, (i / 8)) ^= (uint64_t)in_t[j][i] << 8 * (i % 8);                         \
+        }                                                                                     \
+                                                                                              \
+        for (j = 0; j < N; j++) {                                                             \
+            S(j, (i / 8)) ^= (uint64_t)p << 8 * (i % 8);                                      \
+            S(j, ((r - 1) / 8)) ^= 1ULL << 63;                                                \
+        }                                                                                     \
+    }                                                                                         \
+    static unsigned int FUNC(keccakx, N, _squeeze)(                                           \
+        uint8_t * *out, size_t outlen, uint64_t * s, unsigned int pos, unsigned int r)        \
+    {                                                                                         \
+        unsigned int i, j;                                                                    \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        while (outlen) {                                                                      \
+            if (pos == r) {                                                                   \
+                FUNC(KeccakF1600x, N, _StatePermute)(s);                                      \
+                pos = 0;                                                                      \
+            }                                                                                 \
+            for (i = pos; i < r && i < pos + outlen; i++)                                     \
+                for (j = 0; j < N; j++)                                                       \
+                    *out_t[j]++ = S(j, (i / 8)) >> 8 * (i % 8);                               \
+                                                                                              \
+            outlen -= i - pos;                                                                \
+            pos = i;                                                                          \
+        }                                                                                     \
+                                                                                              \
+        return pos;                                                                           \
+    }                                                                                         \
+    static void FUNC(keccakx, N, _squeezeblocks)(uint8_t * *out, size_t nblocks,              \
+                                                 uint64_t * s, unsigned int r)                \
+    {                                                                                         \
+        unsigned int i, j;                                                                    \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        while (nblocks) {                                                                     \
+            FUNC(KeccakF1600x, N, _StatePermute)(s);                                          \
+            for (i = 0; i < r / 8; i++)                                                       \
+                for (j = 0; j < N; j++)                                                       \
+                    *(uint64_t *)(out_t[j] + 8 * i) = S(j, (i));                              \
+                                                                                              \
+            for (j = 0; j < N; j++)                                                           \
+                out_t[j] += r;                                                                \
+            nblocks -= 1;                                                                     \
+        }                                                                                     \
+    }                                                                                         \
+    void FUNC(shake128x, N, _squeeze)(uint8_t * *out, size_t outlen,                          \
+                                      KECCAK(keccakx, N, _state) * state)                     \
+    {                                                                                         \
+        state->pos = FUNC(keccakx, N, _squeeze)(out, outlen, (uint64_t *)&state->s,           \
+                                                state->pos, SHAKE128_RATE);                   \
+    }                                                                                         \
+    void FUNC(shake128x, N, _absorb_once)(KECCAK(keccakx, N, _state) * state,                 \
+                                          const uint8_t **in, size_t inlen)                   \
+    {                                                                                         \
+        FUNC(keccakx, N, _absorb_once)                                                        \
+        ((uint64_t *)&state->s, SHAKE128_RATE, in, inlen, 0x1F);                              \
+        state->pos = SHAKE128_RATE;                                                           \
+    }                                                                                         \
+    void FUNC(shake128x, N, _squeezeblocks)(uint8_t * *out, size_t nblocks,                   \
+                                            KECCAK(keccakx, N, _state) * state)               \
+    {                                                                                         \
+        FUNC(keccakx, N, _squeezeblocks)(out, nblocks, (uint64_t *)&state->s, SHAKE128_RATE); \
+    }                                                                                         \
+    void FUNC(shake256x, N, _squeeze)(uint8_t * *out, size_t outlen,                          \
+                                      KECCAK(keccakx, N, _state) * state)                     \
+    {                                                                                         \
+        state->pos = FUNC(keccakx, N, _squeeze)(out, outlen, (uint64_t *)&state->s,           \
+                                                state->pos, SHAKE256_RATE);                   \
+    }                                                                                         \
+    void FUNC(shake256x, N, _absorb_once)(KECCAK(keccakx, N, _state) * state,                 \
+                                          const uint8_t **in, size_t inlen)                   \
+    {                                                                                         \
+        FUNC(keccakx, N, _absorb_once)                                                        \
+        ((uint64_t *)&state->s, SHAKE256_RATE, in, inlen, 0x1F);                              \
+        state->pos = SHAKE256_RATE;                                                           \
+    }                                                                                         \
+    void FUNC(shake256x, N, _squeezeblocks)(uint8_t * *out, size_t nblocks,                   \
+                                            KECCAK(keccakx, N, _state) * state)               \
+    {                                                                                         \
+        FUNC(keccakx, N, _squeezeblocks)(out, nblocks, (uint64_t *)&state->s, SHAKE256_RATE); \
+    }                                                                                         \
+    void FUNC(shake128x, N, )(uint8_t * *out, size_t outlen, const uint8_t **in,              \
+                              size_t inlen)                                                   \
+    {                                                                                         \
+        unsigned int j;                                                                       \
+        size_t nblocks;                                                                       \
+        KECCAK(keccakx, N, _state) * state;                                                   \
+        if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) {                   \
+            printf("%s: malloc failed\n", STR(FUNC(shake128x, N, )));                         \
+        }                                                                                     \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        FUNC(shake128x, N, _absorb_once)(state, in, inlen);                                   \
+        nblocks = outlen / SHAKE128_RATE;                                                     \
+        FUNC(shake128x, N, _squeezeblocks)(out_t, nblocks, state);                            \
+        outlen -= nblocks * SHAKE128_RATE;                                                    \
+        for (j = 0; j < N; j++)                                                               \
+            out_t[j] += nblocks * SHAKE128_RATE;                                              \
+        FUNC(shake128x, N, _squeeze)(out_t, outlen, state);                                   \
+    }                                                                                         \
+    void FUNC(shake256x, N, )(uint8_t * *out, size_t outlen, const uint8_t **in,              \
+                              size_t inlen)                                                   \
+    {                                                                                         \
+        unsigned int j;                                                                       \
+        size_t nblocks;                                                                       \
+        KECCAK(keccakx, N, _state) * state;                                                   \
+        if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) {                   \
+            printf("%s: malloc failed\n", STR(FUNC(shake256x, N, )));                         \
+        }                                                                                     \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        FUNC(shake256x, N, _absorb_once)(state, in, inlen);                                   \
+        nblocks = outlen / SHAKE256_RATE;                                                     \
+        FUNC(shake256x, N, _squeezeblocks)(out_t, nblocks, state);                            \
+        outlen -= nblocks * SHAKE256_RATE;                                                    \
+        for (j = 0; j < N; j++)                                                               \
+            out_t[j] += nblocks * SHAKE256_RATE;                                              \
+        FUNC(shake256x, N, _squeeze)(out_t, outlen, state);                                   \
+    }                                                                                         \
+    void FUNC(sha3_256x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen)               \
+    {                                                                                         \
+        unsigned int i, j;                                                                    \
+        KECCAK(keccakx, N, _state) * state;                                                   \
+        if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) {                   \
+            printf("%s: malloc failed\n", STR(FUNC(sha3_256x, N, )));                         \
+        }                                                                                     \
+        uint64_t *s;                                                                          \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        s = (uint64_t *)&(state->s);                                                          \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        FUNC(keccakx, N, _absorb_once)(s, SHA3_256_RATE, in, inlen, 0x06);                    \
+        FUNC(KeccakF1600x, N, _StatePermute)(s);                                              \
+        for (i = 0; i < 4; i++)                                                               \
+            for (j = 0; j < N; j++)                                                           \
+                *(uint64_t *)(out_t[j] + 8 * i) = S(j, (i));                                  \
+    }                                                                                         \
+    void FUNC(sha3_512x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen)               \
+    {                                                                                         \
+        unsigned int i, j;                                                                    \
+        KECCAK(keccakx, N, _state) * state;                                                   \
+        if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) {                   \
+            printf("%s: malloc failed\n", STR(FUNC(sha3_512x, N, )));                         \
+        }                                                                                     \
+        uint64_t *s;                                                                          \
+        uint8_t *out_t[N];                                                                    \
+                                                                                              \
+        s = (uint64_t *)&(state->s);                                                          \
+        memcpy(out_t, out, sizeof(uint8_t *) * N);                                            \
+        FUNC(keccakx, N, _absorb_once)(s, SHA3_512_RATE, in, inlen, 0x06);                    \
+        FUNC(KeccakF1600x, N, _StatePermute)(s);                                              \
+        for (i = 0; i < 8; i++)                                                               \
+            for (j = 0; j < N; j++)                                                           \
+                *(uint64_t *)(out_t[j] + 8 * i) = S(j, (i));                                  \
+    }
+
+#define IMPL_TEST_SHA3(N)                                         \
+    void FUNC(test_sha3x, N, )(void)                              \
+    {                                                             \
+        unsigned int j, ok = 0;                                   \
+        uint8_t out[64 * N];                                      \
+        uint8_t *shake_out;                                       \
+        uint8_t *outN[N];                                         \
+        const uint8_t *inN[N];                                    \
+                                                                  \
+        if ((shake_out = (uint8_t *)malloc(252 * N)) == NULL) {   \
+            printf("malloc failed\n");                            \
+            return;                                               \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = out + 32 * j;                               \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(sha3_256x, N, )(outN, inN, sizeof(sha3_input));      \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], sha3_256_output, 32);           \
+        if (ok != 0) {                                            \
+            printf("sha3_256x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 32);                         \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = out + 64 * j;                               \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(sha3_512x, N, )(outN, inN, sizeof(sha3_input));      \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], sha3_512_output, 64);           \
+        if (ok != 0) {                                            \
+            printf("sha3_512x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 64);                         \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = shake_out + 252 * j;                        \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(shake128x, N, )(outN, 252, inN, sizeof(sha3_input)); \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], shake128_output, 252);          \
+        if (ok != 0) {                                            \
+            printf("shake128x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 252);                        \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = shake_out + 252 * j;                        \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(shake256x, N, )(outN, 252, inN, sizeof(sha3_input)); \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], shake256_output, 252);          \
+        if (ok != 0) {                                            \
+            printf("shake128x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 252);                        \
+        }                                                         \
+    }
 
 #ifdef VECTOR128
 typedef struct uint64x2_t {

@@ -1398,10 +1398,11 @@ constants_keccak:
 # 17*8(sp): table index for scalar impl
 # 18*8(sp): table index for vector impl
 # 19*8(sp): temp
+# 20*8(sp): outer loop control variable j
 .globl KeccakF1600_StatePermute_RV64V_8x
 .align 2
 KeccakF1600_StatePermute_RV64V_8x:
-    addi sp, sp, -8*20
+    addi sp, sp, -8*21
     SaveRegs
     sd a0, 15*8(sp)
     # set VPU
@@ -1462,5 +1463,5 @@ final_end:
     blt  s11, ra, outer_loop
 
     RestoreRegs
-    addi sp, sp, 8*20
+    addi sp, sp, 8*21
     ret
