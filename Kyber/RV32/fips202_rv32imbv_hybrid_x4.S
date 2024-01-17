@@ -50,6 +50,56 @@ constants_keccak:
 .quad 0x8000000080008008
 .quad 0x8000000080008008
 
+constants_keccak_bitinter:
+.word 0x00000001
+.word 0x00000000
+.word 0x00000000
+.word 0x00000089
+.word 0x00000000
+.word 0x8000008b
+.word 0x00000000
+.word 0x80008080
+.word 0x00000001
+.word 0x0000008b
+.word 0x00000001
+.word 0x00008000
+.word 0x00000001
+.word 0x80008088
+.word 0x00000001
+.word 0x80000082
+.word 0x00000000
+.word 0x0000000b
+.word 0x00000000
+.word 0x0000000a
+.word 0x00000001
+.word 0x00008082
+.word 0x00000000
+.word 0x00008003
+.word 0x00000001
+.word 0x0000808b
+.word 0x00000001
+.word 0x8000000b
+.word 0x00000001
+.word 0x8000008a
+.word 0x00000001
+.word 0x80000081
+.word 0x00000000
+.word 0x80000081
+.word 0x00000000
+.word 0x80000008
+.word 0x00000000
+.word 0x00000083
+.word 0x00000000
+.word 0x80008003
+.word 0x00000001
+.word 0x80008088
+.word 0x00000000
+.word 0x80000088
+.word 0x00000001
+.word 0x00008000
+.word 0x00000000
+.word 0x80008082
+
 .text
 
 .macro SaveRegs
@@ -1161,10 +1211,11 @@ KeccakF1600_StatePermute_RV32V_4x:
 outer_loop:
     sw s11, 30*4(sp)
     # prepare table index
-    la tp, constants_keccak
+    la tp, constants_keccak_bitinter
     sw tp, 17*4(sp)
     bnez s11, init_1th_loop
 init_0th_loop:
+    la tp, constants_keccak
     sw tp, 29*4(sp)
     # load 1-th scalar impl inputs and vector impl inputs
     LoadStates_v

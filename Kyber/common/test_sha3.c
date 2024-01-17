@@ -144,6 +144,78 @@ void test_keccakf1600(void)
     print_stat(s);
 }
 
+#define IMPL_TEST_SHA3(N)                                         \
+    void FUNC(test_sha3x, N, )(void)                              \
+    {                                                             \
+        unsigned int j, ok = 0;                                   \
+        uint8_t out[64 * N];                                      \
+        uint8_t *shake_out;                                       \
+        uint8_t *outN[N];                                         \
+        const uint8_t *inN[N];                                    \
+                                                                  \
+        if ((shake_out = (uint8_t *)malloc(252 * N)) == NULL) {   \
+            printf("malloc failed\n");                            \
+            return;                                               \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = out + 32 * j;                               \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(sha3_256x, N, )(outN, inN, sizeof(sha3_input));      \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], sha3_256_output, 32);           \
+        if (ok != 0) {                                            \
+            printf("sha3_256x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 32);                         \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = out + 64 * j;                               \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(sha3_512x, N, )(outN, inN, sizeof(sha3_input));      \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], sha3_512_output, 64);           \
+        if (ok != 0) {                                            \
+            printf("sha3_512x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 64);                         \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = shake_out + 252 * j;                        \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(shake128x, N, )(outN, 252, inN, sizeof(sha3_input)); \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], shake128_output, 252);          \
+        if (ok != 0) {                                            \
+            printf("shake128x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 252);                        \
+        }                                                         \
+                                                                  \
+        for (j = 0; j < N; j++) {                                 \
+            outN[j] = shake_out + 252 * j;                        \
+            inN[j] = sha3_input;                                  \
+        }                                                         \
+        FUNC(shake256x, N, )(outN, 252, inN, sizeof(sha3_input)); \
+        ok = 0;                                                   \
+        for (j = 0; j < N; j++)                                   \
+            ok |= memcmp(outN[j], shake256_output, 252);          \
+        if (ok != 0) {                                            \
+            printf("shake128x" #N " FAILED: \n");                 \
+            for (j = 0; j < N; j++)                               \
+                print_bytes(outN[j], 252);                        \
+        }                                                         \
+        free(shake_out);                                          \
+    }
+
 #ifdef VECTOR128
 void print_statx(uint64_t *s, int x)
 {
@@ -185,7 +257,7 @@ void test_keccakf1600x2(void)
     for (int i = 0; i < 25; i++) {
         state.s[i].val[0] = state.s[i].val[1] = i;
     }
-    KeccakF1600x2_StatePermute((uint64_t *)state.s);
+    KeccakF1600x2_StatePermute((uint64_t *)&state.s);
     print_statx((uint64_t *)&state.s, 2 - 2);
 }
 

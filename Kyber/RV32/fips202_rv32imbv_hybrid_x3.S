@@ -50,6 +50,56 @@ constants_keccak:
 .quad 0x8000000080008008
 .quad 0x8000000080008008
 
+constants_keccak_bitinter:
+.word 0x00000001
+.word 0x00000000
+.word 0x00000000
+.word 0x00000089
+.word 0x00000000
+.word 0x8000008b
+.word 0x00000000
+.word 0x80008080
+.word 0x00000001
+.word 0x0000008b
+.word 0x00000001
+.word 0x00008000
+.word 0x00000001
+.word 0x80008088
+.word 0x00000001
+.word 0x80000082
+.word 0x00000000
+.word 0x0000000b
+.word 0x00000000
+.word 0x0000000a
+.word 0x00000001
+.word 0x00008082
+.word 0x00000000
+.word 0x00008003
+.word 0x00000001
+.word 0x0000808b
+.word 0x00000001
+.word 0x8000000b
+.word 0x00000001
+.word 0x8000008a
+.word 0x00000001
+.word 0x80000081
+.word 0x00000000
+.word 0x80000081
+.word 0x00000000
+.word 0x80000008
+.word 0x00000000
+.word 0x00000083
+.word 0x00000000
+.word 0x80008003
+.word 0x00000001
+.word 0x80008088
+.word 0x00000000
+.word 0x80000088
+.word 0x00000001
+.word 0x00008000
+.word 0x00000000
+.word 0x80008082
+
 .text
 
 .macro SaveRegs
@@ -633,6 +683,8 @@ constants_keccak:
     lw \T02h_s, 4(\T04_s);                  vand.vv \T02_v, \S03_v, \S04_v
     xor \T03h_s, \T03h_s, \T02h_s;          vxor.vv \S02_v, \S02_v, \T02_v
     xor \T03l_s, \T03l_s, \T02l_s
+    addi \T04_s, \T04_s, 8
+    sw \T04_s, 17*4(sp)
     lw \T02l_s, 3*8(a0);                    vor.vv \T03_v, \S04_v, \T00_v
     lw \T02h_s, 3*8+4(a0)
     sw \T03l_s, 0*8(a0);                    vxor.vv \S03_v, \S03_v, \T03_v
@@ -642,14 +694,14 @@ constants_keccak:
     xor \T03h_s, \T03h_s, \T01h_s
     xor \T03l_s, \T03l_s, \T01l_s;          vxor.vv \S04_v, \S04_v, \T02_v
     sw \T03l_s, 1*8(a0)
-    sw \T03h_s, 1*8+4(a0)
+    sw \T03h_s, 1*8+4(a0);                  lw \T04_s, 28*4(sp)
     andn \T03h_s, \S04h_s, \T02h_s;         vle64.v  \T00_v, 0(\T04_s)
     andn \T03l_s, \S04l_s, \T02l_s
     xor \S02h_s, \T03h_s, \S02h_s;          vxor.vv  \S00_v, \S00_v, \T00_v
     xor \S02l_s, \T03l_s, \S02l_s
     andn \T03h_s, \T00h_s, \S04h_s
     andn \T03l_s, \T00l_s, \S04l_s;         addi \T04_s, \T04_s, 16
-    xor \T03h_s, \T03h_s, \T02h_s;          sw \T04_s, 17*4(sp)
+    xor \T03h_s, \T03h_s, \T02h_s;          sw \T04_s, 28*4(sp)
     xor \T03l_s, \T03l_s, \T02l_s
     sw \T03l_s, 3*8(a0)
     sw \T03h_s, 3*8+4(a0)
@@ -663,23 +715,27 @@ constants_keccak:
 # 0*4-14*4 for saving registers
 # 15*4 for saving a0
 # 16*4 for loop control
-# 17*4 for table index
+# 17*4 for table index of scalar impl
 # 18*4,19*4 for C0
 # 20*4,21*4 for C1
 # 22*4,23*4 for C2
 # 24*4,25*4 for C3
 # 26*4,27*4 for C4
+# 28*4 for table index of vector impl
 .globl KeccakF1600_StatePermute_RV32V_3x
 .align 2
 KeccakF1600_StatePermute_RV32V_3x:
-    addi sp, sp, -4*28
+    addi sp, sp, -4*29
     SaveRegs
 
     li a1, 128
     vsetvli a1, a1, e64, m1, tu, mu
 
-    la tp, constants_keccak
+    la tp, constants_keccak_bitinter
     sw tp, 17*4(sp)
+
+    la gp, constants_keccak
+    sw gp, 28*4(sp)
 
     LoadStates_v
     LoadStates_s \
@@ -711,5 +767,5 @@ loop_start:
         s6, s7, s8, s9, s10,s11,ra, gp, tp
 
     RestoreRegs
-    addi sp, sp, 4*28
+    addi sp, sp, 4*29
     ret

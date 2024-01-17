@@ -7,8 +7,8 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 				  -DRV32=1 -I$(COMMONDIR) -I.
 CFLAGS_RV32IM  	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32
 CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DBIT_INTERLEAVING
-CFLAGS_RV32IMV 	= $(CFLAGS_COMMON) -march=rv32imacv -mabi=ilp32 -DVECTOR128
-CFLAGS_RV32IMBV = $(CFLAGS_COMMON) -march=rv32imacv_zbb -mabi=ilp32 -DBIT_INTERLEAVING -DVECTOR128
+CFLAGS_RV32IMV 	= $(CFLAGS_COMMON) -march=rv32imacv -mabi=ilp32 -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
+CFLAGS_RV32IMBV = $(CFLAGS_COMMON) -march=rv32imacv_zbb -mabi=ilp32 -DBIT_INTERLEAVING -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
 
 RM = /bin/rm
 
@@ -41,6 +41,8 @@ all: \
 speed: \
 	test_speed_sha3_rv32im test_speed_sha3_rv32imb test_speed_sha3_rv32imv test_speed_sha3_rv32imbv
 	
+# test_speed_sha3_rv32imv test_speed_sha3_rv32imbv
+	
 # 	\
 # test_speed512_rv32im  test_speed768_rv32im  test_speed1024_rv32im \
 # test_speed_sha3_rv32imb \
@@ -56,7 +58,7 @@ results:
 
 objdump:
 	mkdir -p out
-	$(OBJDUMP) -D out/test_speed512_rv32im > out/test_speed512_rv32im.S
+	$(OBJDUMP) -D out/test_speed_sha3_rv32im > out/test_speed_sha3_rv32im.S
 
 # for RV32IM
 
