@@ -47,7 +47,7 @@ all: \
 # test_vectors768_rv64imv 	test_vectors1024_rv64imv
 
 speed: \
-	test_speed_sha3_rv64im test_speed_sha3_rv64imv
+	test_speed_sha3_rv64im test_speed_sha3_rv64imv test_speed_sha3_rv64imbv
 
 # test_speed_sha3_rv64im 	\
 # test_speed512_rv64im 	test_speed768_rv64im   	test_speed1024_rv64im	\
@@ -70,7 +70,7 @@ results:
 	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
 
 objdump:
-	$(OBJDUMP) -D out/test_speed512 > out/test_speed512.S
+	$(OBJDUMP) -D out/test_speed_sha3_rv64imv > out/test_speed_sha3_rv64imv.S
 
 # for RV64IM
 

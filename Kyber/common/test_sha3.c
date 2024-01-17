@@ -300,12 +300,29 @@ uint64_t t[NTESTS];
                (float)cc_average / instret, (unsigned long long)oneway_cc);    \
     } while (0)
 
+#define SPEED_SHA3(N)                                                                        \
+    keccakx##N##_state *sx##N;                                                               \
+    if ((sx##N = (keccakx##N##_state *)malloc(sizeof(keccakx##N##_state))) == NULL) {        \
+        printf("keccak state malloc failed\n");                                              \
+    }                                                                                        \
+    test_sha3x##N();                                                                         \
+    PERF_N(KeccakF1600x##N##_StatePermute((uint64_t *)&(sx##N->s)), KeccakF1600x##N, N);     \
+    PERF_N(shake128x##N##_absorb_once(sx##N, inN, 16), shake128x##N##_absorb_once, N);       \
+    PERF_N(shake128x##N##_squeezeblocks(outN, 1, sx##N), shake128x##N##_squeezeblocks_1, N); \
+    PERF_N(sha3_256x##N(outN, inN, 16), sha3_256x##N, N);                                    \
+    PERF_N(sha3_512x##N(outN, inN, 16), sha3_512x##N, N)
+
 int main(void)
 {
     int i;
     keccak_state s;
     const uint8_t buff[16] = {0};
-    uint8_t buff_out[4 * SHAKE128_RATE];
+    uint8_t *buff_out;
+
+    // prepare
+    if ((buff_out = (uint8_t *)malloc(8 * SHAKE128_RATE)) == NULL) {
+        printf("buff_out malloc failed\n");
+    }
 
     test_sha3();
     // test_keccakf1600();
@@ -315,47 +332,43 @@ int main(void)
     PERF(shake128_squeezeblocks(buff_out, 1, &s), shake128_squeezeblocks_1);
     PERF(sha3_256(buff_out, buff, 16), sha3_256);
     PERF(sha3_512(buff_out, buff, 16), sha3_512);
+    printf("\n");
 
 #ifdef VECTOR128
-    keccakx2_state sx2;
-    test_sha3x2();
-    // test_keccakf1600x2();
-    PERF_N(KeccakF1600x2_StatePermute((uint64_t *)sx2.s), KeccakF1600x2, 2);
+    int j;
+    uint8_t *outN[8];
+    const uint8_t *inN[8];
+    for (j = 0; j < 8; j++) {
+        outN[j] = buff_out + j * SHAKE128_RATE;
+        inN[j] = buff;
+    }
+    SPEED_SHA3(2);
+    printf("\n");
 #endif
 
 #if defined(VECTOR128) && defined(HYBRIDX3)
-    keccakx3_state sx3;
-    test_sha3x3();
-    // test_keccakf1600x3();
-    PERF_N(KeccakF1600x3_StatePermute((uint64_t *)&sx3.s), KeccakF1600x3, 3);
+    SPEED_SHA3(3);
+    printf("\n");
 #endif
 
 #if defined(VECTOR128) && defined(HYBRIDX4)
-    keccakx4_state sx4;
-    test_sha3x4();
-    // test_keccakf1600x4();
-    PERF_N(KeccakF1600x4_StatePermute((uint64_t *)&sx4.s), KeccakF1600x4, 4);
+    SPEED_SHA3(4);
+    printf("\n");
 #endif
 
 #if defined(VECTOR128) && defined(HYBRIDX5)
-    keccakx5_state sx5;
-    test_sha3x5();
-    // test_keccakf1600x5();
-    PERF_N(KeccakF1600x5_StatePermute((uint64_t *)&sx5.s), KeccakF1600x5, 5);
+    SPEED_SHA3(5);
+    printf("\n");
 #endif
 
 #if defined(VECTOR128) && defined(HYBRIDX6)
-    keccakx6_state sx6;
-    test_sha3x6();
-    // test_keccakf1600x6();
-    PERF_N(KeccakF1600x6_StatePermute((uint64_t *)&sx6.s), KeccakF1600x6, 6);
+    SPEED_SHA3(6);
+    printf("\n");
 #endif
 
 #if defined(VECTOR128) && defined(HYBRIDX8)
-    keccakx8_state sx8;
-    test_sha3x8();
-    // test_keccakf1600x8();
-    PERF_N(KeccakF1600x8_StatePermute((uint64_t *)&sx8.s), KeccakF1600x8, 8);
+    SPEED_SHA3(8);
+    printf("\n");
 #endif
 
     return 0;
