@@ -310,7 +310,8 @@ uint64_t t[NTESTS];
     PERF_N(shake128x##N##_absorb_once(sx##N, inN, 16), shake128x##N##_absorb_once, N);       \
     PERF_N(shake128x##N##_squeezeblocks(outN, 1, sx##N), shake128x##N##_squeezeblocks_1, N); \
     PERF_N(sha3_256x##N(outN, inN, 16), sha3_256x##N, N);                                    \
-    PERF_N(sha3_512x##N(outN, inN, 16), sha3_512x##N, N)
+    PERF_N(sha3_512x##N(outN, inN, 16), sha3_512x##N, N);                                    \
+    free(sx##N)
 
 int main(void)
 {
@@ -370,6 +371,8 @@ int main(void)
     SPEED_SHA3(8);
     printf("\n");
 #endif
+
+    free(buff_out);
 
     return 0;
 }

@@ -170,6 +170,7 @@
         for (j = 0; j < N; j++)                                                               \
             out_t[j] += nblocks * SHAKE128_RATE;                                              \
         FUNC(shake128x, N, _squeeze)(out_t, outlen, state);                                   \
+        free(state);                                                                          \
     }                                                                                         \
     void FUNC(shake256x, N, )(uint8_t * *out, size_t outlen, const uint8_t **in,              \
                               size_t inlen)                                                   \
@@ -190,6 +191,7 @@
         for (j = 0; j < N; j++)                                                               \
             out_t[j] += nblocks * SHAKE256_RATE;                                              \
         FUNC(shake256x, N, _squeeze)(out_t, outlen, state);                                   \
+        free(state);                                                                          \
     }                                                                                         \
     void FUNC(sha3_256x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen)               \
     {                                                                                         \
@@ -208,6 +210,7 @@
         for (i = 0; i < 4; i++)                                                               \
             for (j = 0; j < N; j++)                                                           \
                 *(uint64_t *)(out_t[j] + 8 * i) = S(j, (i));                                  \
+        free(state);                                                                          \
     }                                                                                         \
     void FUNC(sha3_512x, N, )(uint8_t * *out, const uint8_t **in, size_t inlen)               \
     {                                                                                         \
@@ -226,6 +229,7 @@
         for (i = 0; i < 8; i++)                                                               \
             for (j = 0; j < N; j++)                                                           \
                 *(uint64_t *)(out_t[j] + 8 * i) = S(j, (i));                                  \
+        free(state);                                                                          \
     }
 
 #define IMPL_TEST_SHA3(N)                                         \
@@ -297,6 +301,7 @@
             for (j = 0; j < N; j++)                               \
                 print_bytes(outN[j], 252);                        \
         }                                                         \
+        free(shake_out);                                          \
     }
 
 #ifdef VECTOR128
