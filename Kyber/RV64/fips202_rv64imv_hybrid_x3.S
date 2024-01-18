@@ -71,6 +71,64 @@ constants_keccak:
                   S20_s, S21_s, S22_s, S23_s, S24_s
     # load states for vector impl
     # lane complement: 1,2,8,12,17,20
+#ifdef V0p7
+    vle.v v0, (a0)
+    addi a0, a0, 16
+    vle.v v1, (a0)
+    addi a0, a0, 16
+    vle.v v2, (a0)
+    addi a0, a0, 16
+    vle.v v3, (a0)
+    addi a0, a0, 16
+    vle.v v4, (a0)
+    addi a0, a0, 16
+    vle.v v5, (a0)
+    addi a0, a0, 16
+    vle.v v6, (a0)
+    addi a0, a0, 16
+    vle.v v7, (a0)
+    addi a0, a0, 16
+    vle.v v8, (a0)
+    addi a0, a0, 16
+    vle.v v9, (a0)
+    addi a0, a0, 16
+    vle.v v10, (a0)
+    addi a0, a0, 16
+    vle.v v11, (a0)
+    addi a0, a0, 16
+    vle.v v12, (a0)
+    addi a0, a0, 16
+    vle.v v13, (a0)
+    addi a0, a0, 16
+    vle.v v14, (a0)
+    addi a0, a0, 16
+    vle.v v15, (a0)
+    addi a0, a0, 16
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vle.v v16, (a0)
+    addi a0, a0, 16
+    vle.v v17, (a0)
+    addi a0, a0, 16
+    vle.v v18, (a0)
+    addi a0, a0, 16
+    vle.v v19, (a0)
+    addi a0, a0, 16
+    vle.v v20, (a0)
+    addi a0, a0, 16
+    vle.v v21, (a0)
+    addi a0, a0, 16
+    vle.v v22, (a0)
+    addi a0, a0, 16
+    vle.v v23, (a0)
+    addi a0, a0, 16
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle.v v24, (a0)
+    addi a0, a0, 1*16
+#else
     vl8re64.v v0, (a0)
     addi a0, a0, 8*16
     vl8re64.v v8, (a0)
@@ -85,6 +143,7 @@ constants_keccak:
     vnot.v v20, v20
     vle64.v v24, (a0)
     addi a0, a0, 1*16
+#endif
     # load states for scalar impl
     ld \S00_s, 0*8(a0)
     ld \S01_s, 1*8(a0)
@@ -138,7 +197,58 @@ constants_keccak:
     vnot.v v17, v17
     not \S20_s, \S20_s
     vnot.v v20, v20
-
+#ifdef V0p7
+    vse.v v0, (a0)
+    addi a0, a0, 16
+    vse.v v1, (a0)
+    addi a0, a0, 16
+    vse.v v2, (a0)
+    addi a0, a0, 16
+    vse.v v3, (a0)
+    addi a0, a0, 16
+    vse.v v4, (a0)
+    addi a0, a0, 16
+    vse.v v5, (a0)
+    addi a0, a0, 16
+    vse.v v6, (a0)
+    addi a0, a0, 16
+    vse.v v7, (a0)
+    addi a0, a0, 16
+    vse.v v8, (a0)
+    addi a0, a0, 16
+    vse.v v9, (a0)
+    addi a0, a0, 16
+    vse.v v10, (a0)
+    addi a0, a0, 16
+    vse.v v11, (a0)
+    addi a0, a0, 16
+    vse.v v12, (a0)
+    addi a0, a0, 16
+    vse.v v13, (a0)
+    addi a0, a0, 16
+    vse.v v14, (a0)
+    addi a0, a0, 16
+    vse.v v15, (a0)
+    addi a0, a0, 16
+    vse.v v16, (a0)
+    addi a0, a0, 16
+    vse.v v17, (a0)
+    addi a0, a0, 16
+    vse.v v18, (a0)
+    addi a0, a0, 16
+    vse.v v19, (a0)
+    addi a0, a0, 16
+    vse.v v20, (a0)
+    addi a0, a0, 16
+    vse.v v21, (a0)
+    addi a0, a0, 16
+    vse.v v22, (a0)
+    addi a0, a0, 16
+    vse.v v23, (a0)
+    addi a0, a0, 16
+    vse.v v24, (a0)
+    addi a0, a0, 1*16
+#else
     vs8r.v v0, (a0)
     addi a0, a0, 8*16
     vs8r.v v8, (a0)
@@ -147,6 +257,7 @@ constants_keccak:
     addi a0, a0, 8*16
     vse64.v v24, (a0)
     addi a0, a0, 1*16
+#endif
     # store states for scalar impl
     sd \S00_s, 0*8(a0)
     sd \S01_s, 1*8(a0)
@@ -440,7 +551,11 @@ KeccakF1600_StatePermute_RV64V_3x:
     sd a1, 17*8(sp)
 
     li a1, 128
-    vsetvli a1, a1, e64, m1, tu, mu
+#ifdef V0p7
+    vsetvli a2, a1, e64
+#else
+    vsetvli a2, a1, e64, m1, tu, mu
+#endif
 
     LoadStates \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \

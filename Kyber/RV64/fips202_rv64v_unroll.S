@@ -28,6 +28,67 @@ constants_keccak:
 
 .text
 
+#ifdef V0p7
+.macro LoadStates
+    # lane complement: 1,2,8,12,17,20
+    vle.v v0, (a0)
+    addi a0, a0, 16
+    vle.v v1, (a0)
+    addi a0, a0, 16
+    vle.v v2, (a0)
+    addi a0, a0, 16
+    vle.v v3, (a0)
+    addi a0, a0, 16
+    vle.v v4, (a0)
+    addi a0, a0, 16
+    vle.v v5, (a0)
+    addi a0, a0, 16
+    vle.v v6, (a0)
+    addi a0, a0, 16
+    vle.v v7, (a0)
+    addi a0, a0, 16                        
+    vle.v v8, (a0)
+    addi a0, a0, 16
+    vle.v v9, (a0)
+    addi a0, a0, 16
+    vle.v v10, (a0)
+    addi a0, a0, 16
+    vle.v v11, (a0)
+    addi a0, a0, 16
+    vle.v v12, (a0)
+    addi a0, a0, 16
+    vle.v v13, (a0)
+    addi a0, a0, 16
+    vle.v v14, (a0)
+    addi a0, a0, 16
+    vle.v v15, (a0)
+    addi a0, a0, 16  
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vle.v v16, (a0)
+    addi a0, a0, 16
+    vle.v v17, (a0)
+    addi a0, a0, 16
+    vle.v v18, (a0)
+    addi a0, a0, 16
+    vle.v v19, (a0)
+    addi a0, a0, 16
+    vle.v v20, (a0)
+    addi a0, a0, 16
+    vle.v v21, (a0)
+    addi a0, a0, 16
+    vle.v v22, (a0)
+    addi a0, a0, 16
+    vle.v v23, (a0)
+    addi a0, a0, 16  
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle.v v24, (a0)
+    addi a0, a0, -24*16
+.endm
+#else
 .macro LoadStates
     # lane complement: 1,2,8,12,17,20
     vl8re64.v v0, (a0)
@@ -43,10 +104,70 @@ constants_keccak:
     vnot.v v17, v17
     vnot.v v20, v20
     vle64.v v24, (a0)
-
     addi a0, a0, -24*16
 .endm
+#endif
 
+#ifdef V0p7
+.macro StoreStates
+    # lane complement: 1,2,8,12,17,20
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vse.v v0, (a0)
+    addi a0, a0, 16
+    vse.v v1, (a0)
+    addi a0, a0, 16
+    vse.v v2, (a0)
+    addi a0, a0, 16
+    vse.v v3, (a0)
+    addi a0, a0, 16
+    vse.v v4, (a0)
+    addi a0, a0, 16
+    vse.v v5, (a0)
+    addi a0, a0, 16
+    vse.v v6, (a0)
+    addi a0, a0, 16
+    vse.v v7, (a0)
+    addi a0, a0, 16
+    vse.v v8, (a0)
+    addi a0, a0, 16
+    vse.v v9, (a0)
+    addi a0, a0, 16
+    vse.v v10, (a0)
+    addi a0, a0, 16
+    vse.v v11, (a0)
+    addi a0, a0, 16
+    vse.v v12, (a0)
+    addi a0, a0, 16
+    vse.v v13, (a0)
+    addi a0, a0, 16
+    vse.v v14, (a0)
+    addi a0, a0, 16
+    vse.v v15, (a0)
+    addi a0, a0, 16
+    vse.v v16, (a0)
+    addi a0, a0, 16
+    vse.v v17, (a0)
+    addi a0, a0, 16
+    vse.v v18, (a0)
+    addi a0, a0, 16
+    vse.v v19, (a0)
+    addi a0, a0, 16
+    vse.v v20, (a0)
+    addi a0, a0, 16
+    vse.v v21, (a0)
+    addi a0, a0, 16
+    vse.v v22, (a0)
+    addi a0, a0, 16
+    vse.v v23, (a0)
+    addi a0, a0, 16
+    vse.v v24, (a0)
+.endm
+#else
 .macro StoreStates
     # lane complement: 1,2,8,12,17,20
     vnot.v v1, v1
@@ -63,6 +184,7 @@ constants_keccak:
     addi a0, a0, 8*16
     vse64.v v24, (a0)
 .endm
+#endif
 
 .macro ARoundInPlace    S00_v, S01_v, S02_v, S03_v, S04_v, S05_v, S06_v, S07_v, S08_v, S09_v, \
                         S10_v, S11_v, S12_v, S13_v, S14_v, S15_v, S16_v, S17_v, S18_v, S19_v, \
@@ -301,7 +423,11 @@ constants_keccak:
 KeccakF1600_StatePermute_RV64V_2x:
 
     li a1, 128
-    vsetvli a1, a1, e64, m1, tu, mu
+#ifdef V0p7
+    vsetvli a2, a1, e64
+#else
+    vsetvli a2, a1, e64, m1, tu, mu
+#endif
 
     # LoadStates
     # lane complement: 1,2,8,12,17,20

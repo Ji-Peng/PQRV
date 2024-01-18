@@ -7,7 +7,13 @@
                 "${workspaceFolder}/Kyber/common"
             ],
             "defines": [
-                "VECTOR128=1"
+                "VECTOR128",
+                "BIT_INTERLEAVING",
+                "HYBRIDX3",
+                "HYBRIDX4",
+                "HYBRIDX5",
+                "HYBRIDX6",
+                "HYBRIDX8"
             ],
             "compilerPath": "/home/zjp/k230/k230_sdk/toolchain/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0/bin/riscv64-unknown-linux-gnu-gcc"
         }

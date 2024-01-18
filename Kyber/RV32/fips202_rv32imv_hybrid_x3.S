@@ -91,6 +91,64 @@ constants_keccak:
 .macro LoadStates_v
     # load states for vector impl
     # lane complement: 1,2,8,12,17,20
+#ifdef V0p7
+    vle.v v0, (a0)
+    addi a0, a0, 16
+    vle.v v1, (a0)
+    addi a0, a0, 16
+    vle.v v2, (a0)
+    addi a0, a0, 16
+    vle.v v3, (a0)
+    addi a0, a0, 16
+    vle.v v4, (a0)
+    addi a0, a0, 16
+    vle.v v5, (a0)
+    addi a0, a0, 16
+    vle.v v6, (a0)
+    addi a0, a0, 16
+    vle.v v7, (a0)
+    addi a0, a0, 16
+    vle.v v8, (a0)
+    addi a0, a0, 16
+    vle.v v9, (a0)
+    addi a0, a0, 16
+    vle.v v10, (a0)
+    addi a0, a0, 16
+    vle.v v11, (a0)
+    addi a0, a0, 16
+    vle.v v12, (a0)
+    addi a0, a0, 16
+    vle.v v13, (a0)
+    addi a0, a0, 16
+    vle.v v14, (a0)
+    addi a0, a0, 16
+    vle.v v15, (a0)
+    addi a0, a0, 16
+    vnot.v v1, v1
+    vnot.v v2, v2
+    vnot.v v8, v8
+    vnot.v v12, v12
+    vle.v v16, (a0)
+    addi a0, a0, 16
+    vle.v v17, (a0)
+    addi a0, a0, 16
+    vle.v v18, (a0)
+    addi a0, a0, 16
+    vle.v v19, (a0)
+    addi a0, a0, 16
+    vle.v v20, (a0)
+    addi a0, a0, 16
+    vle.v v21, (a0)
+    addi a0, a0, 16
+    vle.v v22, (a0)
+    addi a0, a0, 16
+    vle.v v23, (a0)
+    addi a0, a0, 16
+    vnot.v v17, v17
+    vnot.v v20, v20
+    vle.v v24, (a0)
+    addi a0, a0, 1*16
+#else
     vl8re64.v v0, (a0)
     addi a0, a0, 8*16
     vl8re64.v v8, (a0)
@@ -105,6 +163,7 @@ constants_keccak:
     vnot.v v20, v20
     vle64.v v24, (a0)
     addi a0, a0, 1*16
+#endif
 .endm
 
 .macro StoreStates_v
@@ -116,6 +175,58 @@ constants_keccak:
     vnot.v v12, v12
     vnot.v v17, v17
     vnot.v v20, v20
+#ifdef V0p7
+    vse.v v0, (a0)
+    addi a0, a0, 16
+    vse.v v1, (a0)
+    addi a0, a0, 16
+    vse.v v2, (a0)
+    addi a0, a0, 16
+    vse.v v3, (a0)
+    addi a0, a0, 16
+    vse.v v4, (a0)
+    addi a0, a0, 16
+    vse.v v5, (a0)
+    addi a0, a0, 16
+    vse.v v6, (a0)
+    addi a0, a0, 16
+    vse.v v7, (a0)
+    addi a0, a0, 16
+    vse.v v8, (a0)
+    addi a0, a0, 16
+    vse.v v9, (a0)
+    addi a0, a0, 16
+    vse.v v10, (a0)
+    addi a0, a0, 16
+    vse.v v11, (a0)
+    addi a0, a0, 16
+    vse.v v12, (a0)
+    addi a0, a0, 16
+    vse.v v13, (a0)
+    addi a0, a0, 16
+    vse.v v14, (a0)
+    addi a0, a0, 16
+    vse.v v15, (a0)
+    addi a0, a0, 16
+    vse.v v16, (a0)
+    addi a0, a0, 16
+    vse.v v17, (a0)
+    addi a0, a0, 16
+    vse.v v18, (a0)
+    addi a0, a0, 16
+    vse.v v19, (a0)
+    addi a0, a0, 16
+    vse.v v20, (a0)
+    addi a0, a0, 16
+    vse.v v21, (a0)
+    addi a0, a0, 16
+    vse.v v22, (a0)
+    addi a0, a0, 16
+    vse.v v23, (a0)
+    addi a0, a0, 16
+    vse.v v24, (a0)
+    addi a0, a0, 1*16
+#else
     vs8r.v v0, (a0)
     addi a0, a0, 8*16
     vs8r.v v8, (a0)
@@ -124,6 +235,7 @@ constants_keccak:
     addi a0, a0, 8*16
     vse64.v v24, (a0)
     addi a0, a0, 1*16
+#endif
 .endm
 
 .macro LoadStates_s \
@@ -839,7 +951,12 @@ constants_keccak:
     xor \S02h_s, \S02h_s, \T03h_s;          vxor.vv \S04_v, \S04_v, \T02_v
     xor \S02l_s, \S02l_s, \T03l_s
     or  \T03h_s, \S04h_s, \T00h_s
-    or  \T03l_s, \S04l_s, \T00l_s;          vle64.v  \T00_v, (\T04_s)
+    or  \T03l_s, \S04l_s, \T00l_s
+#ifdef V0p7
+    vle.v  \T00_v, (\T04_s)
+#else
+    vle64.v  \T00_v, (\T04_s)
+#endif
     xor \T03h_s, \T02h_s, \T03h_s
     xor \T03l_s, \T02l_s, \T03l_s
     sw \T03l_s, 3*8(a0);                    vxor.vv  \S00_v, \S00_v, \T00_v
@@ -867,7 +984,11 @@ KeccakF1600_StatePermute_RV32V_3x:
     SaveRegs
 
     li a1, 128
-    vsetvli a1, a1, e64, m1, tu, mu
+#ifdef V0p7
+    vsetvli a2, a1, e64
+#else
+    vsetvli a2, a1, e64, m1, tu, mu
+#endif
 
     la tp, constants_keccak
     sw tp, 17*4(sp)
