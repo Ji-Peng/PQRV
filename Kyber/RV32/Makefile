@@ -2,6 +2,8 @@ PLATFORM ?= C908
 
 CC 		= riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
+# SCP 	= scp
+SCP		= @:
 
 COMMONDIR 		= ../common
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
@@ -50,10 +52,15 @@ all: \
     test_vectors768_rv32im  test_vectors1024_rv32im   \
 	test_kyber512_rv32imb   test_kyber768_rv32imb     \
     test_kyber1024_rv32imb  test_vectors512_rv32imb   \
-    test_vectors768_rv32imb test_vectors1024_rv32imb 
+    test_vectors768_rv32imb test_vectors1024_rv32imb  \
+	scp_test
 
 speed: \
-	test_speed_sha3_rv32im test_speed_sha3_rv32imb test_speed_sha3_rv32imv test_speed_sha3_rv32imbv
+	test_speed_sha3_rv32im \
+	test_speed_sha3_rv32imb \
+	test_speed_sha3_rv32imv \
+	test_speed_sha3_rv32imbv \
+	scp_test_speed
 	
 # test_speed_sha3_rv32imv test_speed_sha3_rv32imbv
 	
@@ -67,196 +74,183 @@ speed: \
 # ./test_speed_sha3_rv32im > results_rv32im.txt; ./test_speed512_rv32im >> results_rv32im.txt; ./test_speed768_rv32im >> results_rv32im.txt; ./test_speed1024_rv32im >> results_rv32im.txt
 # ./test_speed_sha3_rv32imb > results_rv32imb.txt; ./test_speed512_rv32imb >> results_rv32imb.txt; ./test_speed768_rv32imb >> results_rv32imb.txt; ./test_speed1024_rv32imb >> results_rv32imb.txt
 results:
-	scp $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32im.txt .
-	scp $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imb.txt .
 
 objdump:
 	mkdir -p out
 	$(OBJDUMP) -D out/test_speed_sha3_rv32im > out/test_speed_sha3_rv32im.S
+
+scp_test_speed:
+	$(SCP) 	out/test_speed_sha3_rv32im out/test_speed_sha3_rv32imb 		\
+			out/test_speed_sha3_rv32imv out/test_speed_sha3_rv32imbv 	\
+			$(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
+	$(SCP) 	out/test_speed512_rv32im out/test_speed768_rv32im 			\
+			out/test_speed1024_rv32im out/test_speed512_rv32imb 		\
+			out/test_speed768_rv32imb out/test_speed1024_rv32imb 		\
+			out/test_speed512_rv32imv out/test_speed768_rv32imv 		\
+			out/test_speed1024_rv32imv out/test_speed512_rv32imbv 		\
+			out/test_speed768_rv32imbv out/test_speed1024_rv32imbv 		\
+			$(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
+	
+scp_test:
+	$(SCP) 	out/test_kyber512_rv32im out/test_kyber768_rv32im			\
+			out/test_kyber1024_rv32im out/test_vectors512_rv32im		\
+			out/test_vectors768_rv32im out/test_vectors1024_rv32im		\
+			out/test_kyber512_rv32imb out/test_kyber768_rv32imb			\
+			out/test_kyber1024_rv32imb out/test_vectors512_rv32imb		\
+			out/test_vectors768_rv32imb out/test_vectors1024_rv32imb	\
+			out/test_kyber512_rv32imv out/test_kyber768_rv32imv			\
+			out/test_kyber1024_rv32imv out/test_vectors512_rv32imv		\
+			out/test_vectors768_rv32imv out/test_vectors1024_rv32imv	\
+			out/test_kyber512_rv32imbv out/test_kyber768_rv32imbv		\
+			out/test_kyber1024_rv32imbv out/test_vectors512_rv32imbv	\
+			out/test_vectors768_rv32imbv out/test_vectors1024_rv32imbv	\
+			$(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 # for RV32IM
 
 test_speed_sha3_rv32im: $(SOURCES_COMMON) $(SOURCES_RV32IM) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(SOURCES_COMMON) $(SOURCES_RV32IM) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3_rv32im
-	scp out/test_speed_sha3_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber512_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_kyber.c -o out/test_kyber512_rv32im
-	scp out/test_kyber512_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber768_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_kyber.c -o out/test_kyber768_rv32im
-	scp out/test_kyber768_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber1024_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024_rv32im
-	scp out/test_kyber1024_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors512_rv32im: $(SOURCES_VECTOR) $(SOURCES_RV32IM) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=2 $(SOURCES_VECTOR) $(SOURCES_RV32IM) $(COMMONDIR)/test_vectors.c -o out/test_vectors512_rv32im
-	scp out/test_vectors512_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors768_rv32im: $(SOURCES_VECTOR) $(SOURCES_RV32IM) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=3 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors768_rv32im
-	scp out/test_vectors768_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors1024_rv32im: $(SOURCES_VECTOR) $(SOURCES_RV32IM) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=4 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024_rv32im
-	scp out/test_vectors1024_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed512_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_speed.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_speed.c -o out/test_speed512_rv32im
-	scp out/test_speed512_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed768_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_speed.c -o out/test_speed768_rv32im
-	scp out/test_speed768_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed1024_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IM) $(COMMONDIR)/test_speed.c -o out/test_speed1024_rv32im
-	scp out/test_speed1024_rv32im $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 # for RV32IMB
 
 test_speed_sha3_rv32imb: $(SOURCES_COMMON) $(SOURCES_RV32IMB) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) $(SOURCES_COMMON) $(SOURCES_RV32IMB) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3_rv32imb
-	scp out/test_speed_sha3_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber512_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_kyber.c -o out/test_kyber512_rv32imb
-	scp out/test_kyber512_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber768_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_kyber.c -o out/test_kyber768_rv32imb
-	scp out/test_kyber768_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber1024_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024_rv32imb
-	scp out/test_kyber1024_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors512_rv32imb: $(SOURCES_VECTOR) $(SOURCES_RV32IMB) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=2 $(SOURCES_VECTOR) $(SOURCES_RV32IMB) $(COMMONDIR)/test_vectors.c -o out/test_vectors512_rv32imb
-	scp out/test_vectors512_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors768_rv32imb: $(SOURCES_VECTOR) $(SOURCES_RV32IMB) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=3 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors768_rv32imb
-	scp out/test_vectors768_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors1024_rv32imb: $(SOURCES_VECTOR) $(SOURCES_RV32IMB) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=4 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024_rv32imb
-	scp out/test_vectors1024_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed512_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_speed.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_speed.c -o out/test_speed512_rv32imb
-	scp out/test_speed512_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed768_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_speed.c -o out/test_speed768_rv32imb
-	scp out/test_speed768_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed1024_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMB) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMB) $(COMMONDIR)/test_speed.c -o out/test_speed1024_rv32imb
-	scp out/test_speed1024_rv32imb $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 # for RV32IMV
 
 test_speed_sha3_rv32imv: $(SOURCES_COMMON) $(SOURCES_RV32IMV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(SOURCES_COMMON) $(SOURCES_RV32IMV) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3_rv32imv
-	scp out/test_speed_sha3_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber512_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_kyber.c -o out/test_kyber512_rv32imv
-	scp out/test_kyber512_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber768_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_kyber.c -o out/test_kyber768_rv32imv
-	scp out/test_kyber768_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber1024_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024_rv32imv
-	scp out/test_kyber1024_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors512_rv32imv: $(SOURCES_VECTOR) $(SOURCES_RV32IMV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=2 $(SOURCES_VECTOR) $(SOURCES_RV32IMV) $(COMMONDIR)/test_vectors.c -o out/test_vectors512_rv32imv
-	scp out/test_vectors512_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors768_rv32imv: $(SOURCES_VECTOR) $(SOURCES_RV32IMV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=3 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors768_rv32imv
-	scp out/test_vectors768_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors1024_rv32imv: $(SOURCES_VECTOR) $(SOURCES_RV32IMV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=4 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024_rv32imv
-	scp out/test_vectors1024_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed512_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_speed.c -o out/test_speed512_rv32imv
-	scp out/test_speed512_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed768_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_speed.c -o out/test_speed768_rv32imv
-	scp out/test_speed768_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed1024_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMV) $(COMMONDIR)/test_speed.c -o out/test_speed1024_rv32imv
-	scp out/test_speed1024_rv32imv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 # for RV32IMBV
 
 test_speed_sha3_rv32imbv: $(SOURCES_COMMON) $(SOURCES_RV32IMBV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) $(SOURCES_COMMON) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_sha3.c -o out/test_speed_sha3_rv32imbv
-	scp out/test_speed_sha3_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber512_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_kyber.c -o out/test_kyber512_rv32imbv
-	scp out/test_kyber512_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber768_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_kyber.c -o out/test_kyber768_rv32imbv
-	scp out/test_kyber768_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_kyber1024_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_kyber.c -o out/test_kyber1024_rv32imbv
-	scp out/test_kyber1024_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors512_rv32imbv: $(SOURCES_VECTOR) $(SOURCES_RV32IMBV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=2 $(SOURCES_VECTOR) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_vectors.c -o out/test_vectors512_rv32imbv
-	scp out/test_vectors512_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors768_rv32imbv: $(SOURCES_VECTOR) $(SOURCES_RV32IMBV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=3 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors768_rv32imbv
-	scp out/test_vectors768_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_vectors1024_rv32imbv: $(SOURCES_VECTOR) $(SOURCES_RV32IMBV) $(HEADERS_VECTOR) $(COMMONDIR)/test_vectors.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=4 $(SOURCES_VECTOR) $(COMMONDIR)/test_vectors.c -o out/test_vectors1024_rv32imbv
-	scp out/test_vectors1024_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed512_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=2 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_speed.c -o out/test_speed512_rv32imbv
-	scp out/test_speed512_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed768_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=3 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_speed.c -o out/test_speed768_rv32imbv
-	scp out/test_speed768_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 test_speed1024_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_speed.c
 	$(CC) $(CFLAGS_RV32IMBV) -DKYBER_K=4 $(SOURCES) $(SOURCES_RV32IMBV) $(COMMONDIR)/test_speed.c -o out/test_speed1024_rv32imbv
-	scp out/test_speed1024_rv32imbv $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 
 clean:
 	-$(RM) -rf out/
