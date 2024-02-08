@@ -335,6 +335,70 @@ void KeccakF1600_StatePermute(uint64_t state[25])
 }
 
 /*************************************************
+ * Name:        keccak_init
+ *
+ * Description: Initializes the Keccak state.
+ *
+ * Arguments:   - uint64_t *s: pointer to Keccak state
+ **************************************************/
+static void keccak_init(uint64_t s[25])
+{
+    unsigned int i;
+    for (i = 0; i < 25; i++)
+        s[i] = 0;
+}
+
+/*************************************************
+ * Name:        keccak_absorb
+ *
+ * Description: Absorb step of Keccak; incremental.
+ *
+ * Arguments:   - uint64_t *s: pointer to Keccak state
+ *              - unsigned int pos: position in current block to be absorbed
+ *              - unsigned int r: rate in bytes (e.g., 168 for SHAKE128)
+ *              - const uint8_t *in: pointer to input to be absorbed into s
+ *              - size_t inlen: length of input in bytes
+ *
+ * Returns new position pos in current block
+ **************************************************/
+static unsigned int keccak_absorb(uint64_t s[25], unsigned int pos,
+                                  unsigned int r, const uint8_t *in,
+                                  size_t inlen)
+{
+    unsigned int i;
+
+    while (pos + inlen >= r) {
+        for (i = pos; i < r; i++)
+            s[i / 8] ^= (uint64_t)*in++ << 8 * (i % 8);
+        inlen -= r - pos;
+        KeccakF1600_StatePermute(s);
+        pos = 0;
+    }
+
+    for (i = pos; i < pos + inlen; i++)
+        s[i / 8] ^= (uint64_t)*in++ << 8 * (i % 8);
+
+    return i;
+}
+
+/*************************************************
+ * Name:        keccak_finalize
+ *
+ * Description: Finalize absorb step.
+ *
+ * Arguments:   - uint64_t *s: pointer to Keccak state
+ *              - unsigned int pos: position in current block to be absorbed
+ *              - unsigned int r: rate in bytes (e.g., 168 for SHAKE128)
+ *              - uint8_t p: domain separation byte
+ **************************************************/
+static void keccak_finalize(uint64_t s[25], unsigned int pos, unsigned int r,
+                            uint8_t p)
+{
+    s[pos / 8] ^= (uint64_t)p << 8 * (pos % 8);
+    s[r / 8 - 1] ^= 1ULL << 63;
+}
+
+/*************************************************
  * Name:        keccak_squeeze
  *
  * Description: Squeeze step of Keccak. Squeezes arbitratrily many bytes.
@@ -434,6 +498,47 @@ static void keccak_squeezeblocks(uint8_t *out, size_t nblocks, uint64_t s[25],
 }
 
 /*************************************************
+ * Name:        shake128_init
+ *
+ * Description: Initilizes Keccak state for use as SHAKE128 XOF
+ *
+ * Arguments:   - keccak_state *state: pointer to (uninitialized) Keccak state
+ **************************************************/
+void shake128_init(keccak_state *state)
+{
+    keccak_init(state->s);
+    state->pos = 0;
+}
+
+/*************************************************
+ * Name:        shake128_absorb
+ *
+ * Description: Absorb step of the SHAKE128 XOF; incremental.
+ *
+ * Arguments:   - keccak_state *state: pointer to (initialized) output Keccak
+ *state
+ *              - const uint8_t *in: pointer to input to be absorbed into s
+ *              - size_t inlen: length of input in bytes
+ **************************************************/
+void shake128_absorb(keccak_state *state, const uint8_t *in, size_t inlen)
+{
+    state->pos = keccak_absorb(state->s, state->pos, SHAKE128_RATE, in, inlen);
+}
+
+/*************************************************
+ * Name:        shake128_finalize
+ *
+ * Description: Finalize absorb step of the SHAKE128 XOF.
+ *
+ * Arguments:   - keccak_state *state: pointer to Keccak state
+ **************************************************/
+void shake128_finalize(keccak_state *state)
+{
+    keccak_finalize(state->s, state->pos, SHAKE128_RATE, 0x1F);
+    state->pos = SHAKE128_RATE;
+}
+
+/*************************************************
  * Name:        shake128_squeeze
  *
  * Description: Squeeze step of SHAKE128 XOF. Squeezes arbitraily many
@@ -483,6 +588,47 @@ void shake128_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen)
 void shake128_squeezeblocks(uint8_t *out, size_t nblocks, keccak_state *state)
 {
     keccak_squeezeblocks(out, nblocks, state->s, SHAKE128_RATE);
+}
+
+/*************************************************
+ * Name:        shake256_init
+ *
+ * Description: Initilizes Keccak state for use as SHAKE256 XOF
+ *
+ * Arguments:   - keccak_state *state: pointer to (uninitialized) Keccak state
+ **************************************************/
+void shake256_init(keccak_state *state)
+{
+    keccak_init(state->s);
+    state->pos = 0;
+}
+
+/*************************************************
+ * Name:        shake256_absorb
+ *
+ * Description: Absorb step of the SHAKE256 XOF; incremental.
+ *
+ * Arguments:   - keccak_state *state: pointer to (initialized) output Keccak
+ *state
+ *              - const uint8_t *in: pointer to input to be absorbed into s
+ *              - size_t inlen: length of input in bytes
+ **************************************************/
+void shake256_absorb(keccak_state *state, const uint8_t *in, size_t inlen)
+{
+    state->pos = keccak_absorb(state->s, state->pos, SHAKE256_RATE, in, inlen);
+}
+
+/*************************************************
+ * Name:        shake256_finalize
+ *
+ * Description: Finalize absorb step of the SHAKE256 XOF.
+ *
+ * Arguments:   - keccak_state *state: pointer to Keccak state
+ **************************************************/
+void shake256_finalize(keccak_state *state)
+{
+    keccak_finalize(state->s, state->pos, SHAKE256_RATE, 0x1F);
+    state->pos = SHAKE256_RATE;
 }
 
 /*************************************************
