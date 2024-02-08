@@ -1,30 +1,36 @@
-polyvec_matrix_expand:        13224930382830104 cycles
-poly_uniform_eta:             13192384018126590 cycles
-poly_uniform_gamma1:          13192715280953776 cycles
-poly_ntt:                     12938317777201284 cycles
-poly_invntt_tomont:           13208389164327609 cycles
-poly_pointwise_montgomery:    3933867490669776 cycles
-poly_challenge:               13192375475467790 cycles
-Keypair:                      13192390524894618 cycles
-Sign:                         3932384152411851 cycles
-Verify:                       3932217576182043 cycles
-polyvec_matrix_expand:        181965788657938 cycles
-poly_uniform_eta:             162614508354667 cycles
-poly_uniform_gamma1:          164415157311114 cycles
-poly_ntt:                     17436522852560486 cycles
-poly_invntt_tomont:           173748680124782 cycles
-poly_pointwise_montgomery:    9380480632059963 cycles
-poly_challenge:               162646077853662 cycles
-Keypair:                      162659301581303 cycles
-Sign:                         9379032324908420 cycles
-Verify:                       9378766806099506 cycles
-polyvec_matrix_expand:        14164309101915353 cycles
-poly_uniform_eta:             14164361187963855 cycles
-poly_uniform_gamma1:          14166161836919618 cycles
-poly_ntt:                     12973060296467190 cycles
-poly_invntt_tomont:           14175495407025623 cycles
-poly_pointwise_montgomery:    4927293391840442 cycles
-poly_challenge:               14164352769984113 cycles
-Keypair:                      14164365591908630 cycles
-Sign:                         4925800444401301 cycles
-Verify:                       4925375817458841 cycles
+Test speed of Dilithium2
+polyvec_matrix_expand:        1111838 cycles
+poly_uniform_eta:               30817 cycles
+poly_uniform_gamma1:            70064 cycles
+poly_ntt:                       35061 cycles
+poly_invntt_tomont:             44832 cycles
+poly_pointwise_montgomery:       7748 cycles
+poly_challenge:                 14694 cycles
+Keypair:                      2010150 cycles
+Sign:                         8132249 cycles
+Verify:                       2157987 cycles
+
+Test speed of Dilithium3
+polyvec_matrix_expand:        2082032 cycles
+poly_uniform_eta:               30210 cycles
+poly_uniform_gamma1:            70023 cycles
+poly_ntt:                       35258 cycles
+poly_invntt_tomont:             44918 cycles
+poly_pointwise_montgomery:       7918 cycles
+poly_challenge:                 14840 cycles
+Keypair:                      3496937 cycles
+Sign:                         12199321 cycles
+Verify:                       3573344 cycles
+
+Test speed of Dilithium5
+polyvec_matrix_expand:        3895488 cycles
+poly_uniform_eta:               30802 cycles
+poly_uniform_gamma1:            70019 cycles
+poly_ntt:                       34930 cycles
+poly_invntt_tomont:             44821 cycles
+poly_pointwise_montgomery:       7659 cycles
+poly_challenge:                 15024 cycles
+Keypair:                      5833125 cycles
+Sign:                         15568890 cycles
+Verify:                       6000570 cycles
+

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #include "cpucycles.h"
 #include "params.h"
@@ -23,6 +24,8 @@ int main(void)
     poly *a = &mat[0].vec[0];
     poly *b = &mat[0].vec[1];
     poly *c = &mat[0].vec[2];
+
+    printf("Test speed of " CRYPTO_ALGNAME "\n");
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
@@ -83,6 +86,8 @@ int main(void)
         crypto_sign_verify(sig, CRYPTO_BYTES, sig, CRHBYTES, pk);
     }
     print_results("Verify:", t, NTESTS);
+
+    printf("\n");
 
     return 0;
 }

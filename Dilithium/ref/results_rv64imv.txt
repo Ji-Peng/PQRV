@@ -1,30 +1,36 @@
-polyvec_matrix_expand:         555620 cycles
-poly_uniform_eta:               16655 cycles
-poly_uniform_gamma1:            35048 cycles
-poly_ntt:                       27111 cycles
-poly_invntt_tomont:             32341 cycles
-poly_pointwise_montgomery:       5818 cycles
-poly_challenge:                  7378 cycles
-Keypair:                      1171340 cycles
-Sign:                         5287494 cycles
-Verify:                       1301050 cycles
-polyvec_matrix_expand:        1041997 cycles
-poly_uniform_eta:               16541 cycles
+Test speed of Dilithium2
+polyvec_matrix_expand:         555653 cycles
+poly_uniform_eta:               16608 cycles
+poly_uniform_gamma1:            35065 cycles
+poly_ntt:                       27113 cycles
+poly_invntt_tomont:             32361 cycles
+poly_pointwise_montgomery:       5791 cycles
+poly_challenge:                  7371 cycles
+Keypair:                      1169888 cycles
+Sign:                         5321001 cycles
+Verify:                       1298583 cycles
+
+Test speed of Dilithium3
+polyvec_matrix_expand:        1042224 cycles
+poly_uniform_eta:               16600 cycles
+poly_uniform_gamma1:            34911 cycles
+poly_ntt:                       27106 cycles
+poly_invntt_tomont:             32353 cycles
+poly_pointwise_montgomery:       5783 cycles
+poly_challenge:                  7567 cycles
+Keypair:                      2000230 cycles
+Sign:                         8493715 cycles
+Verify:                       2106618 cycles
+
+Test speed of Dilithium5
+polyvec_matrix_expand:        1945668 cycles
+poly_uniform_eta:               16530 cycles
 poly_uniform_gamma1:            34886 cycles
-poly_ntt:                       27124 cycles
-poly_invntt_tomont:             32360 cycles
-poly_pointwise_montgomery:       5794 cycles
-poly_challenge:                  7545 cycles
-Keypair:                      1996403 cycles
-Sign:                         8346221 cycles
-Verify:                       2104131 cycles
-polyvec_matrix_expand:        1945481 cycles
-poly_uniform_eta:               16551 cycles
-poly_uniform_gamma1:            34942 cycles
-poly_ntt:                       27127 cycles
-poly_invntt_tomont:             32332 cycles
-poly_pointwise_montgomery:       5817 cycles
-poly_challenge:                  7749 cycles
-Keypair:                      3308205 cycles
-Sign:                         10407651 cycles
-Verify:                       3491019 cycles
+poly_ntt:                       27163 cycles
+poly_invntt_tomont:             32365 cycles
+poly_pointwise_montgomery:       5796 cycles
+poly_challenge:                  7746 cycles
+Keypair:                      3308154 cycles
+Sign:                         10093885 cycles
+Verify:                       3488298 cycles
+

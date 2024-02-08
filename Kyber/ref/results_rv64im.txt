@@ -1,0 +1,40 @@
+Test speed of SHA-3 related subroutines
+KeccakF1600                    cycles/insts/CPI=5109/8585/0.60
+shake128_absorb_once           cycles/insts/CPI=241/366/0.66
+shake128_squeezeblocks_1       cycles/insts/CPI=5381/9015/0.60
+sha3_256                       cycles/insts/CPI=5352/9040/0.59
+sha3_512                       cycles/insts/CPI=5398/9103/0.59
+
+Test speed of Kyber512
+gen_a:                          79593 cycles
+poly_getnoise_eta1:             13065 cycles
+NTT:                            35803 cycles
+INVNTT:                         57042 cycles
+polyvec_basemul_acc_mont:       42813 cycles
+poly_basemul_montgomery:        18242 cycles
+kyber_keypair:                 439288 cycles
+kyber_encaps:                  623766 cycles
+kyber_decaps:                  779548 cycles
+
+Test speed of Kyber768
+gen_a:                         181336 cycles
+poly_getnoise_eta1:              8174 cycles
+NTT:                            35815 cycles
+INVNTT:                         57067 cycles
+polyvec_basemul_acc_mont:       61574 cycles
+poly_basemul_montgomery:        18235 cycles
+kyber_keypair:                 743374 cycles
+kyber_encaps:                  986900 cycles
+kyber_decaps:                 1185982 cycles
+
+Test speed of Kyber1024
+gen_a:                         324902 cycles
+poly_getnoise_eta1:              8168 cycles
+NTT:                            35832 cycles
+INVNTT:                         57022 cycles
+polyvec_basemul_acc_mont:       80517 cycles
+poly_basemul_montgomery:        18234 cycles
+kyber_keypair:                1141549 cycles
+kyber_encaps:                 1445995 cycles
+kyber_decaps:                 1686532 cycles
+

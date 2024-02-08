@@ -150,5 +150,7 @@ int main()
     }
     print_results("kyber_decaps: ", t, NTESTS);
 
+    printf("\n");
+
     return 0;
 }
