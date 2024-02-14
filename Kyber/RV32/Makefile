@@ -34,7 +34,7 @@ RM = /bin/rm
 
 SOURCES_RAND 	= $(COMMONDIR)/randombytes.c
 HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
-SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202.c
+SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202_rv32.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h
 SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S
 SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S
@@ -68,8 +68,6 @@ all: \
 	out/scp_test
 
 speed: \
-	out/test_speed_sha3_rv32im 		out/test_speed_sha3_rv32imb 	\
-	out/test_speed_sha3_rv32imv 	out/test_speed_sha3_rv32imbv 	\
 	out/test_speed512_rv32im  		\
 	out/test_speed768_rv32im  		out/test_speed1024_rv32im		\
 	out/test_speed512_rv32imb 		\
@@ -82,10 +80,10 @@ speed: \
 
 # Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
 # The command executed on target machine include: 
-# ./test_speed_sha3_rv32im > results_rv32im.txt; ./test_speed512_rv32im >> results_rv32im.txt; ./test_speed768_rv32im >> results_rv32im.txt; ./test_speed1024_rv32im >> results_rv32im.txt
-# ./test_speed_sha3_rv32imb > results_rv32imb.txt; ./test_speed512_rv32imb >> results_rv32imb.txt; ./test_speed768_rv32imb >> results_rv32imb.txt; ./test_speed1024_rv32imb >> results_rv32imb.txt
-# ./test_speed_sha3_rv32imv > results_rv32imv.txt; ./test_speed512_rv32imv >> results_rv32imv.txt; ./test_speed768_rv32imv >> results_rv32imv.txt; ./test_speed1024_rv32imv >> results_rv32imv.txt
-# ./test_speed_sha3_rv32imbv > results_rv32imbv.txt; ./test_speed512_rv32imbv >> results_rv32imbv.txt; ./test_speed768_rv32imbv >> results_rv32imbv.txt; ./test_speed1024_rv32imbv >> results_rv32imbv.txt
+# ./test_speed512_rv32im > results_rv32im.txt; ./test_speed768_rv32im >> results_rv32im.txt; ./test_speed1024_rv32im >> results_rv32im.txt
+# ./test_speed512_rv32imb > results_rv32imb.txt; ./test_speed768_rv32imb >> results_rv32imb.txt; ./test_speed1024_rv32imb >> results_rv32imb.txt
+# ./test_speed512_rv32imv > results_rv32imv.txt; ./test_speed768_rv32imv >> results_rv32imv.txt; ./test_speed1024_rv32imv >> results_rv32imv.txt
+# ./test_speed512_rv32imbv > results_rv32imbv.txt; ./test_speed768_rv32imbv >> results_rv32imbv.txt; ./test_speed1024_rv32imbv >> results_rv32imbv.txt
 results:
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32im.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imb.txt .
@@ -97,8 +95,6 @@ objdump:
 	$(OBJDUMP) -D out/test_speed_sha3_rv32im > out/test_speed_sha3_rv32im.S
 
 out/scp_test_speed: \
-	out/test_speed_sha3_rv32im 	out/test_speed_sha3_rv32imb 		\
-	out/test_speed_sha3_rv32imv out/test_speed_sha3_rv32imbv		\
 	out/test_speed512_rv32im	\
 	out/test_speed768_rv32im	out/test_speed1024_rv32im			\
 	out/test_speed512_rv32imb	\
@@ -132,10 +128,6 @@ out/scp_test:	\
 
 # for RV32IM
 
-out/test_speed_sha3_rv32im: $(SOURCES_COMMON) $(SOURCES_RV32IM) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
-
 out/test_kyber512_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=2 $(filter %.c, $^) $(filter %.S, $^) -o $@
@@ -167,10 +159,6 @@ out/test_speed1024_rv32im: $(SOURCES) $(SOURCES_RV32IM) $(HEADERS) $(COMMONDIR)/
 	$(CC) $(CFLAGS_RV32IM) -DKYBER_K=4 $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMB
-
-out/test_speed_sha3_rv32imb: $(SOURCES_COMMON) $(SOURCES_RV32IMB) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 out/test_kyber512_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
@@ -204,10 +192,6 @@ out/test_speed1024_rv32imb: $(SOURCES) $(SOURCES_RV32IMB) $(HEADERS) $(COMMONDIR
 
 # for RV32IMV
 
-out/test_speed_sha3_rv32imv: $(SOURCES_COMMON) $(SOURCES_RV32IMV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
-
 out/test_kyber512_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=2 $(filter %.c, $^) $(filter %.S, $^) -o $@
@@ -239,10 +223,6 @@ out/test_speed1024_rv32imv: $(SOURCES) $(SOURCES_RV32IMV) $(HEADERS) $(COMMONDIR
 	$(CC) $(CFLAGS_RV32IMV) -DKYBER_K=4 $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMBV
-
-out/test_speed_sha3_rv32imbv: $(SOURCES_COMMON) $(SOURCES_RV32IMBV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 out/test_kyber512_rv32imbv: $(SOURCES) $(SOURCES_RV32IMBV) $(HEADERS) $(COMMONDIR)/test_kyber.c
 	mkdir -p out

@@ -30,7 +30,7 @@ RM = /bin/rm
 
 SOURCES_RAND 	= $(COMMONDIR)/randombytes.c
 HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
-SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(KECCAKDIR)/fips202.c $(COMMONDIR)/speed_print.c
+SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(KECCAKDIR)/fips202_ref.c $(COMMONDIR)/speed_print.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(COMMONDIR)/speed_print.h
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c symmetric-shake.c

@@ -1,0 +1,43 @@
+Test speed of SHA-3 related subroutines
+KeccakF1600                    cycles/insts/CPI=3464/5001/0.69
+shake128_absorb_once           cycles/insts/CPI=245/364/0.67
+shake128_squeezeblocks_1       cycles/insts/CPI=3500/5132/0.68
+sha3_256                       cycles/insts/CPI=3660/5399/0.68
+sha3_512                       cycles/insts/CPI=3690/5414/0.68
+
+KeccakF1600x2                  cycles/insts/CPI/1-wayCC=13128/5533/2.37/6564
+shake128x2_absorb_once         cycles/insts/CPI/1-wayCC=426/632/0.67/213
+shake128x2_squeezeblocks_1     cycles/insts/CPI/1-wayCC=13283/5770/2.30/6641
+sha3_256x2                     cycles/insts/CPI/1-wayCC=13707/6369/2.15/6853
+sha3_512x2                     cycles/insts/CPI/1-wayCC=13716/7897/1.74/6858
+
+KeccakF1600x3                  cycles/insts/CPI/1-wayCC=13222/10479/1.26/4407
+shake128x3_absorb_once         cycles/insts/CPI/1-wayCC=587/827/0.71/195
+shake128x3_squeezeblocks_1     cycles/insts/CPI/1-wayCC=13418/10823/1.24/4472
+sha3_256x3                     cycles/insts/CPI/1-wayCC=13986/11528/1.21/4662
+sha3_512x3                     cycles/insts/CPI/1-wayCC=13991/11527/1.21/4663
+
+KeccakF1600x4                  cycles/insts/CPI/1-wayCC=13520/15463/0.87/3380
+shake128x4_absorb_once         cycles/insts/CPI/1-wayCC=720/1017/0.71/180
+shake128x4_squeezeblocks_1     cycles/insts/CPI/1-wayCC=13762/15882/0.87/3440
+sha3_256x4                     cycles/insts/CPI/1-wayCC=14409/16714/0.86/3602
+sha3_512x4                     cycles/insts/CPI/1-wayCC=14443/16723/0.86/3610
+
+KeccakF1600x5                  cycles/insts/CPI/1-wayCC=14411/20399/0.71/2882
+shake128x5_absorb_once         cycles/insts/CPI/1-wayCC=851/1211/0.70/170
+shake128x5_squeezeblocks_1     cycles/insts/CPI/1-wayCC=14702/20891/0.70/2940
+sha3_256x5                     cycles/insts/CPI/1-wayCC=15438/21858/0.71/3087
+sha3_512x5                     cycles/insts/CPI/1-wayCC=15464/21873/0.71/3092
+
+KeccakF1600x6                  cycles/insts/CPI/1-wayCC=16464/26814/0.61/2744
+shake128x6_absorb_once         cycles/insts/CPI/1-wayCC=981/1403/0.70/163
+shake128x6_squeezeblocks_1     cycles/insts/CPI/1-wayCC=16802/25846/0.65/2800
+sha3_256x6                     cycles/insts/CPI/1-wayCC=17819/27144/0.66/2969
+sha3_512x6                     cycles/insts/CPI/1-wayCC=17957/27171/0.66/2992
+
+KeccakF1600x8                  cycles/insts/CPI/1-wayCC=22173/35113/0.63/2771
+shake128x8_absorb_once         cycles/insts/CPI/1-wayCC=1248/1761/0.71/156
+shake128x8_squeezeblocks_1     cycles/insts/CPI/1-wayCC=22584/35813/0.63/2823
+sha3_256x8                     cycles/insts/CPI/1-wayCC=23834/37350/0.64/2979
+sha3_512x8                     cycles/insts/CPI/1-wayCC=23891/37394/0.64/2986
+

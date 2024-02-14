@@ -1,0 +1,25 @@
+Test speed of SHA-3 related subroutines
+KeccakF1600                    cycles/insts/CPI=9127/14890/0.61
+shake128_absorb_once           cycles/insts/CPI=153/194/0.79
+shake128_squeezeblocks_1       cycles/insts/CPI=9195/15063/0.61
+sha3_256                       cycles/insts/CPI=9266/15156/0.61
+sha3_512                       cycles/insts/CPI=9277/15176/0.61
+
+KeccakF1600x2                  cycles/insts/CPI/1-wayCC=13144/5534/2.38/6572
+shake128x2_absorb_once         cycles/insts/CPI/1-wayCC=590/850/0.69/295
+shake128x2_squeezeblocks_1     cycles/insts/CPI/1-wayCC=13346/5843/2.28/6673
+sha3_256x2                     cycles/insts/CPI/1-wayCC=13902/6592/2.11/6951
+sha3_512x2                     cycles/insts/CPI/1-wayCC=13920/6604/2.11/6960
+
+KeccakF1600x3                  cycles/insts/CPI/1-wayCC=14138/21972/0.64/4712
+shake128x3_absorb_once         cycles/insts/CPI/1-wayCC=830/1196/0.69/276
+shake128x3_squeezeblocks_1     cycles/insts/CPI/1-wayCC=14374/20902/0.69/4791
+sha3_256x3                     cycles/insts/CPI/1-wayCC=15101/23401/0.65/5033
+sha3_512x3                     cycles/insts/CPI/1-wayCC=15110/21898/0.69/5036
+
+KeccakF1600x4                  cycles/insts/CPI/1-wayCC=21828/35454/0.62/5457
+shake128x4_absorb_once         cycles/insts/CPI/1-wayCC=1052/1512/0.70/263
+shake128x4_squeezeblocks_1     cycles/insts/CPI/1-wayCC=22223/36077/0.62/5555
+sha3_256x4                     cycles/insts/CPI/1-wayCC=23129/37264/0.62/5782
+sha3_512x4                     cycles/insts/CPI/1-wayCC=23200/37307/0.62/5800
+

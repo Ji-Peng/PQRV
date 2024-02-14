@@ -147,6 +147,17 @@ void test_sha3(void)
         print_bytes(shake_out, sizeof(shake_out));
     }
 
+    shake128_init(&s);
+    shake128_absorb(&s, sha3_input, 200);
+    shake128_absorb(&s, sha3_input + 200, sizeof(sha3_input) - 200);
+    shake128_finalize(&s);
+    shake128_squeeze(shake_out, sizeof(shake_out), &s);
+    if (memcmp(shake_out, shake128_output, sizeof(shake_out)) == 0) {
+    } else {
+        printf("shake128 with init-absorbx2-finalize-squeeze FAILED: \n");
+        print_bytes(shake_out, sizeof(shake_out));
+    }
+
     shake256(shake_out, sizeof(shake_out), sha3_input, sizeof(sha3_input));
     if (memcmp(shake_out, shake256_output, sizeof(shake_out)) == 0) {
     } else {
@@ -161,6 +172,17 @@ void test_sha3(void)
     if (memcmp(shake_out, shake256_output, sizeof(shake_out)) == 0) {
     } else {
         printf("shake256 with init-absorb-finalize-squeeze FAILED: \n");
+        print_bytes(shake_out, sizeof(shake_out));
+    }
+
+    shake256_init(&s);
+    shake256_absorb(&s, sha3_input, 200);
+    shake256_absorb(&s, sha3_input + 200, sizeof(sha3_input) - 200);
+    shake256_finalize(&s);
+    shake256_squeeze(shake_out, sizeof(shake_out), &s);
+    if (memcmp(shake_out, shake256_output, sizeof(shake_out)) == 0) {
+    } else {
+        printf("shake256 with init-absorbx2-finalize-squeeze FAILED: \n");
         print_bytes(shake_out, sizeof(shake_out));
     }
 }
@@ -259,6 +281,27 @@ void test_keccakf1600(void)
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
         }                                                                   \
+        FUNC(shake128x, N, _init)(state);                                   \
+        FUNC(shake128x, N, _absorb)(state, inN, 200);                       \
+        for (j = 0; j < N; j++)                                             \
+            inN[j] += 200;                                                  \
+        FUNC(shake128x, N, _absorb)(state, inN, sizeof(sha3_input) - 200);  \
+        FUNC(shake128x, N, _finalize)(state);                               \
+        FUNC(shake128x, N, _squeeze)(outN, 252, state);                     \
+        ok = 0;                                                             \
+        for (j = 0; j < N; j++)                                             \
+            ok |= memcmp(outN[j], shake128_output, 252);                    \
+        if (ok != 0) {                                                      \
+            printf("shake128x" #N                                           \
+                   " with init-absorb-finalize-squeeze FAILED: \n");        \
+            for (j = 0; j < N; j++)                                         \
+                print_bytes(outN[j], 252);                                  \
+        }                                                                   \
+                                                                            \
+        for (j = 0; j < N; j++) {                                           \
+            outN[j] = shake_out + 252 * j;                                  \
+            inN[j] = sha3_input;                                            \
+        }                                                                   \
         FUNC(shake256x, N, )(outN, 252, inN, sizeof(sha3_input));           \
         ok = 0;                                                             \
         for (j = 0; j < N; j++)                                             \
@@ -275,6 +318,27 @@ void test_keccakf1600(void)
         }                                                                   \
         FUNC(shake256x, N, _init)(state);                                   \
         FUNC(shake256x, N, _absorb)(state, inN, sizeof(sha3_input));        \
+        FUNC(shake256x, N, _finalize)(state);                               \
+        FUNC(shake256x, N, _squeeze)(outN, 252, state);                     \
+        ok = 0;                                                             \
+        for (j = 0; j < N; j++)                                             \
+            ok |= memcmp(outN[j], shake256_output, 252);                    \
+        if (ok != 0) {                                                      \
+            printf("shake256x" #N                                           \
+                   " with init-absorb-finalize-squeeze FAILED: \n");        \
+            for (j = 0; j < N; j++)                                         \
+                print_bytes(outN[j], 252);                                  \
+        }                                                                   \
+                                                                            \
+        for (j = 0; j < N; j++) {                                           \
+            outN[j] = shake_out + 252 * j;                                  \
+            inN[j] = sha3_input;                                            \
+        }                                                                   \
+        FUNC(shake256x, N, _init)(state);                                   \
+        FUNC(shake256x, N, _absorb)(state, inN, 200);                       \
+        for (j = 0; j < N; j++)                                             \
+            inN[j] += 200;                                                  \
+        FUNC(shake256x, N, _absorb)(state, inN, sizeof(sha3_input) - 200);  \
         FUNC(shake256x, N, _finalize)(state);                               \
         FUNC(shake256x, N, _squeeze)(outN, 252, state);                     \
         ok = 0;                                                             \

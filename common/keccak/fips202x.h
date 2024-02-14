@@ -363,6 +363,12 @@
         out ^= ((uint64_t)((temp0 >> 16) | (temp1 & 0xFFFF0000)) << 32) |   \
                ((temp0 & 0x0000FFFF) | (temp1 << 16))
 
+#    define toBitInterleaving64b(in, out, temp, temp0, temp1)               \
+        prepareToBitInterleaving((uint32_t)(in & 0xFFFFFFFF),               \
+                                 (uint32_t)(in >> 32), temp, temp0, temp1); \
+        out = ((uint64_t)((temp0 >> 16) | (temp1 & 0xFFFF0000)) << 32) |    \
+              ((temp0 & 0x0000FFFF) | (temp1 << 16))
+
 #    define prepareFromBitInterleaving(even, odd, temp, temp0, temp1) \
         temp0 = (even);                                               \
         temp1 = (odd);                                                \
@@ -404,6 +410,82 @@
         void FUNC(KeccakF1600x, N, _StatePermute)(uint64_t * state)            \
         {                                                                      \
             FUNC(KeccakF1600_StatePermute_RV32V_, N, x)(state);                \
+        }                                                                      \
+        static void FUNC(keccakx, N, _init)(uint64_t * s)                      \
+        {                                                                      \
+            memset(s, 0, 25 * N * sizeof(uint64_t));                           \
+        }                                                                      \
+        static int FUNC(keccakx, N, _absorb)(uint64_t * s, unsigned int pos,   \
+                                             unsigned int r,                   \
+                                             const uint8_t **in, size_t inlen) \
+        {                                                                      \
+            unsigned int j, k, k_start, k_end;                                 \
+            const uint8_t *in_t[N];                                            \
+            size_t index[N] = {0};                                             \
+            uint8_t buf[8];                                                    \
+            uint64_t temp;                                                     \
+            uint32_t t, t0, t1;                                                \
+                                                                               \
+            memcpy(in_t, in, sizeof(uint8_t *) * N);                           \
+            while (inlen > 0) {                                                \
+                if (r - pos >= 8 && inlen >= 8) {                              \
+                    k_start = 0;                                               \
+                    k_end = 8;                                                 \
+                } else if (r - pos >= 8 && inlen < 8) {                        \
+                    k_start = 0;                                               \
+                    k_end = inlen;                                             \
+                } else {                                                       \
+                    k_start = 8 - (r - pos);                                   \
+                    k_end = 8;                                                 \
+                }                                                              \
+                for (j = 0; j < N; j++) {                                      \
+                    memset(buf, 0, 8 * sizeof(uint8_t));                       \
+                    for (k = k_start; k < k_end; k++)                          \
+                        buf[k] = in_t[j][index[j]++];                          \
+                    if (j < 2) {                                               \
+                        for (k = 0; k < 8; k++)                                \
+                            S(j, ((pos + k) / 8)) ^= (uint64_t)buf[k]          \
+                                                     << 8 * ((pos + k) % 8);   \
+                    } else {                                                   \
+                        temp = *(uint64_t *)buf;                               \
+                        toBitInterleaving64b(temp, *(uint64_t *)buf, t, t0,    \
+                                             t1);                              \
+                        for (k = 0; k < 8; k++)                                \
+                            S(j, ((pos + k) / 8)) ^= (uint64_t)buf[k]          \
+                                                     << 8 * ((pos + k) % 8);   \
+                    }                                                          \
+                }                                                              \
+                pos += (k_end - k_start);                                      \
+                inlen -= (k_end - k_start);                                    \
+                if (pos == r) {                                                \
+                    FUNC(KeccakF1600x, N, _StatePermute)(s);                   \
+                    pos = 0;                                                   \
+                }                                                              \
+            }                                                                  \
+            return pos;                                                        \
+        }                                                                      \
+        static void FUNC(keccakx, N, _finalize)(                               \
+            uint64_t * s, unsigned int pos, unsigned int r, uint8_t p)         \
+        {                                                                      \
+            unsigned int j;                                                    \
+            uint8_t buf[8];                                                    \
+            uint64_t temp;                                                     \
+            uint32_t t, t0, t1;                                                \
+                                                                               \
+            for (j = 0; j < N; j++) {                                          \
+                memset(buf, 0, 8 * sizeof(uint8_t));                           \
+                buf[pos % 8] = p;                                              \
+                if (j < 2) {                                                   \
+                    S(j, (pos >> 3)) ^= *(uint64_t *)buf;                      \
+                    S(j, ((r - 1) / 8)) ^= (1ULL << 63);                       \
+                } else {                                                       \
+                    temp = *(uint64_t *)buf;                                   \
+                    toBitInterleaving64b(temp, *(uint64_t *)buf, t, t0, t1);   \
+                    S(j, (pos >> 3)) ^= *(uint64_t *)buf;                      \
+                    toBitInterleavingAndXOR64b(                                \
+                        (1ULL << 63), S(j, ((r - 1) / 8)), t, t0, t1);         \
+                }                                                              \
+            }                                                                  \
         }                                                                      \
         static void FUNC(keccakx, N, _absorb_once)(                            \
             uint64_t * s, unsigned int r, const uint8_t **in, size_t inlen,    \
@@ -523,6 +605,23 @@
                 nblocks -= 1;                                                  \
             }                                                                  \
         }                                                                      \
+        void FUNC(shake128x, N, _init)(KECCAK(keccakx, N, _state) * s)         \
+        {                                                                      \
+            FUNC(keccakx, N, _init)((uint64_t *)&s->s);                        \
+            s->pos = 0;                                                        \
+        }                                                                      \
+        void FUNC(shake128x, N, _absorb)(KECCAK(keccakx, N, _state) * s,       \
+                                         const uint8_t **in, size_t inlen)     \
+        {                                                                      \
+            s->pos = FUNC(keccakx, N, _absorb)((uint64_t *)&s->s, s->pos,      \
+                                               SHAKE128_RATE, in, inlen);      \
+        }                                                                      \
+        void FUNC(shake128x, N, _finalize)(KECCAK(keccakx, N, _state) * s)     \
+        {                                                                      \
+            FUNC(keccakx, N, _finalize)                                        \
+            ((uint64_t *)&s->s, s->pos, SHAKE128_RATE, 0x1F);                  \
+            s->pos = SHAKE128_RATE;                                            \
+        }                                                                      \
         void FUNC(shake128x, N, _squeeze)(uint8_t * *out, size_t outlen,       \
                                           KECCAK(keccakx, N, _state) * state)  \
         {                                                                      \
@@ -544,6 +643,23 @@
         {                                                                      \
             FUNC(keccakx, N, _squeezeblocks)                                   \
             (out, nblocks, (uint64_t *)&state->s, SHAKE128_RATE);              \
+        }                                                                      \
+        void FUNC(shake256x, N, _init)(KECCAK(keccakx, N, _state) * s)         \
+        {                                                                      \
+            FUNC(keccakx, N, _init)((uint64_t *)&s->s);                        \
+            s->pos = 0;                                                        \
+        }                                                                      \
+        void FUNC(shake256x, N, _absorb)(KECCAK(keccakx, N, _state) * s,       \
+                                         const uint8_t **in, size_t inlen)     \
+        {                                                                      \
+            s->pos = FUNC(keccakx, N, _absorb)((uint64_t *)&s->s, s->pos,      \
+                                               SHAKE256_RATE, in, inlen);      \
+        }                                                                      \
+        void FUNC(shake256x, N, _finalize)(KECCAK(keccakx, N, _state) * s)     \
+        {                                                                      \
+            FUNC(keccakx, N, _finalize)                                        \
+            ((uint64_t *)&s->s, s->pos, SHAKE256_RATE, 0x1F);                  \
+            s->pos = SHAKE256_RATE;                                            \
         }                                                                      \
         void FUNC(shake256x, N, _squeeze)(uint8_t * *out, size_t outlen,       \
                                           KECCAK(keccakx, N, _state) * state)  \
@@ -673,22 +789,61 @@
         {                                                                      \
             FUNC(KeccakF1600_StatePermute_RV32V_, N, x)(state);                \
         }                                                                      \
+        static void FUNC(keccakx, N, _init)(uint64_t * s)                      \
+        {                                                                      \
+            memset(s, 0, 25 * N * sizeof(uint64_t));                           \
+        }                                                                      \
+    static int FUNC(keccakx, N, _absorb)(uint64_t * s, unsigned int pos,       \
+                                         unsigned int r, const uint8_t **in,   \
+                                         size_t inlen)                         \
+    {                                                                          \
+        unsigned int i, j;                                                     \
+        const uint8_t *in_t[N];                                                \
+                                                                               \
+        memcpy(in_t, in, sizeof(uint8_t *) * N);                               \
+                                                                               \
+        while (pos + inlen >= r) {                                             \
+            for (i = pos; i < r; i++)                                          \
+                for (j = 0; j < N; j++)                                        \
+                    S(j, (i / 8)) ^= (uint64_t)in_t[j][i - pos]                \
+                                     << 8 * (i % 8);                           \
+                                                                               \
+            for (j = 0; j < N; j++) {                                          \
+                in_t[j] += (r - pos);                                          \
+            }                                                                  \
+            inlen -= (r - pos);                                                \
+            FUNC(KeccakF1600x, N, _StatePermute)(s);                           \
+            pos = 0;                                                           \
+        }                                                                      \
+        for (i = pos; i < pos + inlen; i++)                                    \
+            for (j = 0; j < N; j++)                                            \
+                S(j, (i / 8)) ^= (uint64_t)in_t[j][i - pos] << 8 * (i % 8);    \
+        return i;                                                              \
+    }                                                                          \
+        static void FUNC(keccakx, N, _finalize)(                               \
+            uint64_t * s, unsigned int pos, unsigned int r, uint8_t p)         \
+        {                                                                      \
+            unsigned int j;                                                    \
+                                                                               \
+            for (j = 0; j < N; j++) {                                          \
+                S(j, (pos / 8)) ^= (uint64_t)p << 8 * (pos % 8);               \
+                S(j, ((r - 1) / 8)) ^= 1ULL << 63;                             \
+            }                                                                  \
+        }                                                                      \
         static void FUNC(keccakx, N, _absorb_once)(                            \
             uint64_t * s, unsigned int r, const uint8_t **in, size_t inlen,    \
             uint8_t p)                                                         \
         {                                                                      \
-            unsigned int i, j, k;                                              \
+            unsigned int i, j;                                                 \
             const uint8_t *in_t[N];                                            \
-            uint8_t buf[N][8];                                                 \
                                                                                \
             memcpy(in_t, in, sizeof(uint8_t *) * N);                           \
             memset(s, 0, 25 * N * sizeof(uint64_t));                           \
-            memset(buf, 0, N * 8 * sizeof(uint8_t));                           \
                                                                                \
             while (inlen >= r) {                                               \
                 for (i = 0; i < r / 8; i++)                                    \
                     for (j = 0; j < N; j++)                                    \
-                        S(j, i) ^= *(uint64_t *)(in_t[j] + 8 * i);             \
+                        S(j, (i)) ^= *(uint64_t *)(in_t[j] + 8 * i);           \
                                                                                \
                 for (j = 0; j < N; j++)                                        \
                     in_t[j] += r;                                              \
@@ -696,21 +851,14 @@
                 FUNC(KeccakF1600x, N, _StatePermute)(s);                       \
             }                                                                  \
                                                                                \
-            for (i = 0; inlen >= 8; i += 1, inlen -= 8)                        \
-                for (j = 0; j < N; j++) {                                      \
-                    S(j, i) ^= *(uint64_t *)(in_t[j]);                         \
-                    in_t[j] += 8;                                              \
-                }                                                              \
-            for (k = 0; k < inlen; k++)                                        \
+            for (i = 0; i < inlen; i++) {                                      \
                 for (j = 0; j < N; j++)                                        \
-                    buf[j][k] = in_t[j][k];                                    \
-                                                                               \
-            for (j = 0; j < N; j++)                                            \
-                buf[j][k] = p;                                                 \
+                    S(j, (i / 8)) ^= (uint64_t)in_t[j][i] << 8 * (i % 8);      \
+            }                                                                  \
                                                                                \
             for (j = 0; j < N; j++) {                                          \
-                S(j, i) ^= *(uint64_t *)(buf[j]);                              \
-                S(j, ((r - 1) / 8)) ^= (1ULL << 63);                           \
+                S(j, (i / 8)) ^= (uint64_t)p << 8 * (i % 8);                   \
+                S(j, ((r - 1) / 8)) ^= 1ULL << 63;                             \
             }                                                                  \
         }                                                                      \
         static unsigned int FUNC(keccakx, N, _squeeze)(                        \
@@ -753,6 +901,23 @@
                 nblocks -= 1;                                                  \
             }                                                                  \
         }                                                                      \
+        void FUNC(shake128x, N, _init)(KECCAK(keccakx, N, _state) * s)         \
+        {                                                                      \
+            FUNC(keccakx, N, _init)((uint64_t *)&s->s);                        \
+            s->pos = 0;                                                        \
+        }                                                                      \
+        void FUNC(shake128x, N, _absorb)(KECCAK(keccakx, N, _state) * s,       \
+                                         const uint8_t **in, size_t inlen)     \
+        {                                                                      \
+            s->pos = FUNC(keccakx, N, _absorb)((uint64_t *)&s->s, s->pos,      \
+                                               SHAKE128_RATE, in, inlen);      \
+        }                                                                      \
+        void FUNC(shake128x, N, _finalize)(KECCAK(keccakx, N, _state) * s)     \
+        {                                                                      \
+            FUNC(keccakx, N, _finalize)                                        \
+            ((uint64_t *)&s->s, s->pos, SHAKE128_RATE, 0x1F);                  \
+            s->pos = SHAKE128_RATE;                                            \
+        }                                                                      \
         void FUNC(shake128x, N, _squeeze)(uint8_t * *out, size_t outlen,       \
                                           KECCAK(keccakx, N, _state) * state)  \
         {                                                                      \
@@ -774,6 +939,23 @@
         {                                                                      \
             FUNC(keccakx, N, _squeezeblocks)                                   \
             (out, nblocks, (uint64_t *)&state->s, SHAKE128_RATE);              \
+        }                                                                      \
+        void FUNC(shake256x, N, _init)(KECCAK(keccakx, N, _state) * s)         \
+        {                                                                      \
+            FUNC(keccakx, N, _init)((uint64_t *)&s->s);                        \
+            s->pos = 0;                                                        \
+        }                                                                      \
+        void FUNC(shake256x, N, _absorb)(KECCAK(keccakx, N, _state) * s,       \
+                                         const uint8_t **in, size_t inlen)     \
+        {                                                                      \
+            s->pos = FUNC(keccakx, N, _absorb)((uint64_t *)&s->s, s->pos,      \
+                                               SHAKE256_RATE, in, inlen);      \
+        }                                                                      \
+        void FUNC(shake256x, N, _finalize)(KECCAK(keccakx, N, _state) * s)     \
+        {                                                                      \
+            FUNC(keccakx, N, _finalize)                                        \
+            ((uint64_t *)&s->s, s->pos, SHAKE256_RATE, 0x1F);                  \
+            s->pos = SHAKE256_RATE;                                            \
         }                                                                      \
         void FUNC(shake256x, N, _squeeze)(uint8_t * *out, size_t outlen,       \
                                           KECCAK(keccakx, N, _state) * state)  \
