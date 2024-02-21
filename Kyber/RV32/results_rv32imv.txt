@@ -1,0 +1,191 @@
+// Using 2-way sha3 for gen_a
+Test speed of Kyber512
+gen_a:                          94181 cycles
+poly_getnoise_eta1:             20810 cycles
+NTT:                            34946 cycles
+INVNTT:                         56218 cycles
+polyvec_basemul_acc_mont:       43608 cycles
+poly_basemul_montgomery:        18142 cycles
+kyber_keypair:                 512881 cycles
+kyber_encaps:                  726005 cycles
+kyber_decaps:                  854516 cycles
+Test speed of Kyber768
+gen_a:                         222556 cycles
+poly_getnoise_eta1:             12146 cycles
+NTT:                            34947 cycles
+INVNTT:                         56217 cycles
+polyvec_basemul_acc_mont:       63244 cycles
+poly_basemul_montgomery:        18134 cycles
+kyber_keypair:                 851244 cycles
+kyber_encaps:                 1144146 cycles
+kyber_decaps:                 1303141 cycles
+Test speed of Kyber1024
+gen_a:                         381438 cycles
+poly_getnoise_eta1:             12092 cycles
+NTT:                            34943 cycles
+INVNTT:                         56241 cycles
+polyvec_basemul_acc_mont:       83059 cycles
+poly_basemul_montgomery:        18127 cycles
+kyber_keypair:                1295073 cycles
+kyber_encaps:                 1664510 cycles
+kyber_decaps:                 1855240 cycles
+
+// Using 2-way sha3 for gen_a & gen_skpv_e & gen_sp_ep_epp
+Test speed of Kyber512
+gen_a:                          94666 cycles
+poly_getnoise_eta1:             20803 cycles
+NTT:                            34955 cycles
+INVNTT:                         56225 cycles
+polyvec_basemul_acc_mont:       43618 cycles
+poly_basemul_montgomery:        18136 cycles
+kyber_keypair:                 494071 cycles
+kyber_encaps:                  725572 cycles
+kyber_decaps:                  853371 cycles
+Test speed of Kyber768
+gen_a:                         221375 cycles
+poly_getnoise_eta1:             12167 cycles
+NTT:                            34971 cycles
+INVNTT:                         56223 cycles
+polyvec_basemul_acc_mont:       63317 cycles
+poly_basemul_montgomery:        18131 cycles
+kyber_keypair:                 835260 cycles
+kyber_encaps:                 1143228 cycles
+kyber_decaps:                 1302290 cycles
+Test speed of Kyber1024
+gen_a:                         381408 cycles
+poly_getnoise_eta1:             12098 cycles
+NTT:                            34944 cycles
+INVNTT:                         56215 cycles
+polyvec_basemul_acc_mont:       83088 cycles
+poly_basemul_montgomery:        18143 cycles
+kyber_keypair:                1275217 cycles
+kyber_encaps:                 1652085 cycles
+kyber_decaps:                 1842262 cycles
+
+// Using 3-way sha3 for gen_a
+Test speed of Kyber512
+gen_a:                          84361 cycles
+poly_getnoise_eta1:             20812 cycles
+NTT:                            34960 cycles
+INVNTT:                         56223 cycles
+polyvec_basemul_acc_mont:       43617 cycles
+poly_basemul_montgomery:        18131 cycles
+kyber_keypair:                 503930 cycles
+kyber_encaps:                  716483 cycles
+kyber_decaps:                  843809 cycles
+Test speed of Kyber768
+gen_a:                         163829 cycles
+poly_getnoise_eta1:             12090 cycles
+NTT:                            34973 cycles
+INVNTT:                         56253 cycles
+polyvec_basemul_acc_mont:       63322 cycles
+poly_basemul_montgomery:        18133 cycles
+kyber_keypair:                 795170 cycles
+kyber_encaps:                 1089067 cycles
+kyber_decaps:                 1248962 cycles
+Test speed of Kyber1024
+gen_a:                         304910 cycles
+poly_getnoise_eta1:             12106 cycles
+NTT:                            34965 cycles
+INVNTT:                         56213 cycles
+polyvec_basemul_acc_mont:       83071 cycles
+poly_basemul_montgomery:        18143 cycles
+kyber_keypair:                1219372 cycles
+kyber_encaps:                 1574806 cycles
+kyber_decaps:                 1765430 cycles
+
+// Using 3-way sha3 for gen_a & gen_skpv_e & gen_sp_ep_epp
+Test speed of Kyber512
+gen_a:                          84794 cycles
+poly_getnoise_eta1:             20800 cycles
+NTT:                            36201 cycles
+INVNTT:                         56652 cycles
+polyvec_basemul_acc_mont:       43632 cycles
+poly_basemul_montgomery:        18137 cycles
+kyber_keypair:                 479711 cycles
+kyber_encaps:                  696520 cycles
+kyber_decaps:                  824211 cycles
+Test speed of Kyber768
+gen_a:                         162938 cycles
+poly_getnoise_eta1:             12160 cycles
+NTT:                            34948 cycles
+INVNTT:                         56228 cycles
+polyvec_basemul_acc_mont:       63319 cycles
+poly_basemul_montgomery:        18133 cycles
+kyber_keypair:                 766215 cycles
+kyber_encaps:                 1058765 cycles
+kyber_decaps:                 1217305 cycles
+Test speed of Kyber1024
+gen_a:                         304292 cycles
+poly_getnoise_eta1:             12088 cycles
+NTT:                            34957 cycles
+INVNTT:                         56239 cycles
+polyvec_basemul_acc_mont:       83041 cycles
+poly_basemul_montgomery:        18138 cycles
+kyber_keypair:                1188264 cycles
+kyber_encaps:                 1536210 cycles
+kyber_decaps:                 1726311 cycles
+
+// Using 4-way sha3 for gen_a
+Test speed of Kyber512
+gen_a:                          81336 cycles
+poly_getnoise_eta1:             20815 cycles
+NTT:                            34959 cycles
+INVNTT:                         56224 cycles
+polyvec_basemul_acc_mont:       43618 cycles
+poly_basemul_montgomery:        18136 cycles
+kyber_keypair:                 502369 cycles
+kyber_encaps:                  714413 cycles
+kyber_decaps:                  841330 cycles
+Test speed of Kyber768
+gen_a:                         196922 cycles
+poly_getnoise_eta1:             12177 cycles
+NTT:                            34953 cycles
+INVNTT:                         56220 cycles
+polyvec_basemul_acc_mont:       63315 cycles
+poly_basemul_montgomery:        18135 cycles
+kyber_keypair:                 828773 cycles
+kyber_encaps:                 1122112 cycles
+kyber_decaps:                 1281009 cycles
+Test speed of Kyber1024
+gen_a:                         328255 cycles
+poly_getnoise_eta1:             12106 cycles
+NTT:                            34947 cycles
+INVNTT:                         56228 cycles
+polyvec_basemul_acc_mont:       83060 cycles
+poly_basemul_montgomery:        18134 cycles
+kyber_keypair:                1244457 cycles
+kyber_encaps:                 1600205 cycles
+kyber_decaps:                 1790482 cycles
+
+// Using 4-way sha3 for gen_a & gen_skpv_e & gen_sp_ep_epp
+Test speed of Kyber512
+gen_a:                          81233 cycles
+poly_getnoise_eta1:             20816 cycles
+NTT:                            34946 cycles
+INVNTT:                         56223 cycles
+polyvec_basemul_acc_mont:       43616 cycles
+poly_basemul_montgomery:        18131 cycles
+kyber_keypair:                 473468 cycles
+kyber_encaps:                  695906 cycles
+kyber_decaps:                  828629 cycles
+Test speed of Kyber768
+gen_a:                         195760 cycles
+poly_getnoise_eta1:             12170 cycles
+NTT:                            34956 cycles
+INVNTT:                         56231 cycles
+polyvec_basemul_acc_mont:       63331 cycles
+poly_basemul_montgomery:        18136 cycles
+kyber_keypair:                 807860 cycles
+kyber_encaps:                 1092604 cycles
+kyber_decaps:                 1251460 cycles
+Test speed of Kyber1024
+gen_a:                         327754 cycles
+poly_getnoise_eta1:             12171 cycles
+NTT:                            34960 cycles
+INVNTT:                         56257 cycles
+polyvec_basemul_acc_mont:       83127 cycles
+poly_basemul_montgomery:        18137 cycles
+kyber_keypair:                1213645 cycles
+kyber_encaps:                 1569343 cycles
+kyber_decaps:                 1759882 cycles

@@ -4,10 +4,8 @@
 
 #include "cpucycles.h"
 #include "fips202.h"
+#include "fips202x.h"
 #include "speed_print.h"
-#ifdef VECTOR128
-#    include "fips202x.h"
-#endif
 
 // for debug
 void print_bytes(uint8_t *out, int len);
@@ -46,7 +44,7 @@ void print_stat(uint64_t *s)
     printf("%llu\n", (unsigned long long)s[i]);
 }
 
-const uint8_t sha3_input[249] = {
+const uint8_t sha3_input[249] __attribute__((aligned(16))) = {
     1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13,  14,  15,
     16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,
     31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,
@@ -64,16 +62,16 @@ const uint8_t sha3_input[249] = {
     211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225,
     226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240,
     241, 242, 243, 244, 245, 246, 247, 248, 249};
-const uint8_t sha3_256_output[32] = {
+const uint8_t sha3_256_output[32] __attribute__((aligned(16))) = {
     112, 90, 11,  42, 206, 54,  78,  106, 31,  174, 4,  207, 36, 108, 124, 90,
     120, 65, 224, 0,  68,  231, 219, 217, 137, 138, 72, 196, 37, 35,  182, 66};
-const uint8_t sha3_512_output[64] = {
+const uint8_t sha3_512_output[64] __attribute__((aligned(16))) = {
     223, 203, 2,   144, 100, 62,  53,  137, 32,  52,  2,   99,  223,
     207, 197, 181, 184, 249, 220, 152, 207, 129, 163, 105, 145, 242,
     32,  190, 153, 193, 184, 144, 199, 181, 194, 26,  87,  53,  60,
     63,  90,  20,  239, 69,  140, 130, 164, 39,  175, 232, 206, 78,
     42,  236, 74,  63,  220, 247, 134, 71,  220, 229, 35,  106};
-const uint8_t shake128_output[252] = {
+const uint8_t shake128_output[252] __attribute__((aligned(16))) = {
     169, 185, 130, 22,  180, 30,  178, 97,  160, 152, 47,  143, 145, 113, 158,
     20,  245, 111, 210, 107, 239, 151, 249, 56,  82,  232, 188, 33,  76,  230,
     254, 195, 51,  165, 45,  157, 37,  51,  34,  192, 220, 165, 195, 237, 52,
@@ -91,7 +89,7 @@ const uint8_t shake128_output[252] = {
     157, 33,  59,  232, 183, 23,  112, 99,  80,  26,  38,  61,  154, 29,  145,
     193, 154, 213, 24,  194, 152, 205, 242, 248, 117, 91,  14,  175, 233, 124,
     37,  250, 162, 229, 1,   182, 128, 226, 11,  150, 58,  204};
-const uint8_t shake256_output[252] = {
+const uint8_t shake256_output[252] __attribute__((aligned(16))) = {
     221, 253, 47,  206, 240, 244, 31,  20,  56,  7,   195, 202, 89,  250, 25,
     63,  18,  242, 103, 182, 194, 5,   63,  240, 170, 140, 164, 52,  212, 149,
     62,  199, 114, 4,   79,  38,  153, 217, 27,  135, 250, 154, 155, 251, 98,
@@ -201,19 +199,19 @@ void test_keccakf1600(void)
     void FUNC(test_sha3x, N, )(void)                                        \
     {                                                                       \
         unsigned int j, ok = 0;                                             \
-        uint8_t out[64 * N];                                                \
+        uint8_t out[64 * N] __attribute__((aligned(16)));                   \
         uint8_t *shake_out;                                                 \
         uint8_t *outN[N];                                                   \
         const uint8_t *inN[N];                                              \
         KECCAK(keccakx, N, _state) * state;                                 \
                                                                             \
         if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) { \
-            printf("malloc failed\n");                                      \
+            LOG("%s", "malloc failed\n");                                   \
             return;                                                         \
         }                                                                   \
                                                                             \
         if ((shake_out = (uint8_t *)malloc(252 * N)) == NULL) {             \
-            printf("malloc failed\n");                                      \
+            LOG("%s", "malloc failed\n");                                   \
             return;                                                         \
         }                                                                   \
                                                                             \
@@ -514,7 +512,7 @@ uint64_t t[NTESTS];
     keccakx##N##_state *sx##N;                                                \
     if ((sx##N = (keccakx##N##_state *)malloc(sizeof(keccakx##N##_state))) == \
         NULL) {                                                               \
-        printf("keccak state malloc failed\n");                               \
+        LOG("%s", "malloc failed\n");                                         \
     }                                                                         \
     test_sha3x##N();                                                          \
     PERF_N(KeccakF1600x##N##_StatePermute((uint64_t *)&(sx##N->s)),           \
@@ -536,7 +534,7 @@ int main(void)
 
     // prepare
     if ((buff_out = (uint8_t *)malloc(8 * SHAKE128_RATE)) == NULL) {
-        printf("buff_out malloc failed\n");
+        LOG("%s", "malloc failed\n");
     }
 
     test_sha3();

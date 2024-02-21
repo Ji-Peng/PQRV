@@ -793,33 +793,34 @@
         {                                                                      \
             memset(s, 0, 25 * N * sizeof(uint64_t));                           \
         }                                                                      \
-    static int FUNC(keccakx, N, _absorb)(uint64_t * s, unsigned int pos,       \
-                                         unsigned int r, const uint8_t **in,   \
-                                         size_t inlen)                         \
-    {                                                                          \
-        unsigned int i, j;                                                     \
-        const uint8_t *in_t[N];                                                \
+        static int FUNC(keccakx, N, _absorb)(uint64_t * s, unsigned int pos,   \
+                                             unsigned int r,                   \
+                                             const uint8_t **in, size_t inlen) \
+        {                                                                      \
+            unsigned int i, j;                                                 \
+            const uint8_t *in_t[N];                                            \
                                                                                \
-        memcpy(in_t, in, sizeof(uint8_t *) * N);                               \
+            memcpy(in_t, in, sizeof(uint8_t *) * N);                           \
                                                                                \
-        while (pos + inlen >= r) {                                             \
-            for (i = pos; i < r; i++)                                          \
+            while (pos + inlen >= r) {                                         \
+                for (i = pos; i < r; i++)                                      \
+                    for (j = 0; j < N; j++)                                    \
+                        S(j, (i / 8)) ^= (uint64_t)in_t[j][i - pos]            \
+                                         << 8 * (i % 8);                       \
+                                                                               \
+                for (j = 0; j < N; j++) {                                      \
+                    in_t[j] += (r - pos);                                      \
+                }                                                              \
+                inlen -= (r - pos);                                            \
+                FUNC(KeccakF1600x, N, _StatePermute)(s);                       \
+                pos = 0;                                                       \
+            }                                                                  \
+            for (i = pos; i < pos + inlen; i++)                                \
                 for (j = 0; j < N; j++)                                        \
                     S(j, (i / 8)) ^= (uint64_t)in_t[j][i - pos]                \
                                      << 8 * (i % 8);                           \
-                                                                               \
-            for (j = 0; j < N; j++) {                                          \
-                in_t[j] += (r - pos);                                          \
-            }                                                                  \
-            inlen -= (r - pos);                                                \
-            FUNC(KeccakF1600x, N, _StatePermute)(s);                           \
-            pos = 0;                                                           \
+            return i;                                                          \
         }                                                                      \
-        for (i = pos; i < pos + inlen; i++)                                    \
-            for (j = 0; j < N; j++)                                            \
-                S(j, (i / 8)) ^= (uint64_t)in_t[j][i - pos] << 8 * (i % 8);    \
-        return i;                                                              \
-    }                                                                          \
         static void FUNC(keccakx, N, _finalize)(                               \
             uint64_t * s, unsigned int pos, unsigned int r, uint8_t p)         \
         {                                                                      \
@@ -1074,7 +1075,7 @@ typedef struct uint64x2_t {
 typedef struct keccak_x2 {
     v128 s[25];
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx2_state;
+} __attribute__((aligned(16))) keccakx2_state;
 
 DEFINE_SHA3_APIS(2);
 
@@ -1088,7 +1089,7 @@ typedef struct state_3x {
 typedef struct keccak_x3 {
     s_x3 s;
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx3_state;
+} __attribute__((aligned(16))) keccakx3_state;
 
 DEFINE_SHA3_APIS(3);
 #endif
@@ -1102,7 +1103,7 @@ typedef struct state_4x {
 typedef struct keccak_x4 {
     s_x4 s;
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx4_state;
+} __attribute__((aligned(16))) keccakx4_state;
 
 DEFINE_SHA3_APIS(4);
 #endif
@@ -1117,7 +1118,7 @@ typedef struct state_5x {
 typedef struct keccak_x5 {
     s_x5 s;
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx5_state;
+} __attribute__((aligned(16))) keccakx5_state;
 
 DEFINE_SHA3_APIS(5);
 #endif
@@ -1133,7 +1134,7 @@ typedef struct state_6x {
 typedef struct keccak_x6 {
     s_x6 s;
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx6_state;
+} __attribute__((aligned(16))) keccakx6_state;
 
 DEFINE_SHA3_APIS(6);
 #endif
@@ -1151,9 +1152,20 @@ typedef struct state_8x {
 typedef struct keccak_x8 {
     s_x8 s;
     unsigned int pos;
-} __attribute__((aligned(64))) keccakx8_state;
+} __attribute__((aligned(16))) keccakx8_state;
 
 DEFINE_SHA3_APIS(8);
 #endif
+
+#define LOG(format, ...)                                      \
+    do {                                                      \
+        printf("%s@ %s:%d:\t", __func__, __FILE__, __LINE__); \
+        printf(format, ##__VA_ARGS__);                        \
+    } while (0)
+
+#define ALIGNED_UINT8(N)   \
+    struct {               \
+        uint8_t coeffs[N]; \
+    } __attribute__((aligned(16)))
 
 #endif

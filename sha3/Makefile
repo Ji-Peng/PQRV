@@ -44,7 +44,7 @@ SOURCES_RV64IMV	= $(KECCAKDIR)/fips202_rv64.c $(KECCAKDIR)/fips202x_rv64.c $(KEC
 SOURCES_RV64IMBV= $(KECCAKDIR)/fips202_rv64.c $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S
 
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
-HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(COMMONDIR)/speed_print.h
+HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h $(COMMONDIR)/speed_print.h
 
 SOURCES_REF 	= $(COMMONDIR)/cpucycles.c $(KECCAKDIR)/fips202_ref.c $(COMMONDIR)/speed_print.c
 HEADERS_REF 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(COMMONDIR)/speed_print.h
