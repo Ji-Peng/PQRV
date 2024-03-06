@@ -2,12 +2,12 @@ CC = riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
 
 COMMONDIR = ../common
-CFLAGS = -O3 -fomit-frame-pointer -static \
+CFLAGS = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv64imafdcv -mabi=lp64d -I$(COMMONDIR) -I.
 RM = /bin/rm
 
-SOURCES = add.c
-HEADERS = 
+SOURCES = add.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+HEADERS = $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 
 TARGET_IP = 192.168.123.99
 

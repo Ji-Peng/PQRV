@@ -204,6 +204,7 @@ void test_keccakf1600(void)
         uint8_t *outN[N];                                                   \
         const uint8_t *inN[N];                                              \
         KECCAK(keccakx, N, _state) * state;                                 \
+        keccak_state statex1;                                               \
                                                                             \
         if ((state = malloc(sizeof(KECCAK(keccakx, N, _state)))) == NULL) { \
             LOG("%s", "malloc failed\n");                                   \
@@ -215,6 +216,7 @@ void test_keccakf1600(void)
             return;                                                         \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = out + 32 * j;                                         \
             inN[j] = sha3_input;                                            \
@@ -229,6 +231,7 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 32);                                   \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = out + 64 * j;                                         \
             inN[j] = sha3_input;                                            \
@@ -243,6 +246,7 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 64);                                   \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
@@ -257,6 +261,7 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 252);                                  \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
@@ -275,6 +280,31 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 252);                                  \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
+        for (j = 0; j < N; j++) {                                           \
+            outN[j] = shake_out + 252 * j;                                  \
+            inN[j] = sha3_input;                                            \
+        }                                                                   \
+        FUNC(shake128x, N, _init)(state);                                   \
+        FUNC(shake128x, N, _absorb)(state, inN, sizeof(sha3_input));        \
+        FUNC(shake128x, N, _finalize)(state);                               \
+        FUNC(shake128x, N, _squeeze)(outN, 100, state);                     \
+        for (j = 0; j < N; j++) {                                           \
+            FUNC(keccakx, N, _get_oneway_state)(state, &statex1, j);        \
+            shake128_squeeze(outN[j] + 100, 152, &statex1);                 \
+        }                                                                   \
+        ok = 0;                                                             \
+        for (j = 0; j < N; j++)                                             \
+            ok |= memcmp(outN[j], shake128_output, 252);                    \
+        if (ok != 0) {                                                      \
+            printf("shake128x" #N                                           \
+                   " with init-absorb-finalize-squeeze-get_oneway_state "   \
+                   "FAILED: \n");                                           \
+            for (j = 0; j < N; j++)                                         \
+                print_bytes(outN[j], 252);                                  \
+        }                                                                   \
+                                                                            \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
@@ -291,11 +321,12 @@ void test_keccakf1600(void)
             ok |= memcmp(outN[j], shake128_output, 252);                    \
         if (ok != 0) {                                                      \
             printf("shake128x" #N                                           \
-                   " with init-absorb-finalize-squeeze FAILED: \n");        \
+                   " with init-absorbx2-finalize-squeeze FAILED: \n");      \
             for (j = 0; j < N; j++)                                         \
                 print_bytes(outN[j], 252);                                  \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
@@ -310,6 +341,7 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 252);                                  \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \
@@ -328,6 +360,7 @@ void test_keccakf1600(void)
                 print_bytes(outN[j], 252);                                  \
         }                                                                   \
                                                                             \
+        memset(shake_out, 0, 252 * N);                                      \
         for (j = 0; j < N; j++) {                                           \
             outN[j] = shake_out + 252 * j;                                  \
             inN[j] = sha3_input;                                            \

@@ -8,6 +8,7 @@
                 "${workspaceFolder}/common/keccak"
             ],
             "defines": [
+                "__riscv_vector",
                 "VECTOR128",
                 "BIT_INTERLEAVING",
                 "HYBRIDX3",

@@ -2,6 +2,7 @@
 #define INDCPA_H
 
 #include <stdint.h>
+
 #include "params.h"
 #include "polyvec.h"
 
