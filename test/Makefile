@@ -3,7 +3,7 @@ OBJDUMP = riscv64-unknown-linux-gnu-objdump
 
 COMMONDIR = ../common
 CFLAGS = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
-		 -march=rv64imafdcv -mabi=lp64d -I$(COMMONDIR) -I.
+		 -march=rv64imacv_zba_zbb -mabi=lp64 -I$(COMMONDIR) -I.
 RM = /bin/rm
 
 SOURCES = add.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
@@ -14,19 +14,24 @@ TARGET_IP = 192.168.123.99
 .PHONY: speed results clean
 
 speed: \
-	test_add test_vmul64
+	out/test_add out/test_vmul64 out/test_ntt
 
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
 
-test_add: $(SOURCES) $(HEADERS)
+out/test_add: $(SOURCES) $(HEADERS)
 	mkdir -p out
-	$(CC) $(CFLAGS) $(SOURCES) -o out/test_add
-	scp out/test_add root@$(TARGET_IP):/sharefs/
+	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
 
-test_vmul64: vmul64.c vmul64.S
-	$(CC) $(CFLAGS) vmul64.c vmul64.S -o out/test_vmul64
-	scp out/test_vmul64 root@$(TARGET_IP):/sharefs/
+out/test_vmul64: vmul64.c vmul64.S
+	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_ntt: $(COMMONDIR)/ntt/ntt_rvv.S ntt.c $(COMMONDIR)/ntt/consts.c $(COMMONDIR)/ntt/consts.h $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+	mkdir -p out
+	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
 
 clean:
 	-$(RM) -rf out/

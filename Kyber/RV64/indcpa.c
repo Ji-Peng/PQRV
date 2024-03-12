@@ -161,7 +161,7 @@ static unsigned int rej_uniform(int16_t *r, unsigned int len,
 
 #define REJ_UNIFORM_VECTOR_BUFLEN (GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES)
 
-#if defined(VECTOR128) && KYBER_K != 2
+#if defined(VECTOR128)
 static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
 {
     unsigned int ctr, pos;
@@ -249,39 +249,8 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
  *              - int transposed: boolean deciding whether A or A^T is generated
  **************************************************/
 
-#if defined(HYBRIDX6)
-#    if KYBER_K == 2
-void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
-{
-    unsigned int ctr, i, j, k;
-    unsigned int buflen, off;
-    uint8_t buf[GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES + 2];
-    xof_state state;
-
-    for (i = 0; i < KYBER_K; i++) {
-        for (j = 0; j < KYBER_K; j++) {
-            if (transposed)
-                xof_absorb(&state, seed, i, j);
-            else
-                xof_absorb(&state, seed, j, i);
-
-            xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS, &state);
-            buflen = GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES;
-            ctr = rej_uniform(a[i].vec[j].coeffs, KYBER_N, buf, buflen);
-
-            while (ctr < KYBER_N) {
-                off = buflen % 3;
-                for (k = 0; k < off; k++)
-                    buf[k] = buf[buflen - off + k];
-                xof_squeezeblocks(buf + off, 1, &state);
-                buflen = off + XOF_BLOCKBYTES;
-                ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf,
-                                   buflen);
-            }
-        }
-    }
-}
-#    elif KYBER_K == 3
+#if defined(HYBRIDX6) && KYBER_K != 2
+#    if KYBER_K == 3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {
     unsigned int i, j, ctr[6];
@@ -439,6 +408,32 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 }
 #    endif
 #else
+#    if defined(VECTOR128)
+void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
+{
+    unsigned int ctr, i, j;
+    uint8_t buf[GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES + 2];
+    xof_state state;
+
+    for (i = 0; i < KYBER_K; i++) {
+        for (j = 0; j < KYBER_K; j++) {
+            if (transposed)
+                xof_absorb(&state, seed, i, j);
+            else
+                xof_absorb(&state, seed, j, i);
+
+            xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS, &state);
+            ctr = rej_uniform_vector(a[i].vec[j].coeffs, buf);
+
+            while (ctr < KYBER_N) {
+                xof_squeezeblocks(buf, 1, &state);
+                ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf,
+                                   SHAKE128_RATE);
+            }
+        }
+    }
+}
+#    else
 void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
 {
     unsigned int ctr, i, j, k;
@@ -469,6 +464,7 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
         }
     }
 }
+#    endif
 #endif
 
 /*************************************************
