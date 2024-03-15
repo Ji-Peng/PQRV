@@ -101,15 +101,22 @@ void basemul(int16_t r[2], const int16_t a[2], const int16_t b[2], int16_t zeta)
 void print_poly(int16_t *a, size_t n)
 {
     int i;
-    for (i = 0; i < n - 1; i++)
+    for (i = 0; i < n; i++) {
+        if (i != 0 && i % 8 == 0)
+            printf("\n");
         printf("%d, ", a[i]);
-    printf("%d\n", a[i]);
+    }
+    printf("\n\n");
 }
 
-extern const int16_t qdata[630];
+extern const int16_t qdata[632];
 extern void ntt_rvv(int16_t r[KYBER_N], const int16_t *table);
+extern void to_normal_order(int16_t r[KYBER_N], const int16_t *table);
+
 extern void test_shuffle4(int16_t r[16], const int16_t *table);
 extern void test_shuffle2(int16_t r[16], const int16_t *table);
+extern void test_shuffle1(int16_t r[16], const int16_t *table);
+extern void test_unpack(int16_t r[16 * 4], const int16_t *table);
 
 #define NTESTS 10000
 
@@ -123,6 +130,7 @@ int main()
         a[i] = b[i] = i * 10 + i;
     ntt(a);
     ntt_rvv(b, qdata);
+    to_normal_order(b, qdata);
     if (memcmp(a, b, sizeof(a)) == 0)
         printf("all right\n");
     else {
@@ -156,5 +164,18 @@ int main()
     // print_poly(a, 8);
     // print_poly(a + 8, 8);
 
+    int16_t t[16] = {0, 1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29};
+    test_shuffle1(t, qdata);
+    print_poly(t, 8);
+    print_poly(t + 8, 8);
+
+    int16_t t1[16 * 4] = {0,  4,  8,  12, 16, 20, 24, 28, 1,  5,  9,
+                          13, 17, 21, 25, 29, 2,  6,  10, 14, 18, 22,
+                          26, 30, 3,  7,  11, 15, 19, 23, 27, 31};
+    test_unpack(t1, qdata);
+    print_poly(t1, 8);
+    print_poly(t1 + 8, 8);
+    print_poly(t1 + 16, 8);
+    print_poly(t1 + 24, 8);
     return 0;
 }
