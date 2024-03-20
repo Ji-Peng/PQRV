@@ -54,36 +54,30 @@
     vmerge.vvm  \out1, \in1, \out1, v0
 .endm
 
-// in0 = [a0~a1,a4~a5,a8~a9,a12~a13],   in1 = [a16~a17,a20~a21,a24~a25,a28~a29]
-// out0= [a0,a4,a8,a12,a16,a20,a24,a28],out1= [a1,a5,a9,a13,a17,a21,a25,a29]
-.macro shuffle1_withload out0, out1, in0, in1, vt0, vmt0, vmt1, vmt2
-    addi t4, a1, _MASK_11110000*2
+// in0/1 = [a0~a1,a4~a5,a8~a9,a12~a13], [a2~a3,a6~a7,a10~a11,a14~a15]
+// out0/1= [a0,a2,a4,a6,a8,a10,a12,a14],[a1,a3,a5,a7,a9,a11,a13,a15]
+.macro shuffle1_withload out0, out1, in0, in1, vmt0
+    addi t4, a1, _MASK_10101010*2
     vle16.v v0, (t4)
-    addi t4, a1, _MASK_02461357*2
+    addi t4, a1, _MASK_10325476*2
     vle16.v \vmt0, (t4)
-    addi t4, a1, _MASK_13570246*2
-    vle16.v \vmt1, (t4)
-    addi t4, a1, _MASK_45670123*2
-    vle16.v \vmt2, (t4)
-    vrgather.vv \vt0, \in0, \vmt0
-    vrgather.vv \out1, \in1, \vmt1
-    vmerge.vvm  \out0, \out1, \vt0, v0
-    vmerge.vvm  \vt0,  \vt0, \out1, v0
-    vrgather.vv \out1, \vt0, \vmt2
+    vrgather.vv \out0, \in1, \vmt0 // [a3,a2,a7,a6,a11,a10,a15,a14]
+    vrgather.vv \out1, \in0, \vmt0 // [a1,a0,a5,a4,a9,a8,a13,a12]
+    vmerge.vvm  \out0, \out0, \in0, v0
+    vmerge.vvm  \out1, \in1, \out1, v0
 .endm
 
-// in0 = [a0~a1,a4~a5,a8~a9,a12~a13],   in1 = [a16~a17,a20~a21,a24~a25,a28~a29]
-// out0= [a0,a4,a8,a12,a16,a20,a24,a28],out1= [a1,a5,a9,a13,a17,a21,a25,a29]
+// in0/1 = [a0~a1,a4~a5,a8~a9,a12~a13], [a2~a3,a6~a7,a10~a11,a14~a15]
+// out0/1= [a0,a2,a4,a6,a8,a10,a12,a14],[a1,a3,a5,a7,a9,a11,a13,a15]
 // related masks are ready for using
-.macro shuffle1 out0, out1, in0, in1, vt0, vmt0, vmt1, vmt2
-    vrgather.vv \vt0, \in0, \vmt0
-    vrgather.vv \out1, \in1, \vmt1
-    vmerge.vvm  \out0, \out1, \vt0, v0
-    vmerge.vvm  \vt0,  \vt0, \out1, v0
-    vrgather.vv \out1, \vt0, \vmt2
+.macro shuffle1 out0, out1, in0, in1, vmt0
+    vrgather.vv \out0, \in1, \vmt0
+    vrgather.vv \out1, \in0, \vmt0
+    vmerge.vvm  \out0, \out0, \in0, v0
+    vmerge.vvm  \out1, \in1, \out1, v0
 .endm
 
-.macro level0
+.macro ntt_rvv_level0
     lh t2, (_ZETAS_EXP+0)*2(a1)
     addi a0, a0, (64*0+128)*2
     lh t1, (_ZETAS_EXP+1)*2(a1)
@@ -249,7 +243,7 @@
     vse16.v  v31, (a0);  addi a0, a0, -16*7-192*2 // a[0]
 .endm
 
-.macro level1to6 off
+.macro ntt_rvv_level1to6 off
     // level 1
     lh t2, ((1-\off)*_ZETAS_EXP_1TO6_P0_L1 + \off*_ZETAS_EXP_1TO6_P1_L1)*2(a1)
     addi t3, a0, (64+\off*128)*2 # a[64] or a[192]
@@ -649,14 +643,10 @@
     vsub.vv  v8,  v8,  v23
     vadd.vv  v13, v1,  v2
     vsub.vv  v15, v1,  v2
-    addi t4, a1, _MASK_11110000*2
+    addi t4, a1, _MASK_10101010*2
     vle16.v v0, (t4)
-    addi t4, a1, _MASK_02461357*2
+    addi t4, a1, _MASK_10325476*2
     vle16.v v27, (t4)
-    addi t4, a1, _MASK_13570246*2
-    vle16.v v26, (t4)
-    addi t4, a1, _MASK_45670123*2
-    vle16.v v25, (t4)
     vadd.vv  v21, v3,  v4
     vsub.vv  v23, v3,  v4
     vadd.vv  v14, v5,  v6
@@ -666,30 +656,30 @@
     // v9=[a0~a1,a4~a5,a8~a9,a12~a13], v11=[a2~a3,a6~a7,a10~a11,a14~a15]
     // v9, v11,v17,v19,v10,v12,v18,v20
     // v13,v15,v21,v23,v14,v16,v22,v24
-    shuffle1 v1, v2, v9,  v17, v8,  v27, v26, v25
-    shuffle1 v3, v4, v11, v19, v8,  v27, v26, v25
+    shuffle1 v1, v2, v9,  v11, v27
+    shuffle1 v3, v4, v17, v19, v27
     addi t3, a0, (\off*128)*2 # a[0] or a[128]
     vse16.v  v1, (t3);   addi t3, t3, 16
     vse16.v  v2, (t3);   addi t3, t3, 16
-    shuffle1 v5, v6, v10, v18, v8,  v27, v26, v25
+    shuffle1 v5, v6, v10, v12, v27
     vse16.v  v3, (t3);   addi t3, t3, 16
     vse16.v  v4, (t3);   addi t3, t3, 16
-    shuffle1 v7, v8, v12, v20, v9, v27, v26, v25
+    shuffle1 v7, v8, v18, v20, v27
     vse16.v  v5, (t3);   addi t3, t3, 16
     vse16.v  v6, (t3);   addi t3, t3, 16
     vse16.v  v7, (t3);   addi t3, t3, 16
     vse16.v  v8, (t3);   addi t3, a0, (64+\off*128)*2 # a[64] or a[192]
-    shuffle1 v9,  v17, v13, v21, v1,  v27, v26, v25
-    shuffle1 v11, v19, v15, v23, v1,  v27, v26, v25
+    shuffle1 v9,  v11, v13, v15, v27
+    shuffle1 v17, v19, v21, v23, v27
     vse16.v  v9, (t3);   addi t3, t3, 16
-    vse16.v  v17, (t3);  addi t3, t3, 16
-    shuffle1 v10, v18, v14, v22, v1,  v27, v26, v25
     vse16.v  v11, (t3);  addi t3, t3, 16
+    shuffle1 v10, v12, v14, v16, v27
+    vse16.v  v17, (t3);  addi t3, t3, 16
     vse16.v  v19, (t3);  addi t3, t3, 16
-    shuffle1 v12, v20, v16, v24, v1,  v27, v26, v25
+    shuffle1 v18, v20, v22, v24, v27
     vse16.v  v10, (t3);  addi t3, t3, 16
-    vse16.v  v18, (t3);  addi t3, t3, 16
     vse16.v  v12, (t3);  addi t3, t3, 16
+    vse16.v  v18, (t3);  addi t3, t3, 16
     vse16.v  v20, (t3);  addi t3, t3, 16
 .endm
 
@@ -706,7 +696,7 @@ ntt_rvv:
     li t1, 128
     vsetvli t2, t1, e16, m1, tu, mu
     li t0, 3329
-    level0
+    ntt_rvv_level0
     // load some masks used by shuffle4/2/1
     addi t4, a1, _MASK_45674567*2
     vle16.v v31, (t4)
@@ -716,14 +706,14 @@ ntt_rvv:
     vle16.v v29, (t4)
     addi t4, a1, _MASK_23006700*2
     vle16.v v28, (t4)
-    level1to6 0
-    level1to6 1
+    ntt_rvv_level1to6 0
+    ntt_rvv_level1to6 1
 ret
 
 // input:
 // in0/1/2/3 = 
-// [a0,a4,a8, a12,a16,a20,a24,a28] [a1,a5,a9,a13,a17,a21,a25,a29]
-// [a2,a6,a10,a14,a18,a22,a26,a30] [a3,a7,a11,a15,a19,a23,a27,a31]
+// [a0,a2,a4,a6,a8,a10,a12,a14], [a1,a3,a5,a7,a9,a11,a13,a15]
+// [a16,a18,a20,a22,a24,a26,a28,a30], [a17,a19,a21,a23,a25,a27,a29,a31]
 // ...
 // out = a0~a7, a8~a15, a16~a23, a24~a31, ......
 .globl to_normal_order
@@ -731,6 +721,7 @@ ret
 to_normal_order:
     li t1, 128
     vsetvli t2, t1, e16, m1, tu, mu
+    // for vrgather
     addi t4, a1, _MASK_45674567*2
     vle16.v v31, (t4)
     addi t4, a1, _MASK_01230123*2
@@ -739,70 +730,167 @@ to_normal_order:
     vle16.v v29, (t4)
     addi t4, a1, _MASK_23006700*2
     vle16.v v28, (t4)
-    addi t4, a1, _MASK_04261537*2
+    addi t4, a1, _MASK_10325476*2
     vle16.v v27, (t4)
+    // for vmerge
     addi t4, a1, _MASK_11110000*2
     vle16.v v26, (t4)
     addi t4, a1, _MASK_11001100*2
     vle16.v v25, (t4)
-
+    addi t4, a1, _MASK_10101010*2
+    vle16.v v24, (t4)
     li a2, 4
-loop:
+to_normal_order_loop:
     vle16.v v1, (a0);       addi a0, a0, 16
     vle16.v v2, (a0);       addi a0, a0, 16
     vle16.v v3, (a0);       addi a0, a0, 16
     vle16.v v4, (a0);       addi a0, a0, 16
-    vmv.v.v v0, v26
-    shuffle4 v9,  v10, v1, v2, v31, v30
-    shuffle4 v11, v12, v3, v4, v31, v30
+    vmv.v.v v0, v24
+    shuffle1 v9,  v10, v1, v2, v27
+    shuffle1 v11, v12, v3, v4, v27
     vle16.v v5, (a0);       addi a0, a0, 16
     vle16.v v6, (a0);       addi a0, a0, 16
     vle16.v v7, (a0);       addi a0, a0, 16
     vle16.v v8, (a0);       addi a0, a0, -16*7
-    shuffle4 v13, v14, v5, v6, v31, v30
-    shuffle4 v15, v16, v7, v8, v31, v30
+    shuffle1 v13, v14, v5, v6, v27
+    shuffle1 v15, v16, v7, v8, v27
     vmv.v.v v0, v25
-    shuffle2 v1, v2, v9,  v11, v29, v28
-    shuffle2 v3, v4, v10, v12, v29, v28
-    vrgather.vv v9,  v1, v27
-    vrgather.vv v10, v2, v27
-    vrgather.vv v11, v3, v27
-    vrgather.vv v12, v4, v27
+    shuffle2 v1, v2, v9,  v10, v29, v28
+    shuffle2 v3, v4, v11, v12, v29, v28
+    shuffle4 v9,  v10, v1, v2, v31, v30
+    shuffle4 v11, v12, v3, v4, v31, v30
     vse16.v v9,  (a0);       addi a0, a0, 16
     vse16.v v10, (a0);       addi a0, a0, 16
     vse16.v v11, (a0);       addi a0, a0, 16
     vse16.v v12, (a0);       addi a0, a0, 16
-    shuffle2 v5, v6, v13, v15, v29, v28
-    shuffle2 v7, v8, v14, v16, v29, v28
-    vrgather.vv v13, v5, v27
-    vrgather.vv v14, v6, v27
-    vrgather.vv v15, v7, v27
-    vrgather.vv v16, v8, v27
+    shuffle2 v5, v6, v13, v14, v29, v28
+    shuffle2 v7, v8, v15, v16, v29, v28
+    shuffle4 v13,v14,v5,  v6,  v31, v30
+    shuffle4 v15,v16,v7,  v8,  v31, v30
     vse16.v v13, (a0);       addi a0, a0, 16
     vse16.v v14, (a0);       addi a0, a0, 16
     vse16.v v15, (a0);       addi a0, a0, 16
     vse16.v v16, (a0);       addi a0, a0, 16
     addi a2, a2, -1
-    bnez a2, loop
+    bnez a2, to_normal_order_loop
 ret
 
-.globl basemul_rvv
+// void poly_basemul_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table);
+// basemul using asymmetric multiplication; for example: 
+// (a0b0 + b1 * (a1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
+// (a2b2 + b3 * (a3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
+.globl poly_basemul_rvv
 .align 2
-basemul_rvv:
+poly_basemul_rvv:
     li t1, 128
     vsetvli t2, t1, e16, m1, tu, mu
-    li t0, 3329
+    li t0, 3329     // q
+    li t1, -3327    // qinv
+    addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
+    addi t4, a3, _ZETAS_BASEMUL*2       // for loading zeta
+    li   t5, 8
+poly_basemul_rvv_loop:
+    vle16.v v0, (a1);  addi a1, a1, 16 // a0
+    vle16.v v1, (a1);  addi a1, a1, 16 // a1
+    vle16.v v2, (a1);  addi a1, a1, 16 // a2
+    vle16.v v3, (a1);  addi a1, a1, 16 // a3
+    vle16.v v30, (t3); addi t3, t3, 16  // zetaqinv
+    vle16.v v31, (t3); addi t3, t3, 16
+    vle16.v v28, (t4); addi t4, t4, 16  // zeta
+    vle16.v v29, (t4); addi t4, t4, 16
+    vmul.vv  v4, v1, v30
+    vmul.vv  v5, v3, v31
+    vmulh.vv v6, v1, v28
+    vmulh.vv v7, v3, v29
+    vle16.v v8,  (a2);  addi a2, a2, 16 // b0
+    vle16.v v9,  (a2);  addi a2, a2, 16 // b1
+    vmulh.vx v4, v4, t0
+    vmulh.vx v5, v5, t0
+    vle16.v v10, (a2);  addi a2, a2, 16 // b2
+    vle16.v v11, (a2);  addi a2, a2, 16 // b3
+    vsub.vv  v4, v6, v4 // a1zeta mod q
+    vsub.vv  v5, v7, v5 // a3zeta mod q
+    vmul.vv  v12, v0, v8     // a0b0.lo
+    vmul.vv  v13, v0, v9     // a0b1.lo
+    vmul.vv  v14, v4, v9     // b1(a1zeta).lo
+    vmul.vv  v15, v1, v8     // a1b0.lo
+    vmulh.vv v16, v0, v8     // a0b0.hi
+    vmulh.vv v17, v0, v9     // a0b1.hi
+    vmulh.vv v18, v4, v9     // b1(a1zeta).hi
+    vmulh.vv v19, v1, v8     // a1b0.hi
+    vmul.vx  v12, v12, t1   // *qinv
+    vmul.vx  v13, v13, t1   // *qinv
+    vmul.vx  v14, v14, t1   // *qinv
+    vmul.vx  v15, v15, t1   // *qinv
+    vmulh.vx v12, v12, t0   // *q
+    vmulh.vx v13, v13, t0   // *q
+    vmulh.vx v14, v14, t0   // *q
+    vmulh.vx v15, v15, t0   // *q
+    vsub.vv  v12, v16, v12  // a0b0
+    vsub.vv  v13, v17, v13  // a0b1
+    vsub.vv  v14, v18, v14  // b1(a1zeta)
+    vsub.vv  v15, v19, v15  // a1b0
+    vadd.vv  v12, v12, v14
+    vadd.vv  v13, v13, v15
+    vse16.v  v12, (a0);     addi a0, a0, 16
+    vse16.v  v13, (a0);     addi a0, a0, 16
+    vmul.vv  v16, v2, v10   // a2b2.lo
+    vmul.vv  v17, v2, v11   // a2b3.lo
+    vmul.vv  v18, v5, v11   // b3(a3zeta).lo
+    vmul.vv  v19, v3, v10   // a3b2.lo
+    vmulh.vv v20, v2, v10   // a2b2.hi
+    vmulh.vv v21, v2, v11   // a2b3.hi
+    vmulh.vv v22, v5, v11   // b3(a3zeta).hi
+    vmulh.vv v23, v3, v10   // a3b2.hi
+    vmul.vx  v16, v16, t1   // *qinv
+    vmul.vx  v17, v17, t1   // *qinv
+    vmul.vx  v18, v18, t1   // *qinv
+    vmul.vx  v19, v19, t1   // *qinv
+    vmulh.vx v16, v16, t0   // *q
+    vmulh.vx v17, v17, t0   // *q
+    vmulh.vx v18, v18, t0   // *q
+    vmulh.vx v19, v19, t0   // *q
+    vsub.vv  v16, v20, v16  // a2b2
+    vsub.vv  v17, v21, v17  // a2b3
+    vsub.vv  v18, v22, v18  // b3(a3zeta)
+    vsub.vv  v19, v22, v19  // a3b2
+    vadd.vv  v16, v16, v18
+    vadd.vv  v17, v17, v19
+    vse16.v  v16, (a0);     addi a0, a0, 16
+    vse16.v  v17, (a0);     addi a0, a0, 16
+    addi t5, t5, -1
+    bnez t5, poly_basemul_rvv_loop
+ret
 
-    vle16.v v0, (a0);  addi a0, a0, 16 // a0
-    vle16.v v1, (a0);  addi a0, a0, 16 // a1
-    vle16.v v2, (a0);  addi a0, a0, 16 // a2
-    vle16.v v3, (a0);  addi a0, a0, 16 // a3
+.macro intt_rvv_level0to5 off
+    // level 0
+    addi t3, a0, (\off*128)*2 # a[0] or a[128]
+    addi t4, a1, _MASK_10101010*2
+    vle16.v v0, (t4)
+    addi t4, a1, _MASK_10325476*2   # for shuffle1
+    vle16.v v27, (t4)
+    vle16.v v9,  (t3);  addi t3, t3, 16
+    vle16.v v10, (t3);  addi t3, t3, 16
+    vle16.v v11, (t3);  addi t3, t3, 16
+    vle16.v v12, (t3);  addi t3, t3, 16
+    shuffle1 v1, v2, v9, v10, v27
+    shuffle1 v3, v4, v11,v12, v27
+    vle16.v v13, (t3);  addi t3, t3, 16
+    vle16.v v14, (t3);  addi t3, t3, 16
+    vle16.v v15, (t3);  addi t3, t3, 16
+    vle16.v v16, (t3);  addi t3, t3, 16
+    shuffle1 v5, v6, v13, v14, v27
+    shuffle1 v7, v8, v15, v16, v27
+    addi t4, a1, ((1-\off)*_ZETAS_EXP_1TO6_P0_L6+ \off*_ZETAS_EXP_1TO6_P1_L6)*2
+    vle16.v v27, (t4);  addi t4, t4, 16
+    vle16.v v26, (t4);  addi t4, t4, 16
+.endm
 
-
-    # vle16.v v, (a1);  addi a1, a1, 16 // b0
-    # vle16.v v, (a1);  addi a1, a1, 16 // b1
-    # vle16.v v, (a1);  addi a1, a1, 16 // b2
-    # vle16.v v, (a1);  addi a1, a1, 16 // b3
+.globl intt_rvv
+.align 2
+intt_rvv:
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
 ret
 
 .globl test_shuffle4
@@ -844,43 +932,8 @@ test_shuffle1:
     addi a0, a0, 16
     vle16.v v2, (a0)
     addi a0, a0, -16
-    shuffle1_withload v3, v4, v1, v2, v8, v5, v6, v7
+    shuffle1_withload v3, v4, v1, v2, v8
     vse16.v v3, (a0)
     addi a0, a0, 16
     vse16.v v4, (a0)
-ret
-
-.globl test_unpack
-.align 2
-test_unpack:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
-    vle16.v v1, (a0)
-    addi a0, a0, 16
-    vle16.v v2, (a0)
-    addi a0, a0, 16
-    vle16.v v3, (a0)
-    addi a0, a0, 16
-    vle16.v v4, (a0)
-    addi a0, a0, -16*3
-    // v5 v6 v7 v8
-    shuffle4_withload v5, v6, v1, v2, v30, v31
-    shuffle4_withload v7, v8, v3, v4, v30, v31
-    shuffle2_withload v1, v2, v5, v7, v30, v31
-    shuffle2_withload v3, v4, v6, v8, v30, v31
-    addi t4, a1, _MASK_04261537*2
-    vle16.v v29, (t4)
-    vrgather.vv v0, v1, v29
-    vrgather.vv v1, v2, v29
-    vrgather.vv v2, v3, v29
-    vrgather.vv v3, v4, v29
-
-    vse16.v v0, (a0)
-    addi a0, a0, 16
-    vse16.v v1, (a0)
-    addi a0, a0, 16
-    vse16.v v2, (a0)
-    addi a0, a0, 16
-    vse16.v v3, (a0)
-    addi a0, a0, 16
 ret

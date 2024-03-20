@@ -27,6 +27,7 @@ int32_t treeINTT_7layer[] = {
     4, 68, 36, 100, 20, 84, 52, 116, 12, 76, 44, 108, 28, 92, 60, 124,
     8, 72, 40, 104, 24, 88, 56, 120, 16, 80, 48, 112, 32, 96, 64};
 
+// 1+6 layer merging
 int32_t treeNTTMerged_7layer[] = {
     64, 32, 16,  80,  8,  72, 40,  104, 4,  68, 36,  100, 20, 84, 52,  116,
     2,  66, 34,  98,  18, 82, 50,  114, 10, 74, 42,  106, 26, 90, 58,  122,
@@ -59,14 +60,14 @@ int32_t treeINTTMerged_7layer[] = {
 //     255};
 
 int32_t treeMulTable_7layer[] = {
-    1,  65, 33, 97,  17, 81, 49, 113, 129, 193, 161, 225, 145, 209, 177, 241,
-    9,  73, 41, 105, 25, 89, 57, 121, 137, 201, 169, 233, 153, 217, 185, 249,
-    5,  69, 37, 101, 21, 85, 53, 117, 133, 197, 165, 229, 149, 213, 181, 245,
-    13, 77, 45, 109, 29, 93, 61, 125, 141, 205, 173, 237, 157, 221, 189, 253,
-    3,  67, 35, 99,  19, 83, 51, 115, 131, 195, 163, 227, 147, 211, 179, 243,
-    11, 75, 43, 107, 27, 91, 59, 123, 139, 203, 171, 235, 155, 219, 187, 251,
-    7,  71, 39, 103, 23, 87, 55, 119, 135, 199, 167, 231, 151, 215, 183, 247,
-    15, 79, 47, 111, 31, 95, 63, 127, 143, 207, 175, 239, 159, 223, 191, 255};
+    1,  129, 65, 193, 33, 161, 97,  225, 17, 145, 81, 209, 49, 177, 113, 241,
+    9,  137, 73, 201, 41, 169, 105, 233, 25, 153, 89, 217, 57, 185, 121, 249,
+    5,  133, 69, 197, 37, 165, 101, 229, 21, 149, 85, 213, 53, 181, 117, 245,
+    13, 141, 77, 205, 45, 173, 109, 237, 29, 157, 93, 221, 61, 189, 125, 253,
+    3,  131, 67, 195, 35, 163, 99,  227, 19, 147, 83, 211, 51, 179, 115, 243,
+    11, 139, 75, 203, 43, 171, 107, 235, 27, 155, 91, 219, 59, 187, 123, 251,
+    7,  135, 71, 199, 39, 167, 103, 231, 23, 151, 87, 215, 55, 183, 119, 247,
+    15, 143, 79, 207, 47, 175, 111, 239, 31, 159, 95, 223, 63, 191, 127, 255};
 
 int16_t MontReduce(int32_t a)
 {
@@ -101,8 +102,6 @@ void GenTables_7layer(void)
         t = Pow(root, treeNTTMerged_7layer[j]);
         t = FqMul(t, ((int32_t)MONT * MONT) % Q);
         t0 = (t * QINV) & 0xffff;
-        if (j >= 30 && j < 62) {
-        }
         table_zeta[index] = t;
         table_zetaqinv[index] = t0;
     }
@@ -168,6 +167,62 @@ void GenTables_7layer(void)
     for (index = 0; index < 128; index++)
         printf("%d, ", table_zeta[index]);
     printf("\n\n");
+
+    printf("For INTT\n");
+    for (int j = 0, index = 0; j < 127; j++, index++) {
+        t = Pow(root, treeINTTMerged_7layer[j]);
+        t = FqMul(t, ((int32_t)MONT * MONT) % Q);
+        t0 = (t * QINV) & 0xffff;
+        table_zeta[index] = t;
+        table_zetaqinv[index] = t0;
+    }
+
+    for (index = 0; index < 127; index++)
+        printf("%d, ", table_zeta[index]);
+    printf("\n\n");
+    for (index = 0; index < 127; index++)
+        printf("%d, ", table_zetaqinv[index]);
+    printf("\n\n");
+
+    // 0~32重复2次，32～48 4次，其余的无需重复
+    // 32+16+8+4+2+1=63
+    for (index = 0; index < 127; index++) {
+        if ((index >= 0 && index < 32) ||
+            (index >= 0 + 63 && index < 32 + 63)) {
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zetaqinv[index]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zetaqinv[index + 1]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zetaqinv[index + 2]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zetaqinv[index + 3]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zeta[index]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zeta[index + 1]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zeta[index + 2]);
+            for (int k = 0; k < 2; k++)
+                printf("%d, ", table_zeta[index + 3]);
+            index += 4 - 1;
+        } else if ((index >= 32 && index < 48) ||
+                   (index >= 32 + 63 && index < 48 + 63)) {
+            for (int k = 0; k < 4; k++)
+                printf("%d, ", table_zetaqinv[index]);
+            for (int k = 0; k < 4; k++)
+                printf("%d, ", table_zetaqinv[index + 1]);
+            for (int k = 0; k < 4; k++)
+                printf("%d, ", table_zeta[index]);
+            for (int k = 0; k < 4; k++)
+                printf("%d, ", table_zeta[index + 1]);
+            index += 2 - 1;
+        } else {
+            printf("%d, ", table_zetaqinv[index]);
+            printf("%d, ", table_zeta[index]);
+        }
+    }
+    printf("\n");
 
     // for (int j = 0; j < 127; j++) {
     //     // root is 256th, -i in intt
