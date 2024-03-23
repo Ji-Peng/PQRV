@@ -1547,7 +1547,6 @@ normal2ntt_order_loop:
     bnez a2, normal2ntt_order_loop
 ret
 
-
 .globl poly_reduce_rvv
 .align 2
 poly_reduce_rvv:
@@ -1577,4 +1576,57 @@ poly_reduce_rvv_loop:
     vse16.v v12, (a0);       addi a0, a0, 16
     addi a2, a2, -1
     bnez a2, poly_reduce_rvv_loop
+ret
+
+.macro montMulX4 in0, in1, in2, in3, \
+        vt0, vt1, vt2, vt3, \
+        const_q, const_montsq, const_montsq_qinv
+    vmul.vx \vt0, \in0, \const_montsq_qinv
+    vmul.vx \vt1, \in1, \const_montsq_qinv
+    vmul.vx \vt2, \in2, \const_montsq_qinv
+    vmul.vx \vt3, \in3, \const_montsq_qinv
+    vmulh.vx \in0, \in0, \const_montsq
+    vmulh.vx \in1, \in1, \const_montsq
+    vmulh.vx \in2, \in2, \const_montsq
+    vmulh.vx \in3, \in3, \const_montsq
+    vmulh.vx \vt0, \vt0, \const_q
+    vmulh.vx \vt1, \vt1, \const_q
+    vmulh.vx \vt2, \vt2, \const_q
+    vmulh.vx \vt3, \vt3, \const_q
+    vsub.vv  \in0, \in0, \vt0
+    vsub.vv  \in1, \in1, \vt1
+    vsub.vv  \in2, \in2, \vt2
+    vsub.vv  \in3, \in3, \vt3
+.endm
+
+.globl poly_tomont_rvv
+.align 2
+poly_tomont_rvv:
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
+    li t0, 3329
+    li t1, 1353     # mont^2
+    li t2, 20553    # qinv*mont^2
+    li a2, 4
+poly_tomont_rvv_loop:
+    vle16.v v1,  (a0);       addi a0, a0, 16
+    vle16.v v2,  (a0);       addi a0, a0, 16
+    vle16.v v3,  (a0);       addi a0, a0, 16
+    vle16.v v4,  (a0);       addi a0, a0, 16
+    vle16.v v9,  (a0);       addi a0, a0, 16
+    vle16.v v10, (a0);       addi a0, a0, 16
+    vle16.v v11, (a0);       addi a0, a0, 16
+    vle16.v v12, (a0);       addi a0, a0, -16*7
+    montMulX4 v1, v2, v3, v4, v5, v6, v7, v8, t0, t1, t2
+    montMulX4 v9, v10,v11,v12,v5, v6, v7, v8, t0, t1, t2
+    vse16.v v1,  (a0);       addi a0, a0, 16
+    vse16.v v2,  (a0);       addi a0, a0, 16
+    vse16.v v3,  (a0);       addi a0, a0, 16
+    vse16.v v4,  (a0);       addi a0, a0, 16
+    vse16.v v9,  (a0);       addi a0, a0, 16
+    vse16.v v10, (a0);       addi a0, a0, 16
+    vse16.v v11, (a0);       addi a0, a0, 16
+    vse16.v v12, (a0);       addi a0, a0, 16
+    addi a2, a2, -1
+    bnez a2, poly_tomont_rvv_loop
 ret

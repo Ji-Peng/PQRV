@@ -310,6 +310,7 @@ void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
  *
  * Arguments:   - poly *r: pointer to input/output polynomial
  **************************************************/
+#if !defined(VECTOR128)
 void poly_tomont(poly *r)
 {
     unsigned int i;
@@ -317,6 +318,12 @@ void poly_tomont(poly *r)
     for (i = 0; i < KYBER_N; i++)
         r->coeffs[i] = montgomery_reduce((int32_t)r->coeffs[i] * f);
 }
+#else
+void poly_tomont(poly *r)
+{
+    poly_tomont_rvv(r->coeffs);
+}
+#endif
 
 /*************************************************
  * Name:        poly_reduce
