@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "cpucycles.h"
+#include "ntt_rvv.h"
 #include "speed_print.h"
 
 #define KYBER_N 256
@@ -118,20 +119,51 @@ void print_poly(int16_t *a, size_t n)
     printf("\n\n");
 }
 
-extern const int16_t qdata[632];
-extern void ntt_rvv(int16_t r[KYBER_N], const int16_t *table);
-extern void to_normal_order(int16_t r[KYBER_N], const int16_t *table);
-extern void poly_basemul_rvv(int16_t *r, const int16_t *a, const int16_t *b,
-                             const int16_t *table);
+void print_poly_mod(int16_t *a, size_t n)
+{
+    int i;
+    for (i = 0; i < n; i++) {
+        if (i != 0 && i % 8 == 0)
+            printf("\n");
+        printf("%d, ", (a[i] + 3329 * 10) % 3329);
+    }
+    printf("\n\n");
+}
 
-extern void test_shuffle4(int16_t r[16], const int16_t *table);
-extern void test_shuffle2(int16_t r[16], const int16_t *table);
-extern void test_shuffle1(int16_t r[16], const int16_t *table);
-extern void test_unpack(int16_t r[16 * 4], const int16_t *table);
+int poly_equal(int16_t *a, int16_t *b, size_t n)
+{
+    size_t i;
+    int ok = 1;
+    for (i = 0; i < n; i++) {
+        if (((a[i] + 3329 * 10) % 3329) != ((b[i] + 3329 * 10) % 3329)) {
+            ok = 0;
+            break;
+        }
+    }
+    return ok;
+}
 
 #define NTESTS 10000
 
 uint64_t t[NTESTS];
+
+void test_ntt()
+{
+    int i;
+    int16_t a[KYBER_N], b[KYBER_N];
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = b[i] = i * 10 + i;
+    ntt(a);
+    ntt_rvv(b, qdata);
+    ntt2normal_order(b, b, qdata);
+    if (memcmp(a, b, sizeof(a)) == 0)
+        printf("ntt all right\n");
+    else {
+        printf("error\n");
+        print_poly(a, 256);
+        print_poly(b, 256);
+    }
+}
 
 void test_basemul()
 {
@@ -146,8 +178,8 @@ void test_basemul()
     ntt_rvv(a1, qdata);
     ntt_rvv(b1, qdata);
     poly_basemul_rvv(r1, a1, b1, qdata);
-    to_normal_order(r1, qdata);
-    if (memcmp(r0, r1, sizeof(r0)) == 0)
+    ntt2normal_order(r1, r1, qdata);
+    if (poly_equal(r0, r1, 256))
         printf("basemul all right\n");
     else {
         printf("basemul error\n");
@@ -156,24 +188,61 @@ void test_basemul()
     }
 }
 
+void test_order()
+{
+    int16_t r[256] = {0,  2,  4,  6,  8,  10, 12, 14, 1,  3,  5,
+                      7,  9,  11, 13, 15, 16, 18, 20, 22, 24, 26,
+                      28, 30, 17, 19, 21, 23, 25, 27, 29, 31};
+    print_poly(r, 32);
+    ntt2normal_order(r, r, qdata);
+    print_poly(r, 32);
+    normal2ntt_order(r, r, qdata);
+    print_poly(r, 32);
+}
+
+void test_intt()
+{
+    int i;
+    int16_t a0[KYBER_N], b0[KYBER_N], r0[KYBER_N];
+    int16_t a1[KYBER_N], b1[KYBER_N], r1[KYBER_N];
+
+    for (i = 0; i < KYBER_N; i++)
+        a0[i] = b0[i] = a1[i] = b1[i] = i * 10 + i;
+    ntt(a0);
+    invntt(a0);
+
+    ntt_rvv(a1, qdata);
+    intt_rvv(a1, qdata);
+
+    if (poly_equal(a0, a1, 256)) {
+        printf("intt all right\n");
+    } else {
+        printf("intt error\n");
+        print_poly_mod(a0, 256);
+        print_poly_mod(a1, 256);
+    }
+}
+
+void test_poly_reduce()
+{
+    int16_t a[KYBER_N];
+    for (int i = 0; i < KYBER_N; i++) {
+        a[i] = -3329;
+    }
+    poly_reduce_rvv(a);
+    print_poly(a, 16);
+}
+
 int main()
 {
     int i;
     int16_t a[KYBER_N], b[KYBER_N];
-    for (i = 0; i < KYBER_N; i++)
-        a[i] = b[i] = i * 10 + i;
-    ntt(a);
-    ntt_rvv(b, qdata);
-    to_normal_order(b, qdata);
-    if (memcmp(a, b, sizeof(a)) == 0)
-        printf("ntt all right\n");
-    else {
-        printf("error\n");
-        print_poly(a, 256);
-        print_poly(b, 256);
-    }
 
+    test_ntt();
     test_basemul();
+    test_intt();
+    test_poly_reduce();
+    // test_order();
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
@@ -187,23 +256,41 @@ int main()
     }
     print_results("ntt_rvv: ", t, NTESTS);
 
-    // for (i = 0; i < KYBER_N; i++)
-    //     a[i] = b[i] = i;
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul(a, b, b);
+    }
+    print_results("poly_basemul: ", t, NTESTS);
 
-    // print_poly(a, 8);
-    // print_poly(a + 8, 8);
-    // test_shuffle4(a, qdata);
-    // print_poly(a, 8);
-    // print_poly(a + 8, 8);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_rvv(a, a, b, qdata);
+    }
+    print_results("poly_basemul_rvv: ", t, NTESTS);
 
-    // test_shuffle2(a, qdata);
-    // print_poly(a, 8);
-    // print_poly(a + 8, 8);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        invntt(a);
+    }
+    print_results("invntt: ", t, NTESTS);
 
-    int16_t t[16] = {0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15};
-    test_shuffle1(t, qdata);
-    print_poly(t, 8);
-    print_poly(t + 8, 8);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        intt_rvv(b, qdata);
+    }
+    print_results("intt_rvv: ", t, NTESTS);
+
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        ntt2normal_order(b, b, qdata);
+    }
+    print_results("ntt2normal_order: ", t, NTESTS);
+
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        normal2ntt_order(b, b, qdata);
+    }
+    print_results("normal2ntt_order: ", t, NTESTS);
 
     return 0;
 }

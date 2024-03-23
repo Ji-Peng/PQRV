@@ -9,7 +9,7 @@ COMMONDIR 		= ../../common
 KECCAKDIR		= ../../common/keccak
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
 			  	  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -I$(COMMONDIR) -I$(KECCAKDIR) -I.
+				  -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/kyber_ntt -I.
 
 ifeq ($(PLATFORM), C910)
 	CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
@@ -49,7 +49,7 @@ HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) params.h kem.h indcpa.h polyvec.h 
 SOURCES_VECTOR 	= $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
-.PHONY: all speed results clean
+.PHONY: all speed results scp_vectors diff_vectors clean
 
 all: \
 	out/test_kyber512_rv64im    \
@@ -93,6 +93,39 @@ results:
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imb.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imv.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imbv.txt .
+
+# ./test_vectors512_rv64im > vectors_kyber512_rv64im.txt; ./test_vectors768_rv64im > vectors_kyber768_rv64im.txt; ./test_vectors1024_rv64im > vectors_kyber1024_rv64im.txt
+# ./test_vectors512_rv64imb > vectors_kyber512_rv64imb.txt; ./test_vectors768_rv64imb > vectors_kyber768_rv64imb.txt; ./test_vectors1024_rv64imb > vectors_kyber1024_rv64imb.txt
+# ./test_vectors512_rv64imv > vectors_kyber512_rv64imv.txt; ./test_vectors768_rv64imv > vectors_kyber768_rv64imv.txt; ./test_vectors1024_rv64imv > vectors_kyber1024_rv64imv.txt
+# ./test_vectors512_rv64imbv > vectors_kyber512_rv64imbv.txt; ./test_vectors768_rv64imbv > vectors_kyber768_rv64imbv.txt; ./test_vectors1024_rv64imbv > vectors_kyber1024_rv64imbv.txt
+scp_vectors:
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imbv.txt .
+
+diff_vectors:
+	diff vectors_kyber512_rv64im.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv64im.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv64im.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv64imb.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv64imb.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv64imb.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv64imv.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv64imv.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv64imv.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv64imbv.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv64imbv.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv64imbv.txt ../ref/vectors_kyber1024.txt
+
 
 objdump:
 	$(OBJDUMP) -D out/test_speed_sha3_rv64imv > out/test_speed_sha3_rv64imv.S

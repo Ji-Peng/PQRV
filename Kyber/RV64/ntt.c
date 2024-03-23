@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include "ntt_rvv.h"
 #include "params.h"
 #include "reduce.h"
 
@@ -95,11 +96,10 @@ void ntt(int16_t r[256])
     }
 }
 #else
-extern const int16_t qdata[632];
-extern void ntt_rvv(int16_t r[KYBER_N], const int16_t *table);
 void ntt(int16_t r[KYBER_N])
 {
     ntt_rvv(r, qdata);
+    ntt2normal_order(r, r, qdata);
 }
 #endif
 
@@ -113,6 +113,7 @@ void ntt(int16_t r[KYBER_N])
  * Arguments:   - int16_t r[256]: pointer to input/output vector of elements of
  *Zq
  **************************************************/
+#if !defined(VECTOR128)
 void invntt(int16_t r[256])
 {
     unsigned int start, len, j, k;
@@ -135,6 +136,13 @@ void invntt(int16_t r[256])
     for (j = 0; j < 256; j++)
         r[j] = fqmul(r[j], f);
 }
+#else
+void invntt(int16_t r[KYBER_N])
+{
+    normal2ntt_order(r, r, qdata);
+    intt_rvv(r, qdata);
+}
+#endif
 
 /*************************************************
  * Name:        basemul

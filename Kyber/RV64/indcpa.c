@@ -499,6 +499,7 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
         poly_getnoise_eta1(&e.vec[i], noiseseed, nonce++);
 
     polyvec_ntt(&skpv);
+    polyvec_reduce(&skpv);
     polyvec_ntt(&e);
 
     // matrix-vector multiplication
@@ -555,7 +556,6 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
     // matrix-vector multiplication
     for (i = 0; i < KYBER_K; i++)
         polyvec_basemul_acc_montgomery(&b.vec[i], &at[i], &sp);
-
     polyvec_basemul_acc_montgomery(&v, &pkpv, &sp);
 
     polyvec_invntt_tomont(&b);
