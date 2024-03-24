@@ -10,6 +10,7 @@
 
 #include "fips202x.h"
 #include "ntt.h"
+#include "ntt_rvv.h"
 #include "params.h"
 #include "poly.h"
 #include "polyvec.h"
@@ -31,6 +32,10 @@ static void pack_pk(uint8_t r[KYBER_INDCPA_PUBLICKEYBYTES], polyvec *pk,
                     const uint8_t seed[KYBER_SYMBYTES])
 {
     size_t i;
+#if defined(VECTOR128)
+    for (i = 0; i < KYBER_K; i++)
+        ntt2normal_order(pk->vec[i].coeffs, pk->vec[i].coeffs, qdata);
+#endif
     polyvec_tobytes(r, pk);
     for (i = 0; i < KYBER_SYMBYTES; i++)
         r[i + KYBER_POLYVECBYTES] = seed[i];
@@ -67,6 +72,11 @@ static void unpack_pk(polyvec *pk, uint8_t seed[KYBER_SYMBYTES],
  **************************************************/
 static void pack_sk(uint8_t r[KYBER_INDCPA_SECRETKEYBYTES], polyvec *sk)
 {
+#if defined(VECTOR128)
+    size_t i;
+    for (i = 0; i < KYBER_K; i++)
+        ntt2normal_order(sk->vec[i].coeffs, sk->vec[i].coeffs, qdata);
+#endif
     polyvec_tobytes(r, sk);
 }
 
@@ -285,14 +295,6 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
         ctr[j] = rej_uniform_vector(
             a[buf_index[j][0]].vec[buf_index[j][1]].coeffs, buf[j].coeffs);
 
-    // while (ctr[0] < KYBER_N || ctr[1] < KYBER_N || ctr[2] < KYBER_N ||
-    //        ctr[3] < KYBER_N || ctr[4] < KYBER_N || ctr[5] < KYBER_N) {
-    //     shake128x6_squeezeblocks(outN, 1, state);
-    //     for (j = 0; j < 6; j++)
-    //         ctr[j] += rej_uniform(
-    //             a[buf_index[j][0]].vec[buf_index[j][1]].coeffs + ctr[j],
-    //             KYBER_N - ctr[j], buf[j].coeffs, SHAKE128_RATE);
-    // }
     for (j = 0; j < 6; j++) {
         if (ctr[j] < KYBER_N)
             keccakx6_get_oneway_state(state, &statex1, j);
@@ -324,6 +326,9 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
             }
         }
     }
+    for (i = 0; i < KYBER_K; i++)
+        for (j = 0; j < KYBER_K; j++)
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
     free(state);
 }
 #    elif KYBER_K == 4
@@ -362,15 +367,6 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
             ctr[j] = rej_uniform_vector(
                 a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
                 buf[j].coeffs);
-        // while (ctr[0] < KYBER_N || ctr[1] < KYBER_N || ctr[2] < KYBER_N ||
-        //        ctr[3] < KYBER_N || ctr[4] < KYBER_N || ctr[5] < KYBER_N) {
-        //     shake128x6_squeezeblocks(outN, 1, state);
-        //     for (j = 0; j < 6; j++)
-        //         ctr[j] += rej_uniform(
-        //             a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
-        //                 ctr[j],
-        //             KYBER_N - ctr[j], buf[j].coeffs, SHAKE128_RATE);
-        // }
         for (j = 0; j < 6; j++) {
             if (ctr[j] < KYBER_N)
                 keccakx6_get_oneway_state(state, &statex1, j);
@@ -404,6 +400,9 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
             }
         }
     }
+    for (i = 0; i < KYBER_K; i++)
+        for (j = 0; j < KYBER_K; j++)
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
     free(state);
 }
 #    endif
@@ -432,6 +431,9 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
             }
         }
     }
+    for (i = 0; i < KYBER_K; i++)
+        for (j = 0; j < KYBER_K; j++)
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
 }
 #    else
 void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)

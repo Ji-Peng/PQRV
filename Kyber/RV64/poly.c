@@ -150,6 +150,9 @@ void poly_frombytes(poly *r, const uint8_t a[KYBER_POLYBYTES])
         r->coeffs[2 * i + 1] =
             ((a[3 * i + 1] >> 4) | ((uint16_t)a[3 * i + 2] << 4)) & 0xFFF;
     }
+#if defined(VECTOR128)
+    normal2ntt_order(r->coeffs, r->coeffs, qdata);
+#endif
 }
 
 /*************************************************
@@ -294,11 +297,7 @@ void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
 #else
 void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
 {
-    poly a_t, b_t;
-    normal2ntt_order(a_t.coeffs, a->coeffs, qdata);
-    normal2ntt_order(b_t.coeffs, b->coeffs, qdata);
-    poly_basemul_rvv(r->coeffs, a_t.coeffs, b_t.coeffs, qdata);
-    ntt2normal_order(r->coeffs, r->coeffs, qdata);
+    poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
 }
 #endif
 

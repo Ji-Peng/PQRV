@@ -632,15 +632,15 @@
     vle16.v v27, (t4)
     vadd.vv  v21, v3,  v4
     vsub.vv  v23, v3,  v4
+    shuffle1 v1, v2, v9,  v11, v27
     vadd.vv  v14, v5,  v6
     vsub.vv  v16, v5,  v6
+    shuffle1 v3, v4, v17, v19, v27
     vadd.vv  v22, v7,  v8
     vsub.vv  v24, v7,  v8
     // v9=[a0~a1,a4~a5,a8~a9,a12~a13], v11=[a2~a3,a6~a7,a10~a11,a14~a15]
     // v9, v11,v17,v19,v10,v12,v18,v20
     // v13,v15,v21,v23,v14,v16,v22,v24
-    shuffle1 v1, v2, v9,  v11, v27
-    shuffle1 v3, v4, v17, v19, v27
     addi t3, a0, (\off*128)*2 # a[0] or a[128]
     vse16.v  v1, (t3);   addi t3, t3, 16
     vse16.v  v2, (t3);   addi t3, t3, 16
@@ -718,10 +718,10 @@ poly_basemul_rvv_loop:
     vle16.v v29, (t4); addi t4, t4, 16
     vmul.vv  v4, v1, v30
     vmul.vv  v5, v3, v31
-    vmulh.vv v6, v1, v28
-    vmulh.vv v7, v3, v29
     vle16.v v8,  (a2);  addi a2, a2, 16 // b0
     vle16.v v9,  (a2);  addi a2, a2, 16 // b1
+    vmulh.vv v6, v1, v28
+    vmulh.vv v7, v3, v29
     vmulh.vx v4, v4, t0
     vmulh.vx v5, v5, t0
     vle16.v v10, (a2);  addi a2, a2, 16 // b2
@@ -787,14 +787,14 @@ ret
     vle16.v v0, (t4)
     addi t4, a1, _MASK_10325476*2
     vle16.v v27, (t4)
-    li t5, ((1-\off)*_ZETA_EXP_INTT_0TO5_P0_L0+ \off*_ZETA_EXP_INTT_0TO5_P1_L0)*2
-    add t4, a1, t5
     vle16.v v9,  (t3);  addi t3, t3, 16
     vle16.v v10, (t3);  addi t3, t3, 16
     vle16.v v11, (t3);  addi t3, t3, 16
     vle16.v v12, (t3);  addi t3, t3, 16
     li t1, 1441     // mont^2/128
     li t2, -10079   // qinv(mont^2/128)
+    li t5, ((1-\off)*_ZETA_EXP_INTT_0TO5_P0_L0+ \off*_ZETA_EXP_INTT_0TO5_P1_L0)*2
+    add t4, a1, t5
     shuffle1 v1, v2, v9, v10, v27
     shuffle1 v3, v4, v11,v12, v27
     vmul.vx  v9,  v1, t2
@@ -809,14 +809,14 @@ ret
     vmulh.vx v10, v10, t0
     vmulh.vx v11, v11, t0
     vmulh.vx v12, v12, t0
-    vsub.vv  v1, v1, v9
-    vsub.vv  v2, v2, v10
-    vsub.vv  v3, v3, v11
-    vsub.vv  v4, v4, v12
     vle16.v v13, (t3);  addi t3, t3, 16
     vle16.v v14, (t3);  addi t3, t3, 16
+    vsub.vv  v1, v1, v9
+    vsub.vv  v2, v2, v10
     vle16.v v15, (t3);  addi t3, t3, 16
     vle16.v v16, (t3);  addi t3, t3, 16
+    vsub.vv  v3, v3, v11
+    vsub.vv  v4, v4, v12
     shuffle1 v5, v6, v13, v14, v27
     shuffle1 v7, v8, v15, v16, v27
     vmul.vx  v13, v5, t2
@@ -849,10 +849,10 @@ ret
     vsub.vv v16, v7,  v8
     vmul.vv v1, v10, v26
     vmulh.vv v10, v10, v25
-    vmul.vv v2, v12, v24
-    vmulh.vv v12, v12, v23
     vle16.v v26, (t4);  addi t4, t4, 16
     vle16.v v25, (t4);  addi t4, t4, 16
+    vmul.vv v2, v12, v24
+    vmulh.vv v12, v12, v23
     vle16.v v24, (t4);  addi t4, t4, 16
     vle16.v v23, (t4);  addi t4, t4, 16
     vmul.vv v3, v14, v26
@@ -863,15 +863,15 @@ ret
     vmulh.vx v2, v2, t0
     vmulh.vx v3, v3, t0
     vmulh.vx v4, v4, t0
+    vle16.v v17, (t3);  addi t3, t3, 16
+    vle16.v v18, (t3);  addi t3, t3, 16
     vsub.vv  v10, v10, v1
     vsub.vv  v12, v12, v2
+    vle16.v v19, (t3);  addi t3, t3, 16
+    vle16.v v20, (t3);  addi t3, t3, 16
     vsub.vv  v14, v14, v3
     vsub.vv  v16, v16, v4
     // v9,v10,v11,v12,v13,v14,v15,v16
-    vle16.v v17, (t3);  addi t3, t3, 16
-    vle16.v v18, (t3);  addi t3, t3, 16
-    vle16.v v19, (t3);  addi t3, t3, 16
-    vle16.v v20, (t3);  addi t3, t3, 16
     shuffle1 v1, v2, v17, v18, v27
     shuffle1 v3, v4, v19, v20, v27
     vmul.vx  v17, v1, t2
@@ -886,14 +886,14 @@ ret
     vmulh.vx v18, v18, t0
     vmulh.vx v19, v19, t0
     vmulh.vx v20, v20, t0
-    vsub.vv  v1, v1, v17
-    vsub.vv  v2, v2, v18
-    vsub.vv  v3, v3, v19
-    vsub.vv  v4, v4, v20
     vle16.v v21, (t3);  addi t3, t3, 16
     vle16.v v22, (t3);  addi t3, t3, 16
+    vsub.vv  v1, v1, v17
+    vsub.vv  v2, v2, v18
     vle16.v v23, (t3);  addi t3, t3, 16
     vle16.v v24, (t3);  addi t3, t3, 16
+    vsub.vv  v3, v3, v19
+    vsub.vv  v4, v4, v20
     shuffle1 v5, v6, v21, v22, v27
     shuffle1 v7, v8, v23, v24, v27
     vmul.vx  v21, v5, t2
@@ -942,29 +942,29 @@ ret
     vmulh.vx v4, v4, t0
     vsub.vv  v18, v18, v1
     vsub.vv  v20, v20, v2
+    addi t4, a1, _MASK_11001100*2
+    vle16.v v0, (t4)
     vsub.vv  v22, v22, v3
     vsub.vv  v24, v24, v4
     // v9, v10,v11,v12,v13,v14,v15,v16
     // v17,v18,v19,v20,v21,v22,v23,v24
     // level1
-    addi t4, a1, _MASK_11001100*2
-    vle16.v v0, (t4)
-    li t5, ((1-\off)*_ZETA_EXP_INTT_0TO5_P0_L1+ \off*_ZETA_EXP_INTT_0TO5_P1_L1)*2
-    add t4, a1, t5
     shuffle2 v1, v2, v9,  v10, v29, v28
     shuffle2 v3, v4, v11, v12, v29, v28
+    li t5, ((1-\off)*_ZETA_EXP_INTT_0TO5_P0_L1+ \off*_ZETA_EXP_INTT_0TO5_P1_L1)*2
+    add t4, a1, t5
+    shuffle2 v5, v6, v13, v14, v29, v28
+    shuffle2 v7, v8, v15, v16, v29, v28
     vadd.vv v9,  v1, v2
     vsub.vv v10, v1, v2
     vadd.vv v11, v3, v4
     vsub.vv v12, v3, v4
-    shuffle2 v5, v6, v13, v14, v29, v28
-    shuffle2 v7, v8, v15, v16, v29, v28
+    vle16.v v27, (t4);  addi t4, t4, 16
+    vle16.v v26, (t4);  addi t4, t4, 16
     vadd.vv v13, v5, v6
     vsub.vv v14, v5, v6
     vadd.vv v15, v7, v8
     vsub.vv v16, v7, v8
-    vle16.v v27, (t4);  addi t4, t4, 16
-    vle16.v v26, (t4);  addi t4, t4, 16
     vmul.vv  v1,  v10, v27
     vmulh.vv v10, v10, v26
     vle16.v v27, (t4);  addi t4, t4, 16
@@ -985,23 +985,23 @@ ret
     vmulh.vx v4, v4, t0
     vsub.vv  v10, v10, v1
     vsub.vv  v12, v12, v2
+    shuffle2 v1, v2, v17, v18, v29, v28
     vsub.vv  v14, v14, v3
     vsub.vv  v16, v16, v4
     // v9,v10,v11,v12,v13,v14,v15,v16
-    shuffle2 v1, v2, v17, v18, v29, v28
     shuffle2 v3, v4, v19, v20, v29, v28
     vadd.vv v17, v1, v2
     vsub.vv v18, v1, v2
+    shuffle2 v5, v6, v21, v22, v29, v28
     vadd.vv v19, v3, v4
     vsub.vv v20, v3, v4
-    shuffle2 v5, v6, v21, v22, v29, v28
     shuffle2 v7, v8, v23, v24, v29, v28
+    vle16.v v27, (t4);  addi t4, t4, 16
+    vle16.v v26, (t4);  addi t4, t4, 16
     vadd.vv v21, v5, v6
     vsub.vv v22, v5, v6
     vadd.vv v23, v7, v8
     vsub.vv v24, v7, v8
-    vle16.v v27, (t4);  addi t4, t4, 16
-    vle16.v v26, (t4);  addi t4, t4, 16
     vmul.vv  v1,  v18, v27
     vmulh.vv v18, v18, v26
     vle16.v v27, (t4);  addi t4, t4, 16
@@ -1031,18 +1031,18 @@ ret
     vle16.v v0, (t4)
     li t5, ((1-\off)*_ZETA_EXP_INTT_0TO5_P0_L2+ \off*_ZETA_EXP_INTT_0TO5_P1_L2)*2
     add t4, a1, t5
+    shuffle4 v1, v2, v9,  v10, v31, v30
     lh t2, 0*2(t4);     lh t1, 1*2(t4)
     lh t6, 2*2(t4);     lh t5, 3*2(t4)
+    shuffle4 v3, v4, v11, v12, v31, v30
     lh a3, 4*2(t4);     lh a2, 5*2(t4)
     lh a5, 6*2(t4);     lh a4, 7*2(t4)
-    shuffle4 v1, v2, v9,  v10, v31, v30
-    shuffle4 v3, v4, v11, v12, v31, v30
+    shuffle4 v5, v6, v13, v14, v31, v30
     vadd.vv v9,  v1, v2
     vsub.vv v10, v1, v2
+    shuffle4 v7, v8, v15, v16, v31, v30
     vadd.vv v11, v3, v4
     vsub.vv v12, v3, v4
-    shuffle4 v5, v6, v13, v14, v31, v30
-    shuffle4 v7, v8, v15, v16, v31, v30
     vadd.vv v13, v5, v6
     vsub.vv v14, v5, v6
     vadd.vv v15, v7, v8
@@ -1064,18 +1064,18 @@ ret
     vsub.vv  v14, v14, v3
     vsub.vv  v16, v16, v4
     // v9,v10,v11,v12,v13,v14,v15,v16
+    shuffle4 v1, v2, v17, v18, v31, v30
     lh t2, 8*2(t4);         lh t1, 9*2(t4)
     lh t6, 10*2(t4);        lh t5, 11*2(t4)
+    shuffle4 v3, v4, v19, v20, v31, v30
     lh a3, 12*2(t4);        lh a2, 13*2(t4)
     lh a5, 14*2(t4);        lh a4, 15*2(t4)
-    shuffle4 v1, v2, v17, v18, v31, v30
-    shuffle4 v3, v4, v19, v20, v31, v30
+    shuffle4 v5, v6, v21, v22, v31, v30
     vadd.vv v17, v1, v2
     vsub.vv v18, v1, v2
+    shuffle4 v7, v8, v23, v24, v31, v30
     vadd.vv v19, v3, v4
     vsub.vv v20, v3, v4
-    shuffle4 v5, v6, v21, v22, v31, v30
-    shuffle4 v7, v8, v23, v24, v31, v30
     vadd.vv v21, v5, v6
     vsub.vv v22, v5, v6
     vadd.vv v23, v7, v8
@@ -1226,12 +1226,18 @@ ret
     vsub.vv v14, v18, v2
     vsub.vv v15, v19, v3
     vsub.vv v16, v20, v4
+    barrettRdc v9, v17, a6, t0
+    addi t3, a0, (\off*128)*2 # a[0] or a[128]
+    vse16.v v9,  (t3);  addi t3, t3, 16
     vmul.vx  v17, v13, t2
     vmulh.vx v13, v13, t1
+    vse16.v v10, (t3);  addi t3, t3, 16
     vmul.vx  v18, v14, t2
     vmulh.vx v14, v14, t1
+    vse16.v v11, (t3);  addi t3, t3, 16
     vmul.vx  v19, v15, t2
     vmulh.vx v15, v15, t1
+    vse16.v v12, (t3);  addi t3, t3, 16
     vmul.vx  v20, v16, t2
     vmulh.vx v16, v16, t1
     vmulh.vx v17, v17, t0
@@ -1250,39 +1256,33 @@ ret
     vsub.vv v6, v22, v6
     vsub.vv v7, v23, v7
     vsub.vv v8, v24, v8
+    vse16.v v1, (t3);  addi t3, t3, 16
     vmul.vx  v21, v5, t2
     vmulh.vx v5,  v5, t1
+    vse16.v v2, (t3);  addi t3, t3, 16
     vmul.vx  v22, v6, t2
     vmulh.vx v6,  v6, t1
+    vse16.v v3, (t3);  addi t3, t3, 16
     vmul.vx  v23, v7, t2
     vmulh.vx v7,  v7, t1
+    vse16.v v4, (t3);  addi t3, t3, 16
     vmul.vx  v24, v8, t2
     vmulh.vx v8,  v8, t1
+    addi t3, a0, (64+\off*128)*2 # a[64] or a[192]
+    vse16.v v13, (t3);  addi t3, t3, 16
     vmulh.vx v21, v21, t0
     vmulh.vx v22, v22, t0
+    vse16.v v14, (t3);  addi t3, t3, 16
     vmulh.vx v23, v23, t0
     vmulh.vx v24, v24, t0
+    vse16.v v15, (t3);  addi t3, t3, 16
     vsub.vv  v5,  v5, v21
     vsub.vv  v6,  v6, v22
+    vse16.v v16, (t3);  addi t3, t3, 16
     vsub.vv  v7,  v7, v23
     vsub.vv  v8,  v8, v24
     // v9,v10,v11,v12, v1,v2,v3,v4
     // v13,v14,v15,v16,v5,v6,v7,v8
-    barrettRdc v9, v17, a6, t0
-    addi t3, a0, (\off*128)*2 # a[0] or a[128]
-    vse16.v v9,  (t3);  addi t3, t3, 16
-    vse16.v v10, (t3);  addi t3, t3, 16
-    vse16.v v11, (t3);  addi t3, t3, 16
-    vse16.v v12, (t3);  addi t3, t3, 16
-    vse16.v v1, (t3);  addi t3, t3, 16
-    vse16.v v2, (t3);  addi t3, t3, 16
-    vse16.v v3, (t3);  addi t3, t3, 16
-    vse16.v v4, (t3);  addi t3, t3, 16
-    addi t3, a0, (64+\off*128)*2 # a[64] or a[192]
-    vse16.v v13, (t3);  addi t3, t3, 16
-    vse16.v v14, (t3);  addi t3, t3, 16
-    vse16.v v15, (t3);  addi t3, t3, 16
-    vse16.v v16, (t3);  addi t3, t3, 16
     vse16.v v5, (t3);  addi t3, t3, 16
     vse16.v v6, (t3);  addi t3, t3, 16
     vse16.v v7, (t3);  addi t3, t3, 16
@@ -1308,31 +1308,31 @@ ret
     vsub.vv v6, v10, v14
     vsub.vv v7, v11, v15
     vsub.vv v8, v12, v16
-    vmul.vx  v9,  v5, t2
-    vmul.vx  v10, v6, t2
-    vmul.vx  v11, v7, t2
-    vmul.vx  v12, v8, t2
-    vmulh.vx v5, v5, t1
-    vmulh.vx v6, v6, t1
-    vmulh.vx v7, v7, t1
-    vmulh.vx v8, v8, t1
-    vmulh.vx v9,  v9,  t0
-    vmulh.vx v10, v10, t0
-    vmulh.vx v11, v11, t0
-    vmulh.vx v12, v12, t0
-    vsub.vv  v5, v5, v9
-    vsub.vv  v6, v6, v10
-    vsub.vv  v7, v7, v11
-    vsub.vv  v8, v8, v12
     addi t3, a0, (\off*64)*2 # a[0] or a[64]
     vse16.v v1, (t3);  addi t3, t3, 16
+    vmul.vx  v9,  v5, t2
+    vmul.vx  v10, v6, t2
     vse16.v v2, (t3);  addi t3, t3, 16
+    vmul.vx  v11, v7, t2
+    vmul.vx  v12, v8, t2
     vse16.v v3, (t3);  addi t3, t3, 16
+    vmulh.vx v5, v5, t1
+    vmulh.vx v6, v6, t1
     vse16.v v4, (t3);  addi t3, t3, 16
+    vmulh.vx v7, v7, t1
+    vmulh.vx v8, v8, t1
     vle16.v v17, (t3);  addi t3, t3, 16
+    vmulh.vx v9,  v9,  t0
+    vmulh.vx v10, v10, t0
     vle16.v v18, (t3);  addi t3, t3, 16
+    vmulh.vx v11, v11, t0
+    vmulh.vx v12, v12, t0
     vle16.v v19, (t3);  addi t3, t3, 16
+    vsub.vv  v5, v5, v9
+    vsub.vv  v6, v6, v10
     vle16.v v20, (t3)
+    vsub.vv  v7, v7, v11
+    vsub.vv  v8, v8, v12
     addi t3, a0, (128+\off*64)*2 # a[128] or a[192]
     vse16.v v5, (t3);  addi t3, t3, 16
     vse16.v v6, (t3);  addi t3, t3, 16
@@ -1350,12 +1350,17 @@ ret
     vsub.vv v6, v18, v22
     vsub.vv v7, v19, v23
     vsub.vv v8, v20, v24
+    addi t3, a0, (32+\off*64)*2 # a[0] or a[64]
+    vse16.v v1, (t3);  addi t3, t3, 16
     vmul.vx  v9,  v5, t2
     vmul.vx  v10, v6, t2
+    vse16.v v2, (t3);  addi t3, t3, 16
     vmul.vx  v11, v7, t2
     vmul.vx  v12, v8, t2
+    vse16.v v3, (t3);  addi t3, t3, 16
     vmulh.vx v5, v5, t1
     vmulh.vx v6, v6, t1
+    vse16.v v4, (t3)
     vmulh.vx v7, v7, t1
     vmulh.vx v8, v8, t1
     vmulh.vx v9,  v9,  t0
@@ -1366,11 +1371,6 @@ ret
     vsub.vv  v6, v6, v10
     vsub.vv  v7, v7, v11
     vsub.vv  v8, v8, v12
-    addi t3, a0, (32+\off*64)*2 # a[0] or a[64]
-    vse16.v v1, (t3);  addi t3, t3, 16
-    vse16.v v2, (t3);  addi t3, t3, 16
-    vse16.v v3, (t3);  addi t3, t3, 16
-    vse16.v v4, (t3)
     addi t3, a0, (32+128+\off*64)*2 # a[128] or a[192]
     vse16.v v5, (t3);  addi t3, t3, 16
     vse16.v v6, (t3);  addi t3, t3, 16

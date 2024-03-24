@@ -6,39 +6,6 @@
 #include "params.h"
 #include "reduce.h"
 
-/* Code to generate zetas and zetas_inv used in the number-theoretic transform:
-
-#define KYBER_ROOT_OF_UNITY 17
-
-static const uint8_t tree[128] = {
-  0, 64, 32, 96, 16, 80, 48, 112, 8, 72, 40, 104, 24, 88, 56, 120,
-  4, 68, 36, 100, 20, 84, 52, 116, 12, 76, 44, 108, 28, 92, 60, 124,
-  2, 66, 34, 98, 18, 82, 50, 114, 10, 74, 42, 106, 26, 90, 58, 122,
-  6, 70, 38, 102, 22, 86, 54, 118, 14, 78, 46, 110, 30, 94, 62, 126,
-  1, 65, 33, 97, 17, 81, 49, 113, 9, 73, 41, 105, 25, 89, 57, 121,
-  5, 69, 37, 101, 21, 85, 53, 117, 13, 77, 45, 109, 29, 93, 61, 125,
-  3, 67, 35, 99, 19, 83, 51, 115, 11, 75, 43, 107, 27, 91, 59, 123,
-  7, 71, 39, 103, 23, 87, 55, 119, 15, 79, 47, 111, 31, 95, 63, 127
-};
-
-void init_ntt() {
-  unsigned int i;
-  int16_t tmp[128];
-
-  tmp[0] = MONT;
-  for(i=1;i<128;i++)
-    tmp[i] = fqmul(tmp[i-1],MONT*KYBER_ROOT_OF_UNITY % KYBER_Q);
-
-  for(i=0;i<128;i++) {
-    zetas[i] = tmp[tree[i]];
-    if(zetas[i] > KYBER_Q/2)
-      zetas[i] -= KYBER_Q;
-    if(zetas[i] < -KYBER_Q/2)
-      zetas[i] += KYBER_Q;
-  }
-}
-*/
-
 const int16_t zetas[128] = {
     -1044, -758,  -359,  -1517, 1493,  1422,  287,   202,  -171,  622,   1577,
     182,   962,   -1202, -1474, 1468,  573,   -1325, 264,  383,   -829,  1458,
@@ -99,7 +66,6 @@ void ntt(int16_t r[256])
 void ntt(int16_t r[KYBER_N])
 {
     ntt_rvv(r, qdata);
-    ntt2normal_order(r, r, qdata);
 }
 #endif
 
@@ -139,7 +105,6 @@ void invntt(int16_t r[256])
 #else
 void invntt(int16_t r[KYBER_N])
 {
-    normal2ntt_order(r, r, qdata);
     intt_rvv(r, qdata);
 }
 #endif
