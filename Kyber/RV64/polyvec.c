@@ -205,9 +205,39 @@ void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a, const polyvec *b)
         poly_basemul_montgomery(&t, &a->vec[i], &b->vec[i]);
         poly_add(r, r, &t);
     }
-
-    poly_reduce(r);
 }
+
+#if defined(VECTOR128)
+void polyvec_basemul_acc_montgomery_cache_init(poly *r, const polyvec *a,
+                                               const polyvec *b, int16_t *b_buf)
+{
+    unsigned int i;
+    poly t;
+
+    poly_basemul_montgomery_cache_init(r, &a->vec[0], &b->vec[0],
+                                       &b_buf[0 * (KYBER_N >> 1)]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul_montgomery_cache_init(&t, &a->vec[i], &b->vec[i],
+                                           &b_buf[i * (KYBER_N >> 1)]);
+        poly_add(r, r, &t);
+    }
+}
+
+void polyvec_basemul_acc_montgomery_cached(poly *r, const polyvec *a,
+                                           const polyvec *b, int16_t *b_buf)
+{
+    unsigned int i;
+    poly t;
+
+    poly_basemul_montgomery_cached(r, &a->vec[0], &b->vec[0],
+                                   &b_buf[0 * (KYBER_N >> 1)]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul_montgomery_cached(&t, &a->vec[i], &b->vec[i],
+                                       &b_buf[i * (KYBER_N >> 1)]);
+        poly_add(r, r, &t);
+    }
+}
+#endif
 
 /*************************************************
  * Name:        polyvec_reduce

@@ -299,6 +299,17 @@ void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
 {
     poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
 }
+
+void poly_basemul_montgomery_cache_init(poly *r, const poly *a, const poly *b,
+                                        int16_t *b_buf)
+{
+    poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
+}
+void poly_basemul_montgomery_cached(poly *r, const poly *a, const poly *b,
+                                    int16_t *b_buf)
+{
+    poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
+}
 #endif
 
 /*************************************************

@@ -505,10 +505,22 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
     polyvec_ntt(&e);
 
     // matrix-vector multiplication
+#if !defined(VECTOR128)
     for (i = 0; i < KYBER_K; i++) {
         polyvec_basemul_acc_montgomery(&pkpv.vec[i], &a[i], &skpv);
         poly_tomont(&pkpv.vec[i]);
     }
+#else
+    int16_t skpv_buf[KYBER_K * KYBER_N >> 1];
+    polyvec_basemul_acc_montgomery_cache_init(&pkpv.vec[0], &a[0], &skpv,
+                                              skpv_buf);
+    poly_tomont(&pkpv.vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        polyvec_basemul_acc_montgomery_cached(&pkpv.vec[i], &a[i], &skpv,
+                                              skpv_buf);
+        poly_tomont(&pkpv.vec[i]);
+    }
+#endif
 
     polyvec_add(&pkpv, &pkpv, &e);
     polyvec_reduce(&pkpv);
@@ -556,9 +568,17 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
     polyvec_ntt(&sp);
 
     // matrix-vector multiplication
+#if !defined(VECTOR128)
     for (i = 0; i < KYBER_K; i++)
         polyvec_basemul_acc_montgomery(&b.vec[i], &at[i], &sp);
     polyvec_basemul_acc_montgomery(&v, &pkpv, &sp);
+#else
+    int16_t sp_buf[KYBER_K * KYBER_N >> 1];
+    polyvec_basemul_acc_montgomery_cache_init(&b.vec[0], &at[0], &sp, sp_buf);
+    for (i = 1; i < KYBER_K; i++)
+        polyvec_basemul_acc_montgomery_cached(&b.vec[i], &at[i], &sp, sp_buf);
+    polyvec_basemul_acc_montgomery_cached(&v, &pkpv, &sp, sp_buf);
+#endif
 
     polyvec_invntt_tomont(&b);
     poly_invntt_tomont(&v);

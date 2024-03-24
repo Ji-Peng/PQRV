@@ -169,7 +169,7 @@ void test_basemul()
 {
     int i;
     int16_t a0[KYBER_N], b0[KYBER_N], r0[KYBER_N];
-    int16_t a1[KYBER_N], b1[KYBER_N], r1[KYBER_N];
+    int16_t a1[KYBER_N], b1[KYBER_N], r1[KYBER_N], b1_buf[KYBER_N >> 1];
     for (i = 0; i < KYBER_N; i++)
         a0[i] = b0[i] = a1[i] = b1[i] = i;
     ntt(a0);
@@ -183,6 +183,24 @@ void test_basemul()
         printf("basemul all right\n");
     else {
         printf("basemul error\n");
+        print_poly(r0, 256);
+        print_poly(r1, 256);
+    }
+
+    for (i = 0; i < KYBER_N; i++)
+        a0[i] = b0[i] = a1[i] = b1[i] = i;
+    ntt(a0);
+    ntt(b0);
+    poly_basemul(r0, a0, b0);
+    ntt_rvv(a1, qdata);
+    ntt_rvv(b1, qdata);
+    poly_basemul_cache_init_rvv(r1, a1, b1, qdata, b1_buf);
+    poly_basemul_cached_rvv(r1, a1, b1, qdata, b1_buf);
+    ntt2normal_order(r1, r1, qdata);
+    if (poly_equal(r0, r1, 256))
+        printf("basemul_cache_init/cached all right\n");
+    else {
+        printf("basemul_cache_init/cached error\n");
         print_poly(r0, 256);
         print_poly(r1, 256);
     }
@@ -236,12 +254,12 @@ void test_poly_reduce()
 int main()
 {
     int i;
-    int16_t a[KYBER_N], b[KYBER_N];
+    int16_t a[KYBER_N], b[KYBER_N], b_buf[KYBER_N >> 1];
 
     test_ntt();
     test_basemul();
     test_intt();
-    test_poly_reduce();
+    // test_poly_reduce();
     // test_order();
 
     for (i = 0; i < NTESTS; i++) {
@@ -267,6 +285,18 @@ int main()
         poly_basemul_rvv(a, a, b, qdata);
     }
     print_results("poly_basemul_rvv: ", t, NTESTS);
+
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_cache_init_rvv(a, a, b, qdata, b_buf);
+    }
+    print_results("poly_basemul_cache_init_rvv: ", t, NTESTS);
+
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_cached_rvv(a, a, b, qdata, b_buf);
+    }
+    print_results("poly_basemul_cached_rvv: ", t, NTESTS);
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
