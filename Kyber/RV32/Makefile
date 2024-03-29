@@ -9,7 +9,7 @@ COMMONDIR 		= ../../common
 KECCAKDIR		= ../../common/keccak
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
 				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -DRV32=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I.
+				  -DRV32=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/kyber_ntt -I.
 
 ifeq ($(PLATFORM), C910)
 	CFLAGS_RV32IM  	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32
@@ -37,15 +37,15 @@ SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDI
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
 SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S
 SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S
-SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S
-SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S
+SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/kyber_ntt/ntt_rvv.S $(COMMONDIR)/kyber_ntt/consts.c
+SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(COMMONDIR)/kyber_ntt/ntt_rvv.S $(COMMONDIR)/kyber_ntt/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.h verify.h symmetric.h
 SOURCES_VECTOR 	= $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
-.PHONY: all speed results clean
+.PHONY: all speed results scp_vectors diff_vectors clean
 
 all: \
 	out/test_kyber512_rv32im    	\
@@ -88,6 +88,38 @@ results:
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imb.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imv.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imbv.txt .
+
+# ./test_vectors512_rv32im > vectors_kyber512_rv32im.txt; ./test_vectors768_rv32im > vectors_kyber768_rv32im.txt; ./test_vectors1024_rv32im > vectors_kyber1024_rv32im.txt
+# ./test_vectors512_rv32imb > vectors_kyber512_rv32imb.txt; ./test_vectors768_rv32imb > vectors_kyber768_rv32imb.txt; ./test_vectors1024_rv32imb > vectors_kyber1024_rv32imb.txt
+# ./test_vectors512_rv32imv > vectors_kyber512_rv32imv.txt; ./test_vectors768_rv32imv > vectors_kyber768_rv32imv.txt; ./test_vectors1024_rv32imv > vectors_kyber1024_rv32imv.txt
+# ./test_vectors512_rv32imbv > vectors_kyber512_rv32imbv.txt; ./test_vectors768_rv32imbv > vectors_kyber768_rv32imbv.txt; ./test_vectors1024_rv32imbv > vectors_kyber1024_rv32imbv.txt
+scp_vectors:
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imbv.txt .
+
+diff_vectors:
+	diff vectors_kyber512_rv32im.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv32im.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv32im.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv32imb.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv32imb.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv32imb.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv32imv.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv32imv.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv32imv.txt ../ref/vectors_kyber1024.txt
+	diff vectors_kyber512_rv32imbv.txt ../ref/vectors_kyber512.txt
+	diff vectors_kyber768_rv32imbv.txt ../ref/vectors_kyber768.txt
+	diff vectors_kyber1024_rv32imbv.txt ../ref/vectors_kyber1024.txt
 
 objdump:
 	mkdir -p out

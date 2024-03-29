@@ -24,6 +24,11 @@ void polyvec_ntt(polyvec *r);
 void polyvec_invntt_tomont(polyvec *r);
 void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a,
                                     const polyvec *b);
+void polyvec_basemul_acc_montgomery_cache_init(poly *r, const polyvec *a,
+                                               const polyvec *b,
+                                               int16_t *b_buf);
+void polyvec_basemul_acc_montgomery_cached(poly *r, const polyvec *a,
+                                           const polyvec *b, int16_t *b_buf);
 void polyvec_reduce(polyvec *r);
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b);
 
