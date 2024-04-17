@@ -10,6 +10,11 @@ typedef struct {
     poly vec[KYBER_K];
 } polyvec;
 
+void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
+                             const uint8_t *noiseseed);
+void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
+                                     const uint8_t coins[KYBER_SYMBYTES]);
+
 void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
                       const polyvec *a);
 void polyvec_decompress(polyvec *r,
