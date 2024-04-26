@@ -1,3 +1,5 @@
+// The results after using assembly-optimized keccak
+
 Test speed of Kyber512
 NTT:                            13569 cycles
 poly_basemul_opt_16_32:          2766 cycles

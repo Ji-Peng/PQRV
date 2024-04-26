@@ -1,3 +1,5 @@
+// Original results of the paper "Yet another Improvement of Plantard Arithmetic for Faster Kyber on Low-end 32-bit IoT Devices"
+
 Test speed of Kyber512
 NTT:                            13568 cycles
 poly_basemul_opt_16_32:          2764 cycles
