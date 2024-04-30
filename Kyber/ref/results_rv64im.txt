@@ -11,7 +11,7 @@ poly_getnoise_eta1:             13065 cycles
 NTT:                            35803 cycles
 INVNTT:                         57042 cycles
 polyvec_basemul_acc_mont:       42813 cycles
-poly_basemul_montgomery:        18242 cycles
+poly_basemul:        18242 cycles
 kyber_keypair:                 439288 cycles
 kyber_encaps:                  623766 cycles
 kyber_decaps:                  779548 cycles
@@ -22,7 +22,7 @@ poly_getnoise_eta1:              8174 cycles
 NTT:                            35815 cycles
 INVNTT:                         57067 cycles
 polyvec_basemul_acc_mont:       61574 cycles
-poly_basemul_montgomery:        18235 cycles
+poly_basemul:        18235 cycles
 kyber_keypair:                 743374 cycles
 kyber_encaps:                  986900 cycles
 kyber_decaps:                 1185982 cycles
@@ -33,7 +33,7 @@ poly_getnoise_eta1:              8168 cycles
 NTT:                            35832 cycles
 INVNTT:                         57022 cycles
 polyvec_basemul_acc_mont:       80517 cycles
-poly_basemul_montgomery:        18234 cycles
+poly_basemul:        18234 cycles
 kyber_keypair:                1141549 cycles
 kyber_encaps:                 1445995 cycles
 kyber_decaps:                 1686532 cycles

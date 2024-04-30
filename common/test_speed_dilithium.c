@@ -53,9 +53,9 @@ int main(void)
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        poly_invntt_tomont(a);
+        poly_invntt(a);
     }
-    print_results("poly_invntt_tomont:", t, NTESTS);
+    print_results("poly_invntt:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();

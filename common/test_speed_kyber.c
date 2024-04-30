@@ -62,21 +62,21 @@ int main()
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        poly_invntt_tomont(&ap);
+        poly_invntt(&ap);
     }
     print_results("INVNTT: ", t, NTESTS);
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        polyvec_basemul_acc_montgomery(&ap, &matrix[0], &matrix[1]);
+        polyvec_basemul_acc(&ap, &matrix[0], &matrix[1]);
     }
     print_results("polyvec_basemul_acc_mont: ", t, NTESTS);
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        poly_basemul_montgomery(&ap, &matrix[0].vec[0], &matrix[1].vec[0]);
+        poly_basemul(&ap, &matrix[0].vec[0], &matrix[1].vec[0]);
     }
-    print_results("poly_basemul_montgomery: ", t, NTESTS);
+    print_results("poly_basemul: ", t, NTESTS);
 
     // for(i=0;i<NTESTS;i++) {
     //   t[i] = cpucycles();

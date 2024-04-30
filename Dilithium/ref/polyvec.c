@@ -102,7 +102,7 @@ void polyvecl_invntt_tomont(polyvecl *v)
     unsigned int i;
 
     for (i = 0; i < L; ++i)
-        poly_invntt_tomont(&v->vec[i]);
+        poly_invntt(&v->vec[i]);
 }
 
 void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
@@ -289,7 +289,7 @@ void polyveck_invntt_tomont(polyveck *v)
     unsigned int i;
 
     for (i = 0; i < K; ++i)
-        poly_invntt_tomont(&v->vec[i]);
+        poly_invntt(&v->vec[i]);
 }
 
 void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,

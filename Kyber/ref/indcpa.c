@@ -227,7 +227,7 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
 
   // matrix-vector multiplication
   for(i=0;i<KYBER_K;i++) {
-    polyvec_basemul_acc_montgomery(&pkpv.vec[i], &a[i], &skpv);
+    polyvec_basemul_acc(&pkpv.vec[i], &a[i], &skpv);
     poly_tomont(&pkpv.vec[i]);
   }
 
@@ -279,12 +279,12 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
 
   // matrix-vector multiplication
   for(i=0;i<KYBER_K;i++)
-    polyvec_basemul_acc_montgomery(&b.vec[i], &at[i], &sp);
+    polyvec_basemul_acc(&b.vec[i], &at[i], &sp);
 
-  polyvec_basemul_acc_montgomery(&v, &pkpv, &sp);
+  polyvec_basemul_acc(&v, &pkpv, &sp);
 
-  polyvec_invntt_tomont(&b);
-  poly_invntt_tomont(&v);
+  polyvec_invntt(&b);
+  poly_invntt(&v);
 
   polyvec_add(&b, &b, &ep);
   poly_add(&v, &v, &epp);
@@ -319,8 +319,8 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
   unpack_sk(&skpv, sk);
 
   polyvec_ntt(&b);
-  polyvec_basemul_acc_montgomery(&mp, &skpv, &b);
-  poly_invntt_tomont(&mp);
+  polyvec_basemul_acc(&mp, &skpv, &b);
+  poly_invntt(&mp);
 
   poly_sub(&mp, &v, &mp);
   poly_reduce(&mp);

@@ -39,7 +39,7 @@ int main(void)
         poly_ntt(&c);
         for (j = 0; j < N; ++j)
             c.coeffs[j] = (int64_t)c.coeffs[j] * -114592 % Q;
-        poly_invntt_tomont(&c);
+        poly_invntt(&c);
         for (j = 0; j < N; ++j) {
             if ((c.coeffs[j] - a.coeffs[j]) % Q)
                 fprintf(stderr, "ERROR in ntt/invntt: c[%d] = %d != %d\n", j,
@@ -50,7 +50,7 @@ int main(void)
         poly_ntt(&a);
         poly_ntt(&b);
         poly_pointwise_montgomery(&d, &a, &b);
-        poly_invntt_tomont(&d);
+        poly_invntt(&d);
 
         for (j = 0; j < N; ++j) {
             if ((d.coeffs[j] - c.coeffs[j]) % Q)

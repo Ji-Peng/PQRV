@@ -260,7 +260,7 @@ void poly_ntt(poly *r)
 }
 
 /*************************************************
- * Name:        poly_invntt_tomont
+ * Name:        poly_invntt
  *
  * Description: Computes inverse of negacyclic number-theoretic transform (NTT)
  *              of a polynomial in place;
@@ -269,13 +269,13 @@ void poly_ntt(poly *r)
  *
  * Arguments:   - uint16_t *a: pointer to in/output polynomial
  **************************************************/
-void poly_invntt_tomont(poly *r)
+void poly_invntt(poly *r)
 {
     invntt(r->coeffs);
 }
 
 /*************************************************
- * Name:        poly_basemul_montgomery
+ * Name:        poly_basemul
  *
  * Description: Multiplication of two polynomials in NTT domain
  *
@@ -284,7 +284,7 @@ void poly_invntt_tomont(poly *r)
  *              - const poly *b: pointer to second input polynomial
  **************************************************/
 #if !defined(VECTOR128)
-void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
+void poly_basemul(poly *r, const poly *a, const poly *b)
 {
     unsigned int i;
     for (i = 0; i < KYBER_N / 4; i++) {
@@ -295,17 +295,17 @@ void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
     }
 }
 #else
-void poly_basemul_montgomery(poly *r, const poly *a, const poly *b)
+void poly_basemul(poly *r, const poly *a, const poly *b)
 {
     poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
 }
 
-void poly_basemul_montgomery_cache_init(poly *r, const poly *a, const poly *b,
+void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
                                         int16_t *b_buf)
 {
     poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
 }
-void poly_basemul_montgomery_cached(poly *r, const poly *a, const poly *b,
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
                                     int16_t *b_buf)
 {
     poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);

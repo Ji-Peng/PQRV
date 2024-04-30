@@ -835,10 +835,27 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
     polyvec_ntt(&e);
 
     // matrix-vector multiplication
+#if defined(VECTOR128)
+    // TODO: asymmetric multiplication
+    // TODO: poly_basemul_acc
     for (i = 0; i < KYBER_K; i++) {
-        polyvec_basemul_acc_montgomery(&pkpv.vec[i], &a[i], &skpv);
+        polyvec_basemul_acc(&pkpv.vec[i], &a[i], &skpv);
         poly_tomont(&pkpv.vec[i]);
     }
+#elif defined(RV32)
+    polyvec_half skpv_cache;
+    polyvec_basemul_cache_init(&pkpv.vec[0], &a[0], &skpv, &skpv_cache);
+    poly_toplant(&pkpv.vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv, &skpv_cache);
+        poly_toplant(&pkpv.vec[i]);
+    }
+#else
+    for (i = 0; i < KYBER_K; i++) {
+        polyvec_basemul_acc(&pkpv.vec[i], &a[i], &skpv);
+        poly_tomont(&pkpv.vec[i]);
+    }
+#endif
 
     polyvec_add(&pkpv, &pkpv, &e);
     polyvec_reduce(&pkpv);
@@ -881,13 +898,26 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
     polyvec_ntt(&sp);
 
     // matrix-vector multiplication
+#if defined(VECTOR128)
+    // TODO
     for (i = 0; i < KYBER_K; i++)
-        polyvec_basemul_acc_montgomery(&b.vec[i], &at[i], &sp);
+        polyvec_basemul_acc(&b.vec[i], &at[i], &sp);
+    polyvec_basemul_acc(&v, &pkpv, &sp);
+#elif defined(RV32)
+    polyvec_half sp_cache;
+    polyvec_basemul_cache_init(&pkpv.vec[0], &at[0], &sp, &sp_cache);
+    for (i = 1; i < KYBER_K; i++) {
+        polyvec_basemul_acc_cached(&pkpv.vec[i], &at[i], &sp, &sp_cache);
+    }
+    polyvec_basemul_acc_cached(&v, &pkpv, &sp, &sp_cache);
+#else
+    for (i = 0; i < KYBER_K; i++)
+        polyvec_basemul_acc(&b.vec[i], &at[i], &sp);
+    polyvec_basemul_acc(&v, &pkpv, &sp);
+#endif
 
-    polyvec_basemul_acc_montgomery(&v, &pkpv, &sp);
-
-    polyvec_invntt_tomont(&b);
-    poly_invntt_tomont(&v);
+    polyvec_invntt(&b);
+    poly_invntt(&v);
 
     polyvec_add(&b, &b, &ep);
     poly_add(&v, &v, &epp);
@@ -922,8 +952,8 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
     unpack_sk(&skpv, sk);
 
     polyvec_ntt(&b);
-    polyvec_basemul_acc_montgomery(&mp, &skpv, &b);
-    poly_invntt_tomont(&mp);
+    polyvec_basemul_acc(&mp, &skpv, &b);
+    poly_invntt(&mp);
 
     poly_sub(&mp, &v, &mp);
     poly_reduce(&mp);

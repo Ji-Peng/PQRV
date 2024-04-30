@@ -351,22 +351,22 @@ void polyvec_ntt(polyvec *r)
 }
 
 /*************************************************
- * Name:        polyvec_invntt_tomont
+ * Name:        polyvec_invntt
  *
  * Description: Apply inverse NTT to all elements of a vector of polynomials
  *              and multiply by Montgomery factor 2^16
  *
  * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
  **************************************************/
-void polyvec_invntt_tomont(polyvec *r)
+void polyvec_invntt(polyvec *r)
 {
     unsigned int i;
     for (i = 0; i < KYBER_K; i++)
-        poly_invntt_tomont(&r->vec[i]);
+        poly_invntt(&r->vec[i]);
 }
 
 /*************************************************
- * Name:        polyvec_basemul_acc_montgomery
+ * Name:        polyvec_basemul_acc
  *
  * Description: Multiply elements of a and b in NTT domain, accumulate into r,
  *              and multiply by 2^-16.
@@ -375,44 +375,45 @@ void polyvec_invntt_tomont(polyvec *r)
  *            - const polyvec *a: pointer to first input vector of polynomials
  *            - const polyvec *b: pointer to second input vector of polynomials
  **************************************************/
-void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a, const polyvec *b)
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
 {
     unsigned int i;
     poly t;
 
-    poly_basemul_montgomery(r, &a->vec[0], &b->vec[0]);
+    poly_basemul(r, &a->vec[0], &b->vec[0]);
     for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_montgomery(&t, &a->vec[i], &b->vec[i]);
+        poly_basemul(&t, &a->vec[i], &b->vec[i]);
         poly_add(r, r, &t);
     }
 }
 
 #if defined(VECTOR128)
-void polyvec_basemul_acc_montgomery_cache_init(poly *r, const polyvec *a,
+// TODO: write poly_basemul_acc_montgomery_cache_init to opt this subroutine
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a,
                                                const polyvec *b, int16_t *b_buf)
 {
     unsigned int i;
     poly t;
 
-    poly_basemul_montgomery_cache_init(r, &a->vec[0], &b->vec[0],
+    poly_basemul_cache_init(r, &a->vec[0], &b->vec[0],
                                        &b_buf[0 * (KYBER_N >> 1)]);
     for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_montgomery_cache_init(&t, &a->vec[i], &b->vec[i],
+        poly_basemul_cache_init(&t, &a->vec[i], &b->vec[i],
                                            &b_buf[i * (KYBER_N >> 1)]);
         poly_add(r, r, &t);
     }
 }
 
-void polyvec_basemul_acc_montgomery_cached(poly *r, const polyvec *a,
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a,
                                            const polyvec *b, int16_t *b_buf)
 {
     unsigned int i;
     poly t;
 
-    poly_basemul_montgomery_cached(r, &a->vec[0], &b->vec[0],
+    poly_basemul_cached(r, &a->vec[0], &b->vec[0],
                                    &b_buf[0 * (KYBER_N >> 1)]);
     for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_montgomery_cached(&t, &a->vec[i], &b->vec[i],
+        poly_basemul_cached(&t, &a->vec[i], &b->vec[i],
                                        &b_buf[i * (KYBER_N >> 1)]);
         poly_add(r, r, &t);
     }

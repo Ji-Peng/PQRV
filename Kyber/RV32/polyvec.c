@@ -777,59 +777,6 @@ void polyvec_frombytes(polyvec *r, const uint8_t a[KYBER_POLYVECBYTES])
 }
 
 /*************************************************
- * Name:        polyvec_ntt
- *
- * Description: Apply forward NTT to all elements of a vector of polynomials
- *
- * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
- **************************************************/
-void polyvec_ntt(polyvec *r)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_K; i++)
-        poly_ntt(&r->vec[i]);
-}
-
-/*************************************************
- * Name:        polyvec_invntt_tomont
- *
- * Description: Apply inverse NTT to all elements of a vector of polynomials
- *              and multiply by Montgomery factor 2^16
- *
- * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
- **************************************************/
-void polyvec_invntt_tomont(polyvec *r)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_K; i++)
-        poly_invntt_tomont(&r->vec[i]);
-}
-
-/*************************************************
- * Name:        polyvec_basemul_acc_montgomery
- *
- * Description: Multiply elements of a and b in NTT domain, accumulate into r,
- *              and multiply by 2^-16.
- *
- * Arguments: - poly *r: pointer to output polynomial
- *            - const polyvec *a: pointer to first input vector of polynomials
- *            - const polyvec *b: pointer to second input vector of polynomials
- **************************************************/
-void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a, const polyvec *b)
-{
-    unsigned int i;
-    poly t;
-
-    poly_basemul_montgomery(r, &a->vec[0], &b->vec[0]);
-    for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_montgomery(&t, &a->vec[i], &b->vec[i]);
-        poly_add(r, r, &t);
-    }
-
-    poly_reduce(r);
-}
-
-/*************************************************
  * Name:        polyvec_reduce
  *
  * Description: Applies Barrett reduction to each coefficient
@@ -860,3 +807,136 @@ void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b)
     for (i = 0; i < KYBER_K; i++)
         poly_add(&r->vec[i], &a->vec[i], &b->vec[i]);
 }
+
+/*************************************************
+ * Name:        polyvec_ntt
+ *
+ * Description: Apply forward NTT to all elements of a vector of polynomials
+ *
+ * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
+ **************************************************/
+void polyvec_ntt(polyvec *r)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_K; i++)
+        poly_ntt(&r->vec[i]);
+}
+
+/*************************************************
+ * Name:        polyvec_invntt
+ *
+ * Description: Apply inverse NTT to all elements of a vector of polynomials
+ *              and multiply by Montgomery factor 2^16
+ *
+ * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
+ **************************************************/
+void polyvec_invntt(polyvec *r)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_K; i++)
+        poly_invntt(&r->vec[i]);
+}
+
+#if defined(VECTOR128)
+/*************************************************
+ * Name:        polyvec_basemul_acc
+ *
+ * Description: Multiply elements of a and b in NTT domain, accumulate into r,
+ *              and multiply by 2^-16.
+ *
+ * Arguments: - poly *r: pointer to output polynomial
+ *            - const polyvec *a: pointer to first input vector of polynomials
+ *            - const polyvec *b: pointer to second input vector of polynomials
+ **************************************************/
+// TODO: acc with assembly
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
+{
+    unsigned int i;
+    poly t;
+
+    poly_basemul(r, &a->vec[0], &b->vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul(&t, &a->vec[i], &b->vec[i]);
+        poly_add(r, r, &t);
+    }
+
+    poly_reduce(r);
+}
+// TODO
+// void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
+//                                     int16_t *b_buf)
+// {
+// }
+// void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
+//                                 int16_t *b_buf)
+// {
+// }
+#elif defined(RV32)
+void polyvec_basemul_cache_init(poly *r, const polyvec *a, const polyvec *b,
+                                polyvec_half *b_cache)
+{
+    unsigned int i;
+    poly_double r_double;
+    poly_basemul_cache_init(&r_double, &a->vec[0], &b->vec[0],
+                            &b_cache->vec[0]);
+    for (i = 1; i < KYBER_K - 1; i++) {
+        poly_basemul_acc_cache_init(&r_double, &a->vec[i], &b->vec[i],
+                                    &b_cache->vec[i]);
+    }
+    poly_basemul_acc_cache_init_end(r, &a->vec[i], &b->vec[i], &b_cache->vec[i],
+                                    &r_double);
+}
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
+                                polyvec_half *b_cache)
+{
+    unsigned int i;
+    poly_double r_double;
+
+    for (i = 0; i < KYBER_N; i++)
+        r_double.coeffs[i] = 0;
+    for (i = 0; i < KYBER_K - 1; i++) {
+        poly_basemul_acc_cached(&r_double, &a->vec[i], &b->vec[i],
+                                &b_cache->vec[i]);
+    }
+    poly_basemul_acc_cache_end(r, &a->vec[i], &b->vec[i], &b_cache->vec[i],
+                               &r_double);
+}
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
+{
+    unsigned int i;
+    poly_double r_double;
+
+    for (i = 0; i < KYBER_N; i++)
+        r_double.coeffs[i] = 0;
+    for (i = 0; i < KYBER_K - 1; i++) {
+        poly_basemul_acc(&r_double, &a->vec[i], &b->vec[i]);
+    }
+    poly_basemul_acc_end(r, &a->vec[i], &b->vec[i], &r_double);
+    // TODO: required?
+    poly_reduce(r);
+}
+#else
+/*************************************************
+ * Name:        polyvec_basemul_acc
+ *
+ * Description: Multiply elements of a and b in NTT domain, accumulate into r,
+ *              and multiply by 2^-16.
+ *
+ * Arguments: - poly *r: pointer to output polynomial
+ *            - const polyvec *a: pointer to first input vector of polynomials
+ *            - const polyvec *b: pointer to second input vector of polynomials
+ **************************************************/
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
+{
+    unsigned int i;
+    poly t;
+
+    poly_basemul(r, &a->vec[0], &b->vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul(&t, &a->vec[i], &b->vec[i]);
+        poly_add(r, r, &t);
+    }
+
+    poly_reduce(r);
+}
+#endif

@@ -24,11 +24,11 @@ void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES],
 void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES],
                         uint8_t nonce);
 void poly_ntt(poly *r);
-void poly_invntt_tomont(poly *r);
-void poly_basemul_montgomery(poly *r, const poly *a, const poly *b);
-void poly_basemul_montgomery_cache_init(poly *r, const poly *a, const poly *b,
+void poly_invntt(poly *r);
+void poly_basemul(poly *r, const poly *a, const poly *b);
+void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
                                         int16_t *b_buf);
-void poly_basemul_montgomery_cached(poly *r, const poly *a, const poly *b,
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
                                     int16_t *b_buf);
 void poly_tomont(poly *r);
 void poly_reduce(poly *r);
