@@ -779,8 +779,102 @@ poly_basemul_rvv_loop:
     bnez t5, poly_basemul_rvv_loop
 ret
 
-// void poly_basemul_cache_init_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_buf);
-// basemul and store b1zeta, b3zeta, ... into b_buf
+// void poly_basemul_acc_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table);
+// (a0b0 + b1 * (a1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
+// (a2b2 + b3 * (a3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
+.globl poly_basemul_acc_rvv
+.align 2
+poly_basemul_acc_rvv:
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
+    li t0, 3329     // q
+    li t1, -3327    // qinv
+    addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
+    addi t4, a3, _ZETAS_BASEMUL*2       // for loading zeta
+    li   t5, 8
+poly_basemul_acc_rvv_loop:
+    vle16.v v0, (a1);  addi a1, a1, 16 // a0
+    vle16.v v1, (a1);  addi a1, a1, 16 // a1
+    vle16.v v2, (a1);  addi a1, a1, 16 // a2
+    vle16.v v3, (a1);  addi a1, a1, 16 // a3
+    vle16.v v30, (t3); addi t3, t3, 16  // zetaqinv
+    vle16.v v31, (t3); addi t3, t3, 16
+    vle16.v v28, (t4); addi t4, t4, 16  // zeta
+    vle16.v v29, (t4); addi t4, t4, 16
+    vmul.vv  v4, v1, v30
+    vmul.vv  v5, v3, v31
+    vle16.v v8,  (a2);  addi a2, a2, 16 // b0
+    vle16.v v9,  (a2);  addi a2, a2, 16 // b1
+    vmulh.vv v6, v1, v28
+    vmulh.vv v7, v3, v29
+    vmulh.vx v4, v4, t0
+    vmulh.vx v5, v5, t0
+    vle16.v v10, (a2);  addi a2, a2, 16 // b2
+    vle16.v v11, (a2);  addi a2, a2, 16 // b3
+    vsub.vv  v4, v6, v4 // a1zeta mod q
+    vsub.vv  v5, v7, v5 // a3zeta mod q
+    vmul.vv  v12, v0, v8     // a0b0.lo
+    vmul.vv  v13, v0, v9     // a0b1.lo
+    vmul.vv  v14, v4, v9     // b1(a1zeta).lo
+    vmul.vv  v15, v1, v8     // a1b0.lo
+    vmulh.vv v16, v0, v8     // a0b0.hi
+    vmulh.vv v17, v0, v9     // a0b1.hi
+    vmulh.vv v18, v4, v9     // b1(a1zeta).hi
+    vmulh.vv v19, v1, v8     // a1b0.hi
+    vmul.vx  v12, v12, t1   // *qinv
+    vmul.vx  v13, v13, t1   // *qinv
+    vmul.vx  v14, v14, t1   // *qinv
+    vmul.vx  v15, v15, t1   // *qinv
+    vmulh.vx v12, v12, t0   // *q
+    vmulh.vx v13, v13, t0   // *q
+    vmulh.vx v14, v14, t0   // *q
+    vmulh.vx v15, v15, t0   // *q
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vsub.vv  v12, v16, v12  // a0b0
+    vsub.vv  v13, v17, v13  // a0b1
+    vsub.vv  v14, v18, v14  // b1(a1zeta)
+    vsub.vv  v15, v19, v15  // a1b0
+    vadd.vv  v12, v12, v14
+    vadd.vv  v13, v13, v15
+    vadd.vv  v12, v12, v24
+    vadd.vv  v13, v13, v25
+    vse16.v  v12, (a0);     addi a0, a0, 16
+    vse16.v  v13, (a0);     addi a0, a0, 16
+    vmul.vv  v16, v2, v10   // a2b2.lo
+    vmul.vv  v17, v2, v11   // a2b3.lo
+    vmul.vv  v18, v5, v11   // b3(a3zeta).lo
+    vmul.vv  v19, v3, v10   // a3b2.lo
+    vmulh.vv v20, v2, v10   // a2b2.hi
+    vmulh.vv v21, v2, v11   // a2b3.hi
+    vmulh.vv v22, v5, v11   // b3(a3zeta).hi
+    vmulh.vv v23, v3, v10   // a3b2.hi
+    vmul.vx  v16, v16, t1   // *qinv
+    vmul.vx  v17, v17, t1   // *qinv
+    vmul.vx  v18, v18, t1   // *qinv
+    vmul.vx  v19, v19, t1   // *qinv
+    vmulh.vx v16, v16, t0   // *q
+    vmulh.vx v17, v17, t0   // *q
+    vmulh.vx v18, v18, t0   // *q
+    vmulh.vx v19, v19, t0   // *q
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vsub.vv  v16, v20, v16  // a2b2
+    vsub.vv  v17, v21, v17  // a2b3
+    vsub.vv  v18, v22, v18  // b3(a3zeta)
+    vsub.vv  v19, v23, v19  // a3b2
+    vadd.vv  v16, v16, v18
+    vadd.vv  v17, v17, v19
+    vadd.vv  v16, v16, v24
+    vadd.vv  v17, v17, v25
+    vse16.v  v16, (a0);     addi a0, a0, 16
+    vse16.v  v17, (a0);     addi a0, a0, 16
+    addi t5, t5, -1
+    bnez t5, poly_basemul_acc_rvv_loop
+ret
+
+// void poly_basemul_cache_init_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
+// basemul and store b1zeta, b3zeta, ... into b_cache
 // (a0b0 + a1 * (b1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
 // (a2b2 + a3 * (b3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
 .globl poly_basemul_cache_init_rvv
@@ -868,7 +962,104 @@ poly_basemul_cache_init_rvv_loop:
     bnez t5, poly_basemul_cache_init_rvv_loop
 ret
 
-// void poly_basemul_cached_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_buf);
+// void poly_basemul_acc_cache_init_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
+// basemul_acc and store b1zeta, b3zeta, ... into b_cache
+// (a0b0 + a1 * (b1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
+// (a2b2 + a3 * (b3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
+.globl poly_basemul_acc_cache_init_rvv
+.align 2
+poly_basemul_acc_cache_init_rvv:
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
+    li t0, 3329     // q
+    li t1, -3327    // qinv
+    addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
+    addi t4, a3, _ZETAS_BASEMUL*2       // for loading zeta
+    li   t5, 8
+poly_basemul_acc_cache_init_rvv_loop:
+    vle16.v v0, (a2);  addi a2, a2, 16      // b0
+    vle16.v v1, (a2);  addi a2, a2, 16      // b1
+    vle16.v v2, (a2);  addi a2, a2, 16      // b2
+    vle16.v v3, (a2);  addi a2, a2, 16      // b3
+    vle16.v v30, (t3); addi t3, t3, 16      // zetaqinv
+    vle16.v v31, (t3); addi t3, t3, 16
+    vle16.v v28, (t4); addi t4, t4, 16      // zeta
+    vle16.v v29, (t4); addi t4, t4, 16
+    vmul.vv  v4, v1, v30
+    vmul.vv  v5, v3, v31
+    vle16.v v8,  (a1);  addi a1, a1, 16 // a0
+    vle16.v v9,  (a1);  addi a1, a1, 16 // a1
+    vmulh.vv v6, v1, v28
+    vmulh.vv v7, v3, v29
+    vmulh.vx v4, v4, t0
+    vmulh.vx v5, v5, t0
+    vle16.v v10, (a1);  addi a1, a1, 16 // a2
+    vle16.v v11, (a1);  addi a1, a1, 16 // a3
+    vsub.vv  v4, v6, v4     // b1zeta mod q
+    vsub.vv  v5, v7, v5     // b3zeta mod q
+    vse16.v  v4, (a4);  addi a4, a4, 16
+    vse16.v  v5, (a4);  addi a4, a4, 16
+    vmul.vv  v12, v0, v8     // b0a0.lo
+    vmul.vv  v13, v0, v9     // b0a1.lo
+    vmul.vv  v14, v4, v9     // a1(b1zeta).lo
+    vmul.vv  v15, v1, v8     // b1a0.lo
+    vmulh.vv v16, v0, v8     // b0a0.hi
+    vmulh.vv v17, v0, v9     // b0a1.hi
+    vmulh.vv v18, v4, v9     // a1(b1zeta).hi
+    vmulh.vv v19, v1, v8     // b1a0.hi
+    vmul.vx  v12, v12, t1   // *qinv
+    vmul.vx  v13, v13, t1   // *qinv
+    vmul.vx  v14, v14, t1   // *qinv
+    vmul.vx  v15, v15, t1   // *qinv
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vmulh.vx v12, v12, t0   // *q
+    vmulh.vx v13, v13, t0   // *q
+    vmulh.vx v14, v14, t0   // *q
+    vmulh.vx v15, v15, t0   // *q
+    vsub.vv  v12, v16, v12  // b0a0
+    vsub.vv  v13, v17, v13  // b0a1
+    vsub.vv  v14, v18, v14  // a1(b1zeta)
+    vsub.vv  v15, v19, v15  // b1a0
+    vadd.vv  v12, v12, v14  // b0a0+a1(b1zeta)
+    vadd.vv  v13, v13, v15  // b0a1+b1a0
+    vadd.vv  v12, v12, v24
+    vadd.vv  v13, v13, v25
+    vse16.v  v12, (a0);     addi a0, a0, 16
+    vse16.v  v13, (a0);     addi a0, a0, 16
+    vmul.vv  v16, v2, v10   // b2a2.lo
+    vmul.vv  v17, v2, v11   // b2a3.lo
+    vmul.vv  v18, v5, v11   // a3(b3zeta).lo
+    vmul.vv  v19, v3, v10   // b3a2.lo
+    vmulh.vv v20, v2, v10   // b2a2.hi
+    vmulh.vv v21, v2, v11   // b2a3.hi
+    vmulh.vv v22, v5, v11   // a3(b3zeta).hi
+    vmulh.vv v23, v3, v10   // b3a2.hi
+    vmul.vx  v16, v16, t1   // *qinv
+    vmul.vx  v17, v17, t1   // *qinv
+    vmul.vx  v18, v18, t1   // *qinv
+    vmul.vx  v19, v19, t1   // *qinv
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vmulh.vx v16, v16, t0   // *q
+    vmulh.vx v17, v17, t0   // *q
+    vmulh.vx v18, v18, t0   // *q
+    vmulh.vx v19, v19, t0   // *q
+    vsub.vv  v16, v20, v16  // b2a2
+    vsub.vv  v17, v21, v17  // b2a3
+    vsub.vv  v18, v22, v18  // a3(b3zeta)
+    vsub.vv  v19, v23, v19  // b3a2
+    vadd.vv  v16, v16, v18
+    vadd.vv  v17, v17, v19
+    vadd.vv  v16, v16, v24
+    vadd.vv  v17, v17, v25
+    vse16.v  v16, (a0);     addi a0, a0, 16
+    vse16.v  v17, (a0);     addi a0, a0, 16
+    addi t5, t5, -1
+    bnez t5, poly_basemul_acc_cache_init_rvv_loop
+ret
+
+// void poly_basemul_cached_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
 // basemul; b1zeta and b3zeta have been cached
 // (a0b0 + a1 * (b1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
 // (a2b2 + a3 * (b3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
@@ -941,6 +1132,89 @@ poly_basemul_cached_rvv_loop:
     vse16.v  v17, (a0);     addi a0, a0, 16
     addi t5, t5, -1
     bnez t5, poly_basemul_cached_rvv_loop
+ret
+
+// void poly_basemul_acc_cached_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
+// basemul_acc; b1zeta and b3zeta have been cached
+// (a0b0 + a1 * (b1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
+// (a2b2 + a3 * (b3zeta mod q)) mod q + ((a2b3 + a3b2) mod q)x
+.globl poly_basemul_acc_cached_rvv
+.align 2
+poly_basemul_acc_cached_rvv:
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
+    li t0, 3329     // q
+    li t1, -3327    // qinv
+    li t5, 8
+poly_basemul_acc_cached_rvv_loop:
+    vle16.v v0, (a1);   addi a1, a1, 16 // a0
+    vle16.v v1, (a1);   addi a1, a1, 16 // a1
+    vle16.v v2, (a1);   addi a1, a1, 16 // a2
+    vle16.v v3, (a1);   addi a1, a1, 16 // a3
+    vle16.v v8,  (a2);  addi a2, a2, 16 // b0
+    vle16.v v9,  (a2);  addi a2, a2, 16 // b1
+    vle16.v v10, (a2);  addi a2, a2, 16 // b2
+    vle16.v v11, (a2);  addi a2, a2, 16 // b3
+    vle16.v v4,  (a4);  addi a4, a4, 16 // b1zeta
+    vle16.v v5,  (a4);  addi a4, a4, 16 // b3zeta
+    vmul.vv  v12, v0, v8        // a0b0.lo
+    vmul.vv  v13, v0, v9        // a0b1.lo
+    vmul.vv  v14, v1, v4        // a1(b1zeta).lo
+    vmul.vv  v15, v1, v8        // a1b0.lo
+    vmulh.vv v16, v0, v8        // a0b0.hi
+    vmulh.vv v17, v0, v9        // a0b1.hi
+    vmulh.vv v18, v1, v4        // a1(b1zeta).hi
+    vmulh.vv v19, v1, v8        // a1b0.hi
+    vmul.vx  v12, v12, t1       // *qinv
+    vmul.vx  v13, v13, t1       // *qinv
+    vmul.vx  v14, v14, t1       // *qinv
+    vmul.vx  v15, v15, t1       // *qinv
+    vmulh.vx v12, v12, t0       // *q
+    vmulh.vx v13, v13, t0       // *q
+    vmulh.vx v14, v14, t0       // *q
+    vmulh.vx v15, v15, t0       // *q
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vsub.vv  v12, v16, v12      // a0b0
+    vsub.vv  v13, v17, v13      // a0b1
+    vsub.vv  v14, v18, v14      // b1(a1zeta)
+    vsub.vv  v15, v19, v15      // a1b0
+    vadd.vv  v12, v12, v14
+    vadd.vv  v13, v13, v15
+    vadd.vv  v12, v12, v24
+    vadd.vv  v13, v13, v25
+    vse16.v  v12, (a0);     addi a0, a0, 16
+    vse16.v  v13, (a0);     addi a0, a0, 16
+    vmul.vv  v16, v2, v10       // a2b2.lo
+    vmul.vv  v17, v2, v11       // a2b3.lo
+    vmul.vv  v18, v3, v5        // a3(b3zeta).lo
+    vmul.vv  v19, v3, v10       // a3b2.lo
+    vmulh.vv v20, v2, v10       // a2b2.hi
+    vmulh.vv v21, v2, v11       // a2b3.hi
+    vmulh.vv v22, v3, v5        // a3(b3zeta).hi
+    vmulh.vv v23, v3, v10       // a3b2.hi
+    vmul.vx  v16, v16, t1       // *qinv
+    vmul.vx  v17, v17, t1       // *qinv
+    vmul.vx  v18, v18, t1       // *qinv
+    vmul.vx  v19, v19, t1       // *qinv
+    vmulh.vx v16, v16, t0       // *q
+    vmulh.vx v17, v17, t0       // *q
+    vmulh.vx v18, v18, t0       // *q
+    vmulh.vx v19, v19, t0       // *q
+    vle16.v  v24, (a0);     addi a0, a0, 16
+    vle16.v  v25, (a0);     addi a0, a0, -16
+    vsub.vv  v16, v20, v16      // a2b2
+    vsub.vv  v17, v21, v17      // a2b3
+    vsub.vv  v18, v22, v18      // b3(a3zeta)
+    vsub.vv  v19, v23, v19      // a3b2
+    vadd.vv  v16, v16, v18
+    vadd.vv  v17, v17, v19
+    vadd.vv  v16, v16, v24
+    vadd.vv  v17, v17, v25
+    vse16.v  v16, (a0);     addi a0, a0, 16
+    vse16.v  v17, (a0);     addi a0, a0, 16
+    addi t5, t5, -1
+    bnez t5, poly_basemul_acc_cached_rvv_loop
 ret
 
 .macro intt_rvv_level0to5 off

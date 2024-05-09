@@ -22,27 +22,37 @@ void polyvec_tobytes(uint8_t r[KYBER_POLYVECBYTES], const polyvec *a);
 void polyvec_frombytes(polyvec *r, const uint8_t a[KYBER_POLYVECBYTES]);
 void polyvec_ntt(polyvec *r);
 void polyvec_invntt(polyvec *r);
-void polyvec_basemul_acc(poly *r, const polyvec *a,
-                                    const polyvec *b);
 void polyvec_reduce(polyvec *r);
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b);
 
 #if defined(VECTOR128)
-void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a,
-                                               const polyvec *b,
-                                               int16_t *b_buf);
-void polyvec_basemul_acc_cached(poly *r, const polyvec *a,
-                                           const polyvec *b, int16_t *b_buf);
-#elif defined(RV32)
+
 typedef struct {
     poly_half vec[KYBER_K];
 } polyvec_half;
 
-void polyvec_basemul_cache_init(poly *r, const polyvec *a, const polyvec *b,
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b);
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
+                                    polyvec_half *b_cache);
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
+                                polyvec_half *b_cache);
+
+#elif defined(RV32)
+
+typedef struct {
+    poly_half vec[KYBER_K];
+} polyvec_half;
+
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
                                 polyvec_half *b_cache);
 void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
                                 polyvec_half *b_cache);
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b);
+
 #else
+
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b);
+
 #endif
 
 #endif

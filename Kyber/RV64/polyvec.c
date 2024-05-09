@@ -365,16 +365,43 @@ void polyvec_invntt(polyvec *r)
         poly_invntt(&r->vec[i]);
 }
 
-/*************************************************
- * Name:        polyvec_basemul_acc
- *
- * Description: Multiply elements of a and b in NTT domain, accumulate into r,
- *              and multiply by 2^-16.
- *
- * Arguments: - poly *r: pointer to output polynomial
- *            - const polyvec *a: pointer to first input vector of polynomials
- *            - const polyvec *b: pointer to second input vector of polynomials
- **************************************************/
+#if defined(VECTOR128)
+
+void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
+{
+    unsigned int i;
+
+    poly_basemul(r, &a->vec[0], &b->vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul_acc(r, &a->vec[i], &b->vec[i]);
+    }
+}
+
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
+                                    polyvec_half *b_cache)
+{
+    unsigned int i;
+
+    poly_basemul_cache_init(r, &a->vec[0], &b->vec[0], &b_cache->vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul_acc_cache_init(r, &a->vec[i], &b->vec[i],
+                                    &b_cache->vec[i]);
+    }
+}
+
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
+                                polyvec_half *b_cache)
+{
+    unsigned int i;
+
+    poly_basemul_cached(r, &a->vec[0], &b->vec[0], &b_cache->vec[0]);
+    for (i = 1; i < KYBER_K; i++) {
+        poly_basemul_acc_cached(r, &a->vec[i], &b->vec[i], &b_cache->vec[i]);
+    }
+}
+
+#else
+
 void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
 {
     unsigned int i;
@@ -387,37 +414,6 @@ void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
     }
 }
 
-#if defined(VECTOR128)
-// TODO: write poly_basemul_acc_montgomery_cache_init to opt this subroutine
-void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a,
-                                               const polyvec *b, int16_t *b_buf)
-{
-    unsigned int i;
-    poly t;
-
-    poly_basemul_cache_init(r, &a->vec[0], &b->vec[0],
-                                       &b_buf[0 * (KYBER_N >> 1)]);
-    for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_cache_init(&t, &a->vec[i], &b->vec[i],
-                                           &b_buf[i * (KYBER_N >> 1)]);
-        poly_add(r, r, &t);
-    }
-}
-
-void polyvec_basemul_acc_cached(poly *r, const polyvec *a,
-                                           const polyvec *b, int16_t *b_buf)
-{
-    unsigned int i;
-    poly t;
-
-    poly_basemul_cached(r, &a->vec[0], &b->vec[0],
-                                   &b_buf[0 * (KYBER_N >> 1)]);
-    for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_cached(&t, &a->vec[i], &b->vec[i],
-                                       &b_buf[i * (KYBER_N >> 1)]);
-        poly_add(r, r, &t);
-    }
-}
 #endif
 
 /*************************************************

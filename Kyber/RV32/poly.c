@@ -275,47 +275,44 @@ void poly_invntt(poly *r)
     invntt(r->coeffs);
 }
 
-/*************************************************
- * Name:        poly_basemul
- *
- * Description: Multiplication of two polynomials in NTT domain
- *
- * Arguments:   - poly *r: pointer to output polynomial
- *              - const poly *a: pointer to first input polynomial
- *              - const poly *b: pointer to second input polynomial
- **************************************************/
-/*************************************************
- * Name:        poly_tomont
- *
- * Description: Inplace conversion of all coefficients of a polynomial
- *              from normal domain to Montgomery domain
- *
- * Arguments:   - poly *r: pointer to input/output polynomial
- **************************************************/
-/*************************************************
- * Name:        poly_reduce
- *
- * Description: Applies Barrett reduction to all coefficients of a polynomial
- *              for details of the Barrett reduction see comments in reduce.c
- *
- * Arguments:   - poly *r: pointer to input/output polynomial
- **************************************************/
 #if defined(VECTOR128)
-// TODO: poly_basemul_acc
+
 void poly_basemul(poly *r, const poly *a, const poly *b)
 {
     poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
 }
 
-void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
-                             int16_t *b_buf)
+void poly_basemul_acc(poly *r, const poly *a, const poly *b)
 {
-    poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
+    poly_basemul_acc_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
 }
 
-void poly_basemul_cached(poly *r, const poly *a, const poly *b, int16_t *b_buf)
+void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
 {
-    poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
+    poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                b_cache->coeffs);
+}
+
+void poly_basemul_acc_cache_init(poly *r, const poly *a, const poly *b,
+                                 poly_half *b_cache)
+{
+    poly_basemul_acc_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                    b_cache->coeffs);
+}
+
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
+                         poly_half *b_cache)
+{
+    poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                            b_cache->coeffs);
+}
+
+void poly_basemul_acc_cached(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
+{
+    poly_basemul_acc_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                b_cache->coeffs);
 }
 
 void poly_tomont(poly *r)
@@ -327,32 +324,11 @@ void poly_reduce(poly *r)
 {
     poly_reduce_rvv(r->coeffs);
 }
+
 #elif defined(RV32)
-// TODO: comments of each subroutine
+
 extern uint32_t zetas_basemul_rv32im[64];
 
-void poly_reduce(poly *r)
-{
-    poly_barrett_rdc_rv32im(r->coeffs);
-}
-
-void poly_toplant(poly *r)
-{
-    poly_to_plant_rv32im(r->coeffs);
-}
-
-/*************************************************
- * Name:        poly_basemul_cache_init
- *
- * Description: Multiplication of two polynomials using asymmetric
- * multiplication.
- *
- * Arguments:
- *   - poly_double *r:  array for accumulating unreduced
- *   - const poly *a:   pointer to input polynomial
- *   - const poly *b:   pointer to input polynomial
- *   - const poly_half *b_cache: pointer to a pre-multiplied by zetas results
- **************************************************/
 void poly_basemul_cache_init(poly_double *r, const poly *a, const poly *b,
                              poly_half *b_cache)
 {
@@ -375,18 +351,6 @@ void poly_basemul_acc_cache_init_end(poly *r, const poly *a, const poly *b,
         r_double->coeffs);
 }
 
-/*************************************************
- * Name:        poly_basemul_acc_cached
- *
- * Description: Multiplication of two polynomials using asymmetric
- * multiplication.
- *
- * Arguments:
- *   - poly_double *r:  array for accumulating unreduced
- *   - const poly *a:   pointer to input polynomial
- *   - const poly *b:   pointer to input polynomial
- *   - const poly_half *b_cache: pointer to a pre-multiplied by zetas results
- **************************************************/
 void poly_basemul_acc_cached(poly_double *r, const poly *a, const poly *b,
                              poly_half *b_cache)
 {
@@ -394,19 +358,6 @@ void poly_basemul_acc_cached(poly_double *r, const poly *a, const poly *b,
                                    b_cache->coeffs);
 }
 
-/*************************************************
- * Name:        poly_basemul_acc_cache_end
- *
- * Description: Multiplication of two polynomials using asymmetric
- * multiplication.
- *
- * Arguments:
- *   - poly *r:         pointer to output polynomial
- *   - const poly *a:   pointer to input polynomial
- *   - const poly *b:   pointer to input polynomial
- *   - const poly_half *b_cache: pointer to a pre-multiplied by zetas
- *   - poly_double *r_double:  array for accumulating unreduced results
- **************************************************/
 void poly_basemul_acc_cache_end(poly *r, const poly *a, const poly *b,
                                 poly_half *b_cache, poly_double *r_double)
 {
@@ -426,7 +377,19 @@ void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
     poly_basemul_acc_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
                                 zetas_basemul_rv32im, r_double->coeffs);
 }
+
+void poly_toplant(poly *r)
+{
+    poly_toplant_rv32im(r->coeffs);
+}
+
+void poly_reduce(poly *r)
+{
+    poly_barrett_rdc_rv32im(r->coeffs);
+}
+
 #else
+
 void poly_basemul(poly *r, const poly *a, const poly *b)
 {
     unsigned int i;
@@ -452,6 +415,7 @@ void poly_reduce(poly *r)
     for (i = 0; i < KYBER_N; i++)
         r->coeffs[i] = barrett_reduce(r->coeffs[i]);
 }
+
 #endif
 
 /*************************************************

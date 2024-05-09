@@ -25,17 +25,30 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES],
                         uint8_t nonce);
 void poly_ntt(poly *r);
 void poly_invntt(poly *r);
-void poly_basemul(poly *r, const poly *a, const poly *b);
-void poly_tomont(poly *r);
 void poly_reduce(poly *r);
 void poly_add(poly *r, const poly *a, const poly *b);
 void poly_sub(poly *r, const poly *a, const poly *b);
 
 #if defined(VECTOR128)
+
+typedef struct {
+    int16_t coeffs[KYBER_N >> 1];
+} poly_half;
+
+void poly_basemul(poly *r, const poly *a, const poly *b);
+void poly_basemul_acc(poly *r, const poly *a, const poly *b);
 void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
-                             int16_t *b_buf);
-void poly_basemul_cached(poly *r, const poly *a, const poly *b, int16_t *b_buf);
+                             poly_half *b_cache);
+void poly_basemul_acc_cache_init(poly *r, const poly *a, const poly *b,
+                                 poly_half *b_cache);
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
+                         poly_half *b_cache);
+void poly_basemul_acc_cached(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache);
+void poly_tomont(poly *r);
+
 #elif defined(RV32)
+
 typedef struct {
     int16_t coeffs[KYBER_N >> 1];
 } poly_half;
@@ -44,7 +57,6 @@ typedef struct {
     int32_t coeffs[KYBER_N];
 } poly_double;
 
-void poly_toplant(poly *r);
 void poly_basemul_cache_init(poly_double *r, const poly *a, const poly *b,
                              poly_half *b_cache);
 void poly_basemul_acc_cache_init(poly_double *r, const poly *a, const poly *b,
@@ -58,7 +70,13 @@ void poly_basemul_acc_cache_end(poly *r, const poly *a, const poly *b,
 void poly_basemul_acc(poly_double *r, const poly *a, const poly *b);
 void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
                           poly_double *r_double);
+void poly_toplant(poly *r);
+
 #else
+
+void poly_basemul(poly *r, const poly *a, const poly *b);
+void poly_tomont(poly *r);
+
 #endif
 
 #endif

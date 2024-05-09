@@ -66,17 +66,65 @@ int main()
     }
     print_results("INVNTT: ", t, NTESTS);
 
+#if defined(VECTOR128)
+    poly_half b_cache;
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        polyvec_basemul_acc(&ap, &matrix[0], &matrix[1]);
+        poly_basemul_acc(&ap, &matrix[0].vec[0], &matrix[1].vec[0]);
     }
-    print_results("polyvec_basemul_acc_mont: ", t, NTESTS);
-
+    print_results("poly_basemul_acc: ", t, NTESTS);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_acc_cache_init(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
+                                    &b_cache);
+    }
+    print_results("poly_basemul_acc_cache_init: ", t, NTESTS);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_cached(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
+                            &b_cache);
+    }
+    print_results("poly_basemul_cached: ", t, NTESTS);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_acc_cached(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
+                                &b_cache);
+    }
+    print_results("poly_basemul_acc_cached: ", t, NTESTS);
+#elif defined(RV32)
+    poly_double r_double;
+    poly_half b_cache;
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_acc_cache_init(&r_double, &matrix[0].vec[0],
+                                    &matrix[1].vec[0], &b_cache);
+    }
+    print_results("poly_basemul_acc_cache_init: ", t, NTESTS);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_acc_cached(&r_double, &matrix[0].vec[0], &matrix[1].vec[0],
+                                &b_cache);
+    }
+    print_results("poly_basemul_acc_cached: ", t, NTESTS);
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        poly_basemul_acc_cache_end(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
+                                   &b_cache, &r_double);
+    }
+    print_results("poly_basemul_acc_cache_end: ", t, NTESTS);
+#else
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
         poly_basemul(&ap, &matrix[0].vec[0], &matrix[1].vec[0]);
     }
     print_results("poly_basemul: ", t, NTESTS);
+#endif
+
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        polyvec_basemul_acc(&ap, &matrix[0], &matrix[1]);
+    }
+    print_results("polyvec_basemul_acc: ", t, NTESTS);
 
     // for(i=0;i<NTESTS;i++) {
     //   t[i] = cpucycles();

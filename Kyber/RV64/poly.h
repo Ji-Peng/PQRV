@@ -26,13 +26,30 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES],
 void poly_ntt(poly *r);
 void poly_invntt(poly *r);
 void poly_basemul(poly *r, const poly *a, const poly *b);
-void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
-                                        int16_t *b_buf);
-void poly_basemul_cached(poly *r, const poly *a, const poly *b,
-                                    int16_t *b_buf);
 void poly_tomont(poly *r);
 void poly_reduce(poly *r);
 void poly_add(poly *r, const poly *a, const poly *b);
 void poly_sub(poly *r, const poly *a, const poly *b);
+
+#if defined(VECTOR128)
+
+typedef struct {
+    int16_t coeffs[KYBER_N >> 1];
+} poly_half;
+
+void poly_basemul_acc(poly *r, const poly *a, const poly *b);
+void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache);
+void poly_basemul_acc_cache_init(poly *r, const poly *a, const poly *b,
+                                 poly_half *b_cache);
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
+                         poly_half *b_cache);
+void poly_basemul_acc_cached(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache);
+#elif defined(RV64)
+
+#else
+
+#endif
 
 #endif

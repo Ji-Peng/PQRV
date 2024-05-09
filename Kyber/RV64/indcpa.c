@@ -502,14 +502,11 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
 
     // matrix-vector multiplication
 #if defined(VECTOR128)
-// TODO: refactor skpv_buf
-    int16_t skpv_buf[KYBER_K * KYBER_N >> 1];
-    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv,
-                                              skpv_buf);
+    polyvec_half skpv_cache;
+    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv, &skpv_cache);
     poly_tomont(&pkpv.vec[0]);
     for (i = 1; i < KYBER_K; i++) {
-        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv,
-                                              skpv_buf);
+        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv, &skpv_cache);
         poly_tomont(&pkpv.vec[i]);
     }
 #else
@@ -561,11 +558,11 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
 
     // matrix-vector multiplication
 #if defined(VECTOR128)
-    int16_t sp_buf[KYBER_K * KYBER_N >> 1];
-    polyvec_basemul_acc_cache_init(&b.vec[0], &at[0], &sp, sp_buf);
+    polyvec_half sp_cache;
+    polyvec_basemul_acc_cache_init(&b.vec[0], &at[0], &sp, &sp_cache);
     for (i = 1; i < KYBER_K; i++)
-        polyvec_basemul_acc_cached(&b.vec[i], &at[i], &sp, sp_buf);
-    polyvec_basemul_acc_cached(&v, &pkpv, &sp, sp_buf);
+        polyvec_basemul_acc_cached(&b.vec[i], &at[i], &sp, &sp_cache);
+    polyvec_basemul_acc_cached(&v, &pkpv, &sp, &sp_cache);
 #else
     for (i = 0; i < KYBER_K; i++)
         polyvec_basemul_acc(&b.vec[i], &at[i], &sp);

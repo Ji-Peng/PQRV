@@ -72,22 +72,22 @@
   lw ra,  14*4(sp)
 .endm
 
-// a*b*qinv*plantconst; result in the bottom half of a
-// q=q<<16
-.macro plant_mul_const_inplace q, bq, coeff
-  mul \coeff, \coeff, \bq
-  srai \coeff, \coeff, 16
-  addi \coeff, \coeff, 8
-  mulh \coeff, \coeff, \q
+// a <- a*b*(-2^{-32}) mod+- q
+// q16: q<<16; bqinv: b*qinv
+.macro plant_mul_const_inplace q16, bqinv, a
+  mul \a, \a, \bqinv
+  srai \a, \a, 16
+  addi \a, \a, 8
+  mulh \a, \a, \q16
 .endm
 
-// a*b*qinv*plantconst; result in the bottom half of a
-// q=q<<16
-.macro plant_mul_const q, bq, coeff, res
-  mul \res, \coeff, \bq
-  srai \res, \res, 16
-  addi \res, \res, 8
-  mulh \res, \res, \q
+// r <- a*b*(-2^{-32}) mod+- q
+// q16: q<<16; bqinv: b*qinv
+.macro plant_mul_const q16, bqinv, a, r
+  mul \r, \a, \bqinv
+  srai \r, \r, 16
+  addi \r, \r, 8
+  mulh \r, \r, \q16
 .endm
 
 // each layer increases coefficients by 0.5q; In ct_butterfly, twiddle and tmp can be reused because each twiddle is only used once. The gs_butterfly cannot.
@@ -103,52 +103,31 @@
   plant_mul_const \q, \twiddle, \tmp, \coeff1
 .endm
 
-// output (-0.5q, 0.5q) q=q<<16
-.macro plant_red q, qinv, coeff 
-  mul \coeff, \coeff, \qinv
-  srai \coeff, \coeff, 16
-  addi \coeff, \coeff, 8
-  mulh \coeff, \coeff, \q
+// in-place plantard reduction to a
+// output \in (-0.5q, 0.5q); q16: q<<16
+.macro plant_red q16, qinv, a
+  mul  \a, \a, \qinv
+  srai \a, \a, 16
+  addi \a, \a, 8
+  mulh \a, \a, \q16
 .endm
 
-// output (0, q)
-.macro barrett_red coeff, tmp, q, barrettconst
-  mul \tmp, \coeff, \barrettconst
+// in-place barrett reduction to a
+.macro barrett_red a, tmp, q, barrettconst
+  mul  \tmp, \a, \barrettconst
   srai \tmp, \tmp, 26
-  mul \tmp, \tmp, \q
-  sub \coeff, \coeff, \tmp
+  mul  \tmp, \tmp, \q
+  sub  \a, \a, \tmp
 .endm
 
-.macro fullplant coeff0, coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, q
-  ### plantconst=plantconst*(p^-1) % 2^32
-  li a7, plantconst
-  plant_mul_const_inplace \q, a7, \coeff0
-  plant_mul_const_inplace \q, a7, \coeff1
-  plant_mul_const_inplace \q, a7, \coeff2
-  plant_mul_const_inplace \q, a7, \coeff3
-  plant_mul_const_inplace \q, a7, \coeff4
-  plant_mul_const_inplace \q, a7, \coeff5
-  plant_mul_const_inplace \q, a7, \coeff6
-  plant_mul_const_inplace \q, a7, \coeff7
-.endm
-
-.macro halfplant coeff0, coeff1, coeff2, coeff3, q
-  ### plantconst=plantconst*(p^-1) % 2^32
-  li a7, plantconst
-  plant_mul_const_inplace \q, a7, \coeff0
-  plant_mul_const_inplace \q, a7, \coeff1
-  plant_mul_const_inplace \q, a7, \coeff2
-  plant_mul_const_inplace \q, a7, \coeff3
-.endm
-
-.equ q16, 0x0d010000            // 3329<<16
-.equ qinv, 0x6ba8f301
 .equ q, 3329
-.equ barrettconst, 20159
-.equ plantconst, 0x13afb8       // (-2^{32} mod q)*qinv % 2^32
-.equ plantconst2, 0x680bb055    // (-2^{64} mod q)*qinv % 2^32
+.equ q16, 0x0d010000            // q<<16
+.equ qinv, 0x6ba8f301           // q^-1 mod+- 2^32
+.equ plantconst, 0x13afb8       // (-2^{32} mod q)*qinv mod 2^32
+.equ plantconst2, 0x97f44fac    // (2^{64} mod q)*qinv mod 2^32
+.equ barrettconst, 20159        // used for barrett reduction
 
-// |input|<0.5q; |output|<3.5q
+// |input| < 0.5q; |output| < 3.5q
 // API: a0: poly, a1: 32-bit twiddle ptr; a6: q<<16; a7: tmp, variable twiddle factors; gp: loop;
 // s0-s11, a2-a5: 16 coeffs; 
 // 16+2+1+1=20 regs; 
@@ -157,27 +136,10 @@
 .align 2
 ntt_rv32im:
   addi sp, sp, -4*15
-  sw s0,  0*4(sp)
-  sw s1,  1*4(sp)
-  sw s2,  2*4(sp)
-  sw s3,  3*4(sp)
-  sw s4,  4*4(sp)
-  sw s5,  5*4(sp)
-  sw s6,  6*4(sp)
-  sw s7,  7*4(sp)
-  sw s8,  8*4(sp)
-  sw s9,  9*4(sp)
-  sw s10, 10*4(sp)
-  sw s11, 11*4(sp)
-  sw gp,  12*4(sp)
-  sw tp,  13*4(sp)
-  sw ra,  14*4(sp)
-
-  li a6, q16 // q<<16
-
-  addi a0, a0, 32  // poly[16]
-  addi gp, x0, 15 // loop 
-
+  save_regs
+  li a6, q16        // q<<16
+  addi a0, a0, 32   // poly[16]
+  addi gp, x0, 15   // loop
   // load 9 twiddle factors
   lw t0, 0*4(a1)
   lw t1, 1*4(a1)
@@ -188,12 +150,10 @@ ntt_rv32im:
   lw t6, 6*4(a1)
   lw tp, 7*4(a1)
   lw ra, 8*4(a1)
-  
   ### LAYER 1+2+3+4
   ntt_rv32im_loop1:
     addi a0, a0, -2
-
-    // 16*i, i\in [0-15]
+    // 16*i, i \in [0-15]
     load_coeffs a0, 16, 2
     // layer 1
     ct_butterfly s0, s8,  t0, a6, a7 // coeff0, coeff1, twiddle, q, tmp
@@ -204,7 +164,6 @@ ntt_rv32im:
     ct_butterfly s5, a3,  t0, a6, a7
     ct_butterfly s6, a4,  t0, a6, a7
     ct_butterfly s7, a5,  t0, a6, a7
-
     // layer 2
     ct_butterfly s0,  s4, t1, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s1,  s5, t1, a6, a7
@@ -214,7 +173,6 @@ ntt_rv32im:
     ct_butterfly s9,  a3, t2, a6, a7
     ct_butterfly s10, a4, t2, a6, a7
     ct_butterfly s11, a5, t2, a6, a7
-    
     // layer 3
     ct_butterfly s0, s2,  t3, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s1, s3,  t3, a6, a7
@@ -224,7 +182,6 @@ ntt_rv32im:
     ct_butterfly s9, s11, t5, a6, a7
     ct_butterfly a2, a4,  t6, a6, a7
     ct_butterfly a3, a5,  t6, a6, a7
-
     // layer 4
     ct_butterfly s0,  s1,  tp, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s2,  s3,  ra, a6, a7 
@@ -241,15 +198,11 @@ ntt_rv32im:
     ct_butterfly a2,  a3,  a7, a6, a7
     lw a7, 14*4(a1)
     ct_butterfly a4,  a5,  a7, a6, a7
-
     // store 16 coeffs
     store_coeffs a0, 16, 2
-
   addi gp, gp, -1
   bge gp, zero, ntt_rv32im_loop1 # 16 loops
-
   addi a1, a1, 15*4
-
   ### LAYER 5-6-7
   addi gp, x0, 16
   ntt_rv32im_loop2:
@@ -263,7 +216,6 @@ ntt_rv32im:
     lw t4, 4*4(a1)
     lw t5, 5*4(a1)
     lw t6, 6*4(a1)
-
     // layer 5
     ct_butterfly s0, s8,  t0, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s1, s9,  t0, a6, a7
@@ -273,7 +225,6 @@ ntt_rv32im:
     ct_butterfly s5, a3,  t0, a6, a7
     ct_butterfly s6, a4,  t0, a6, a7
     ct_butterfly s7, a5,  t0, a6, a7
-
     // layer 6
     ct_butterfly s0,  s4, t1, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s1,  s5, t1, a6, a7
@@ -283,7 +234,6 @@ ntt_rv32im:
     ct_butterfly s9,  a3, t2, a6, a7
     ct_butterfly s10, a4, t2, a6, a7
     ct_butterfly s11, a5, t2, a6, a7
-    
     // layer 7
     ct_butterfly s0, s2,  t3, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     ct_butterfly s1, s3,  t3, a6, a7
@@ -293,33 +243,16 @@ ntt_rv32im:
     ct_butterfly s9, s11, t5, a6, a7
     ct_butterfly a2, a4,  t6, a6, a7
     ct_butterfly a3, a5,  t6, a6, a7
-
     store_coeffs a0, 1, 2
-
     addi a0, a0, 32 // poly+=16
     addi a1, a1, 7*4 // zeta
   addi gp, gp, -1 // loop
   bne gp, zero, ntt_rv32im_loop2
-
-  lw s0,  0*4(sp)
-  lw s1,  1*4(sp)
-  lw s2,  2*4(sp)
-  lw s3,  3*4(sp)
-  lw s4,  4*4(sp)
-  lw s5,  5*4(sp)
-  lw s6,  6*4(sp)
-  lw s7,  7*4(sp)
-  lw s8,  8*4(sp)
-  lw s9,  9*4(sp)
-  lw s10, 10*4(sp)
-  lw s11, 11*4(sp)
-  lw gp,  12*4(sp)
-  lw tp,  13*4(sp)
-  lw ra,  14*4(sp)
+  restore_regs
   addi sp, sp, 4*15
   ret
 
-// |input|<kq; |output|<
+// |input| < kq; |output| < 0.5q
 // API: a0: poly, a1: 32-bit twiddle ptr; a6: q<<16; a7: tmp; gp: loop;
 // s0-s11, a2-a5: 16 coeffs; 
 // 16+2+1+1=20 regs; 
@@ -328,31 +261,14 @@ ntt_rv32im:
 .align 2
 invntt_rv32im:
   addi sp, sp, -4*15
-  sw s0,  0*4(sp)
-  sw s1,  1*4(sp)
-  sw s2,  2*4(sp)
-  sw s3,  3*4(sp)
-  sw s4,  4*4(sp)
-  sw s5,  5*4(sp)
-  sw s6,  6*4(sp)
-  sw s7,  7*4(sp)
-  sw s8,  8*4(sp)
-  sw s9,  9*4(sp)
-  sw s10, 10*4(sp)
-  sw s11, 11*4(sp)
-  sw gp,  12*4(sp)
-  sw tp,  13*4(sp)
-  sw ra,  14*4(sp)
-
+  save_regs
   li a6, q16 // q<<16
-
   ### LAYER 7+6+5
   addi gp, x0, 16
   invntt_rv32im_loop1:
     // load coefficients
     load_coeffs a0, 1, 2
     // load twiddle factors
-
     lw t0, 0*4(a1)
     lw t1, 1*4(a1)
     lw t2, 2*4(a1)
@@ -360,7 +276,6 @@ invntt_rv32im:
     lw t4, 4*4(a1)
     lw t5, 5*4(a1)
     lw t6, 6*4(a1)
-
     // layer 7
     gs_butterfly s0, s2,  t0, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     gs_butterfly s1, s3,  t0, a6, a7
@@ -370,7 +285,6 @@ invntt_rv32im:
     gs_butterfly s9, s11, t2, a6, a7
     gs_butterfly a2, a4,  t3, a6, a7
     gs_butterfly a3, a5,  t3, a6, a7
-
     // layer 6
     gs_butterfly s0,  s4, t4, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     gs_butterfly s1,  s5, t4, a6, a7
@@ -380,7 +294,6 @@ invntt_rv32im:
     gs_butterfly s9,  a3, t5, a6, a7
     gs_butterfly s10, a4, t5, a6, a7
     gs_butterfly s11, a5, t5, a6, a7
-
     // layer 5
     gs_butterfly s0, s8,  t6, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     gs_butterfly s1, s9,  t6, a6, a7
@@ -390,18 +303,13 @@ invntt_rv32im:
     gs_butterfly s5, a3,  t6, a6, a7
     gs_butterfly s6, a4,  t6, a6, a7
     gs_butterfly s7, a5,  t6, a6, a7
-
     store_coeffs a0, 1, 2
-
     addi a0, a0, 32
     addi a1, a1, 4*7
   addi gp, gp, -1
   bne gp, zero, invntt_rv32im_loop1
-
   addi a0, a0, -512
-
   ### LAYER 4+3+2+1
-  
   // load 8 zetas
   lw t0, 0*4(a1)
   lw t1, 1*4(a1)
@@ -411,14 +319,11 @@ invntt_rv32im:
   lw t5, 5*4(a1)
   lw t6, 6*4(a1)
   lw tp, 7*4(a1)
-
   addi a0, a0, 32
   addi gp, x0, 15
   invntt_rv32im_loop2:
-
     addi a0, a0, -2
     load_coeffs a0, 16, 2
-
     // layer 4
     gs_butterfly s0,  s1,  t0, a6, a7 // coeff0, coeff1, twiddle, q, tmp
     gs_butterfly s2,  s3,  t1, a6, a7 
@@ -428,7 +333,6 @@ invntt_rv32im:
     gs_butterfly s10, s11, t5, a6, a7
     gs_butterfly a2,  a3,  t6, a6, a7
     gs_butterfly a4,  a5,  tp, a6, a7
-    
     // The following 8 twiddle factors have to be loaded at each iteration
     // layer 3
     lw ra, 8*4(a1)
@@ -443,7 +347,6 @@ invntt_rv32im:
     lw ra, 11*4(a1)
     gs_butterfly a2, a4,  ra, a6, a7
     gs_butterfly a3, a5,  ra, a6, a7
-
     // layer 2
     lw ra, 12*4(a1)
     gs_butterfly s0,  s4, ra, a6, a7 // coeff0, coeff1, twiddle, q, tmp
@@ -455,7 +358,6 @@ invntt_rv32im:
     gs_butterfly s9,  a3, ra, a6, a7
     gs_butterfly s10, a4, ra, a6, a7
     gs_butterfly s11, a5, ra, a6, a7
-
     // layer 1
     lw ra, 14*4(a1)
     gs_butterfly s0, s8,  ra, a6, a7 // coeff0, coeff1, twiddle, q, tmp
@@ -466,7 +368,6 @@ invntt_rv32im:
     gs_butterfly s5, a3,  ra, a6, a7
     gs_butterfly s6, a4,  ra, a6, a7
     gs_butterfly s7, a5,  ra, a6, a7
-    
     lw ra, 15*4(a1)
     plant_mul_const_inplace a6, ra, s0
     plant_mul_const_inplace a6, ra, s1
@@ -476,31 +377,15 @@ invntt_rv32im:
     plant_mul_const_inplace a6, ra, s5
     plant_mul_const_inplace a6, ra, s6
     plant_mul_const_inplace a6, ra, s7
-
     store_coeffs a0, 16, 2
-
   addi gp, gp, -1
   bge gp, zero, invntt_rv32im_loop2
-  
-  lw s0,  0*4(sp)
-  lw s1,  1*4(sp)
-  lw s2,  2*4(sp)
-  lw s3,  3*4(sp)
-  lw s4,  4*4(sp)
-  lw s5,  5*4(sp)
-  lw s6,  6*4(sp)
-  lw s7,  7*4(sp)
-  lw s8,  8*4(sp)
-  lw s9,  9*4(sp)
-  lw s10, 10*4(sp)
-  lw s11, 11*4(sp)
-  lw gp,  12*4(sp)
-  lw tp,  13*4(sp)
-  lw ra,  14*4(sp)
+  restore_regs
   addi sp, sp, 4*15
   ret
 
 // void poly_basemul_acc_rv32im(int32_t *r, const int16_t *a, const int16_t *b, uint32_t *zetas)
+// compute basemul and accumulate the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: zetas
 // a5: q<<16, a6: loop control
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -531,7 +416,6 @@ poly_basemul_acc_rv32im_loop:
     add t5, t5, a7
     sw  t5, 4*1(a0)
     neg t4, t4      // -zeta
-
     // r[2], r[3]
     lh t2, 2*2(a2)
     lh t3, 2*3(a2)
@@ -560,6 +444,7 @@ poly_basemul_acc_rv32im_loop:
 ret
 
 // void poly_basemul_acc_end_rv32im(int16_t *r, const int16_t *a, const int16_t *b, uint32_t *zetas, int32_t *r_double)
+// compute basemul, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: zetas, a4: r_double
 // a5: q<<16, a6: loop control
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -570,7 +455,6 @@ poly_basemul_acc_end_rv32im:
     addi sp, sp, -4*2
     sw   s0, 0*4(sp)
     sw   s1, 1*4(sp)
-
     li s0, q16
     li s1, qinv
     li a6, 64
@@ -597,7 +481,6 @@ poly_basemul_acc_end_rv32im_loop:
     plant_red s0, s1, t5
     sh  t5, 2*1(a0)
     neg t4, t4      // -zeta
-
     // r[2], r[3]
     lh t2, 2*2(a2)
     lh t3, 2*3(a2)
@@ -626,13 +509,13 @@ poly_basemul_acc_end_rv32im_loop:
     addi a4, a4, 4*4
     addi a6, a6, -1
     bne a6, zero, poly_basemul_acc_end_rv32im_loop
-
     lw   s0, 0*4(sp)
     lw   s1, 1*4(sp)
     addi sp, sp, 4*2
 ret
 
 // void poly_basemul_cache_init_rv32im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas)
+// compute basemul, cache bzeta into b_cache, and store the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas
 // a5: q<<16, a6: loop control
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -650,7 +533,7 @@ poly_basemul_cache_init_rv32im_loop:
     lh t1, 2*1(a1) // a[1]
     // r[0]=a[0]b[0]+a[1](b[1]zeta), r[1]=a[0]b[1]+a[1]b[0]
     plant_mul_const a5, t4, t3, t5
-    sh t5, 2*0(a3)  // store b[1]zeta for later usage
+    sh  t5, 2*0(a3)  // store b[1]zeta for later usage
     mul t5, t1, t5
     mul t6, t0, t2
     add t5, t5, t6  // r[0]
@@ -660,14 +543,13 @@ poly_basemul_cache_init_rv32im_loop:
     add t5, t5, t6  // r[1]
     sw  t5, 4*1(a0)
     neg t4, t4      // -zeta
-
     // r[2], r[3]
     lh t2, 2*2(a2)
     lh t3, 2*3(a2)
     lh t0, 2*2(a1)
     lh t1, 2*3(a1)
     plant_mul_const a5, t4, t3, t5
-    sh t5, 2*1(a3)
+    sh  t5, 2*1(a3)
     mul t5, t1, t5
     mul t6, t0, t2
     add t5, t5, t6
@@ -687,6 +569,7 @@ poly_basemul_cache_init_rv32im_loop:
 ret
 
 // void poly_basemul_acc_cache_init_rv32im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas)
+// compute basemul, cache bzeta into b_cache, and accumulate the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas
 // a5: q<<16, a6: loop control, a7: accumulated value
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -704,8 +587,8 @@ poly_basemul_acc_cache_init_rv32im_loop:
     lh t1, 2*1(a1) // a[1]
     // r[0]=a[0]b[0]+a[1](b[1]zeta), r[1]=a[0]b[1]+a[1]b[0]
     plant_mul_const a5, t4, t3, t5
-    sh t5, 2*0(a3)  // store b[1]zeta for later usage
-    lw a7, 4*0(a0)
+    sh  t5, 2*0(a3)  // store b[1]zeta for later usage
+    lw  a7, 4*0(a0)
     mul t5, t1, t5
     mul t6, t0, t2
     add t5, t5, t6  // r[0]
@@ -717,9 +600,7 @@ poly_basemul_acc_cache_init_rv32im_loop:
     add t5, t5, t6  // r[1]
     add t5, t5, a7
     sw  t5, 4*1(a0)
-
     neg t4, t4      // -zeta
-
     // r[2], r[3]
     lh t2, 2*2(a2)
     lh t3, 2*3(a2)
@@ -750,6 +631,7 @@ poly_basemul_acc_cache_init_rv32im_loop:
 ret
 
 // void poly_basemul_acc_cache_init_end_rv32im(int16_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas, int32_t *r_double)
+// compute basemul, cache bzeta into b_cache, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas, a5: r_double
 // a6: loop control, a7: accumulated value
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -761,7 +643,6 @@ poly_basemul_acc_cache_init_end_rv32im:
     addi sp, sp, -4*2
     sw   s0, 0*4(sp)
     sw   s1, 1*4(sp)
-
     li s0, q16
     li s1, qinv
     li a6, 64
@@ -773,7 +654,7 @@ poly_basemul_acc_cache_init_end_rv32im_loop:
     lh t1, 2*1(a1) // a[1]
     // r[0]=a[0]b[0]+a[1](b[1]zeta), r[1]=a[0]b[1]+a[1]b[0]
     plant_mul_const s0, t4, t3, t5
-    sh t5, 2*0(a3)  // store b[1]zeta for later usage
+    sh  t5, 2*0(a3)  // store b[1]zeta for later usage
     lw a7, 4*0(a5)
     mul t5, t1, t5
     mul t6, t0, t2
@@ -789,14 +670,13 @@ poly_basemul_acc_cache_init_end_rv32im_loop:
     plant_red s0, s1, t5
     sh  t5, 2*1(a0)
     neg t4, t4      // -zeta
-
     // r[2], r[3]
     lh t2, 2*2(a2)
     lh t3, 2*3(a2)
     lh t0, 2*2(a1)
     lh t1, 2*3(a1)
     plant_mul_const s0, t4, t3, t5
-    sh t5, 2*1(a3)
+    sh  t5, 2*1(a3)
     lw  a7, 4*2(a5)
     mul t5, t1, t5
     mul t6, t0, t2
@@ -820,13 +700,13 @@ poly_basemul_acc_cache_init_end_rv32im_loop:
     addi a5, a5, 4*4
     addi a6, a6, -1
     bne a6, zero, poly_basemul_acc_cache_init_end_rv32im_loop
-
     lw   s0, 0*4(sp)
     lw   s1, 1*4(sp)
     addi sp, sp, 4*2
 ret
 
 // void poly_basemul_acc_cached_rv32im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache)
+// compute basemul using cached b_cache and accumulate the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache
 // a5: q<<16, a6: loop control
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -854,7 +734,6 @@ poly_basemul_acc_cached_rv32im_loop:
     add t5, t5, t6  // r[1]
     add t5, t5, t4
     sw  t5, 4*1(a0)
-
     // r[2], r[3]
     lh t0, 2*2(a1)
     lh t1, 2*3(a1)
@@ -883,6 +762,7 @@ poly_basemul_acc_cached_rv32im_loop:
 ret
 
 // void poly_basemul_acc_cache_end_rv32im(int16_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, int32_t *r_double)
+// compute basemul using cached b_cache, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: r_double
 // a5: q<<16, a6: loop control, a7: qinv
 // t0-t3: a[2i,2i+1],b[2i,2i+1]
@@ -913,7 +793,6 @@ poly_basemul_acc_cache_end_rv32im_loop:
     add t5, t5, t4
     plant_red a5, a7, t5
     sh  t5, 2*1(a0)
-
     // r[2], r[3]
     lh t0, 2*2(a1)
     lh t1, 2*3(a1)
@@ -944,232 +823,136 @@ poly_basemul_acc_cache_end_rv32im_loop:
     bne a6, zero, poly_basemul_acc_cache_end_rv32im_loop
 ret
 
-// 30-gp: loop, a0: poly, tp: q, ra: tmp, a1: barrettconst; 25 usable. can load 25 coeffs
-// s0-s11, a2-a7:12+6, t0-t6: 7
+// barrett reduction to a poly
 .global poly_barrett_rdc_rv32im
 .align 2
 poly_barrett_rdc_rv32im:
   addi sp, sp, -4*15
   save_regs
-
-  li a1, barrettconst
+  li t6, barrettconst
   li tp, q
-  
-  addi gp, x0, 10
+  addi gp, x0, 16
+  addi a1, a0, 0
   poly_barrett_rdc_rv32im_loop:
     lh s0,  2*0(a0)
     lh s1,  2*1(a0)
     lh s2,  2*2(a0)
     lh s3,  2*3(a0)
+    barrett_red s0,  ra, tp, t6
+    barrett_red s1,  ra, tp, t6
+    sh s0,  2*0(a1)
+    barrett_red s2,  ra, tp, t6
+    sh s1,  2*1(a1)
+    barrett_red s3,  ra, tp, t6
+    sh s2,  2*2(a1)
     lh s4,  2*4(a0)
     lh s5,  2*5(a0)
     lh s6,  2*6(a0)
     lh s7,  2*7(a0)
+    barrett_red s4,  ra, tp, t6
+    sh s3,  2*3(a1)
+    barrett_red s5,  ra, tp, t6
+    sh s4,  2*4(a1)
+    barrett_red s6,  ra, tp, t6
+    sh s5,  2*5(a1)
+    barrett_red s7,  ra, tp, t6
+    sh s6,  2*6(a1)
     lh s8,  2*8(a0)
     lh s9,  2*9(a0)
     lh s10, 2*10(a0)
     lh s11, 2*11(a0)
-    lh a2,  2*12(a0) 
-    lh a3,  2*13(a0)
-    lh a4,  2*14(a0)
-    lh a5,  2*15(a0) 
-    lh a6,  2*16(a0)
-    lh a7,  2*17(a0)
-    lh t0,  2*18(a0)
-    lh t1,  2*19(a0)
-    lh t2,  2*20(a0)
-    lh t3,  2*21(a0)
-    lh t4,  2*22(a0)
-    lh t5,  2*23(a0)
-    lh t6,  2*24(a0)
-// TODO: pipeline opt
-    barrett_red s0,  ra, tp, a1
-    barrett_red s1,  ra, tp, a1
-    barrett_red s2,  ra, tp, a1
-    barrett_red s3,  ra, tp, a1
-    barrett_red s4,  ra, tp, a1
-    barrett_red s5,  ra, tp, a1
-    barrett_red s6,  ra, tp, a1
-    barrett_red s7,  ra, tp, a1
-    barrett_red s8,  ra, tp, a1
-    barrett_red s9,  ra, tp, a1
-    barrett_red s10, ra, tp, a1
-    barrett_red s11, ra, tp, a1
-    barrett_red a2,  ra, tp, a1
-    barrett_red a3,  ra, tp, a1
-    barrett_red a4,  ra, tp, a1
-    barrett_red a5,  ra, tp, a1
-    barrett_red a6,  ra, tp, a1
-    barrett_red a7,  ra, tp, a1
-    barrett_red t0,  ra, tp, a1
-    barrett_red t1,  ra, tp, a1
-    barrett_red t2,  ra, tp, a1
-    barrett_red t3,  ra, tp, a1
-    barrett_red t4,  ra, tp, a1
-    barrett_red t5,  ra, tp, a1
-    barrett_red t6,  ra, tp, a1
-
-    sh s0,  2*0(a0)
-    sh s1,  2*1(a0)
-    sh s2,  2*2(a0)
-    sh s3,  2*3(a0)
-    sh s4,  2*4(a0)
-    sh s5,  2*5(a0)
-    sh s6,  2*6(a0)
-    sh s7,  2*7(a0)
-    sh s8,  2*8(a0)
-    sh s9,  2*9(a0)
-    sh s10, 2*10(a0)
-    sh s11, 2*11(a0)
-    sh a2,  2*12(a0) 
-    sh a3,  2*13(a0)
-    sh a4,  2*14(a0)
-    sh a5,  2*15(a0) 
-    sh a6,  2*16(a0)
-    sh a7,  2*17(a0)
-    sh t0,  2*18(a0)
-    sh t1,  2*19(a0)
-    sh t2,  2*20(a0)
-    sh t3,  2*21(a0)
-    sh t4,  2*22(a0)
-    sh t5,  2*23(a0)
-    sh t6,  2*24(a0)
-    addi a0, a0, 25*2
+    barrett_red s8,  ra, tp, t6
+    sh s7,  2*7(a1)
+    barrett_red s9,  ra, tp, t6
+    sh s8,  2*8(a1)
+    barrett_red s10, ra, tp, t6
+    sh s9,  2*9(a1)
+    barrett_red s11, ra, tp, t6
+    sh s10, 2*10(a1)
+    lh t0,  2*12(a0) 
+    lh t1,  2*13(a0)
+    lh t2,  2*14(a0)
+    lh t3,  2*15(a0) 
+    barrett_red t0,  ra, tp, t6
+    sh s11, 2*11(a1)
+    barrett_red t1,  ra, tp, t6
+    sh t0,  2*12(a1) 
+    barrett_red t2,  ra, tp, t6
+    sh t1,  2*13(a1)
+    barrett_red t3,  ra, tp, t6
+    sh t2,  2*14(a1)
+    sh t3,  2*15(a1)
+    addi a0, a0, 16*2
+    addi a1, a1, 16*2
     addi gp, gp, -1
   bne gp, zero, poly_barrett_rdc_rv32im_loop
-
-  lh s0,  2*0(a0)
-  lh s1,  2*1(a0)
-  lh s2,  2*2(a0)
-  lh s3,  2*3(a0)
-  lh s4,  2*4(a0)
-  lh s5,  2*5(a0)
-
-  barrett_red s0, ra, tp, a1
-  barrett_red s1, ra, tp, a1
-  barrett_red s2, ra, tp, a1
-  barrett_red s3, ra, tp, a1
-  barrett_red s4, ra, tp, a1
-  barrett_red s5, ra, tp, a1
-
-  sh s0,  2*0(a0)
-  sh s1,  2*1(a0)
-  sh s2,  2*2(a0)
-  sh s3,  2*3(a0)
-  sh s4,  2*4(a0)
-  sh s5,  2*5(a0)
-  
   restore_regs
   addi sp, sp, 4*15
   ret
 
-.global poly_to_plant_rv32im
+// each coeff is multiplied by plantconst2 using plantard multiplication
+.global poly_toplant_rv32im
 .align 2
-poly_to_plant_rv32im:
+poly_toplant_rv32im:
   addi sp, sp, -4*15
   save_regs
-
-  li a1, plantconst2
+  li t4, plantconst2
   li tp, q16
-// TODO: pipeline opt
-  addi gp, x0, 10
-  poly_to_plant_rv32im_loop:
+  addi gp, x0, 16
+  addi a1, a0, 0
+  poly_toplant_rv32im_loop:
     lh s0,  2*0(a0)
     lh s1,  2*1(a0)
     lh s2,  2*2(a0)
     lh s3,  2*3(a0)
+    plant_mul_const_inplace tp, t4, s0
+    plant_mul_const_inplace tp, t4, s1
+    sh s0,  2*0(a1)
+    plant_mul_const_inplace tp, t4, s2
+    sh s1,  2*1(a1)
+    plant_mul_const_inplace tp, t4, s3
+    sh s2,  2*2(a1)
     lh s4,  2*4(a0)
     lh s5,  2*5(a0)
     lh s6,  2*6(a0)
     lh s7,  2*7(a0)
+    plant_mul_const_inplace tp, t4, s4
+    sh s3,  2*3(a1)
+    plant_mul_const_inplace tp, t4, s5
+    sh s4,  2*4(a1)
+    plant_mul_const_inplace tp, t4, s6
+    sh s5,  2*5(a1)
+    plant_mul_const_inplace tp, t4, s7
+    sh s6,  2*6(a1)
     lh s8,  2*8(a0)
     lh s9,  2*9(a0)
     lh s10, 2*10(a0)
     lh s11, 2*11(a0)
-    lh a2,  2*12(a0) 
-    lh a3,  2*13(a0)
-    lh a4,  2*14(a0)
-    lh a5,  2*15(a0) 
-    lh a6,  2*16(a0)
-    lh a7,  2*17(a0)
-    lh t0,  2*18(a0)
-    lh t1,  2*19(a0)
-    lh t2,  2*20(a0)
-    lh t3,  2*21(a0)
-    lh t4,  2*22(a0)
-    lh t5,  2*23(a0)
-    lh t6,  2*24(a0)
-    plant_mul_const_inplace tp, a1, s0
-    plant_mul_const_inplace tp, a1, s1
-    plant_mul_const_inplace tp, a1, s2
-    plant_mul_const_inplace tp, a1, s3
-    plant_mul_const_inplace tp, a1, s4
-    plant_mul_const_inplace tp, a1, s5
-    plant_mul_const_inplace tp, a1, s6
-    plant_mul_const_inplace tp, a1, s7
-    plant_mul_const_inplace tp, a1, s8
-    plant_mul_const_inplace tp, a1, s9
-    plant_mul_const_inplace tp, a1, s10
-    plant_mul_const_inplace tp, a1, s11
-    plant_mul_const_inplace tp, a1, a2
-    plant_mul_const_inplace tp, a1, a3
-    plant_mul_const_inplace tp, a1, a4
-    plant_mul_const_inplace tp, a1, a5
-    plant_mul_const_inplace tp, a1, a6
-    plant_mul_const_inplace tp, a1, a7
-    plant_mul_const_inplace tp, a1, t0
-    plant_mul_const_inplace tp, a1, t1
-    plant_mul_const_inplace tp, a1, t2
-    plant_mul_const_inplace tp, a1, t3
-    plant_mul_const_inplace tp, a1, t4
-    plant_mul_const_inplace tp, a1, t5
-    plant_mul_const_inplace tp, a1, t6
-    sh s0,  2*0(a0)
-    sh s1,  2*1(a0)
-    sh s2,  2*2(a0)
-    sh s3,  2*3(a0)
-    sh s4,  2*4(a0)
-    sh s5,  2*5(a0)
-    sh s6,  2*6(a0)
-    sh s7,  2*7(a0)
-    sh s8,  2*8(a0)
-    sh s9,  2*9(a0)
-    sh s10, 2*10(a0)
-    sh s11, 2*11(a0)
-    sh a2,  2*12(a0) 
-    sh a3,  2*13(a0)
-    sh a4,  2*14(a0)
-    sh a5,  2*15(a0) 
-    sh a6,  2*16(a0)
-    sh a7,  2*17(a0)
-    sh t0,  2*18(a0)
-    sh t1,  2*19(a0)
-    sh t2,  2*20(a0)
-    sh t3,  2*21(a0)
-    sh t4,  2*22(a0)
-    sh t5,  2*23(a0)
-    sh t6,  2*24(a0)
-    addi a0, a0, 25*2
+    plant_mul_const_inplace tp, t4, s8
+    sh s7,  2*7(a1)
+    plant_mul_const_inplace tp, t4, s9
+    sh s8,  2*8(a1)
+    plant_mul_const_inplace tp, t4, s10
+    sh s9,  2*9(a1)
+    plant_mul_const_inplace tp, t4, s11
+    sh s10, 2*10(a1)
+    lh t0,  2*12(a0) 
+    lh t1,  2*13(a0)
+    lh t2,  2*14(a0)
+    lh t3,  2*15(a0) 
+    plant_mul_const_inplace tp, t4, t0
+    sh s11, 2*11(a1)
+    plant_mul_const_inplace tp, t4, t1
+    sh t0,  2*12(a1)
+    plant_mul_const_inplace tp, t4, t2
+    sh t1,  2*13(a1)
+    plant_mul_const_inplace tp, t4, t3
+    sh t2,  2*14(a1)
+    sh t3,  2*15(a1)
+    addi a0, a0, 16*2
+    addi a1, a1, 16*2
     addi gp, gp, -1
-  bne gp, zero, poly_to_plant_rv32im_loop
-  lh s0,  2*0(a0)
-  lh s1,  2*1(a0)
-  lh s2,  2*2(a0)
-  lh s3,  2*3(a0)
-  lh s4,  2*4(a0)
-  lh s5,  2*5(a0)
-  plant_mul_const_inplace tp, a1, s0
-  plant_mul_const_inplace tp, a1, s1
-  plant_mul_const_inplace tp, a1, s2
-  plant_mul_const_inplace tp, a1, s3
-  plant_mul_const_inplace tp, a1, s4
-  plant_mul_const_inplace tp, a1, s5
-  sh s0,  2*0(a0)
-  sh s1,  2*1(a0)
-  sh s2,  2*2(a0)
-  sh s3,  2*3(a0)
-  sh s4,  2*4(a0)
-  sh s5,  2*5(a0)
+  bne gp, zero, poly_toplant_rv32im_loop
   restore_regs
   addi sp, sp, 4*15
   ret

@@ -274,16 +274,60 @@ void poly_invntt(poly *r)
     invntt(r->coeffs);
 }
 
-/*************************************************
- * Name:        poly_basemul
- *
- * Description: Multiplication of two polynomials in NTT domain
- *
- * Arguments:   - poly *r: pointer to output polynomial
- *              - const poly *a: pointer to first input polynomial
- *              - const poly *b: pointer to second input polynomial
- **************************************************/
-#if !defined(VECTOR128)
+#if defined(VECTOR128)
+
+void poly_basemul(poly *r, const poly *a, const poly *b)
+{
+    poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
+}
+
+void poly_basemul_acc(poly *r, const poly *a, const poly *b)
+{
+    poly_basemul_acc_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
+}
+
+void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
+{
+    poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                b_cache->coeffs);
+}
+
+void poly_basemul_acc_cache_init(poly *r, const poly *a, const poly *b,
+                                 poly_half *b_cache)
+{
+    poly_basemul_acc_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                    b_cache->coeffs);
+}
+
+void poly_basemul_cached(poly *r, const poly *a, const poly *b,
+                         poly_half *b_cache)
+{
+    poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                            b_cache->coeffs);
+}
+
+void poly_basemul_acc_cached(poly *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
+{
+    poly_basemul_acc_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata,
+                                b_cache->coeffs);
+}
+
+void poly_tomont(poly *r)
+{
+    poly_tomont_rvv(r->coeffs);
+}
+
+void poly_reduce(poly *r)
+{
+    poly_reduce_rvv(r->coeffs);
+}
+
+// #elif defined(RV64)
+
+#else
+
 void poly_basemul(poly *r, const poly *a, const poly *b)
 {
     unsigned int i;
@@ -294,33 +338,7 @@ void poly_basemul(poly *r, const poly *a, const poly *b)
                 &b->coeffs[4 * i + 2], -zetas[64 + i]);
     }
 }
-#else
-void poly_basemul(poly *r, const poly *a, const poly *b)
-{
-    poly_basemul_rvv(r->coeffs, a->coeffs, b->coeffs, qdata);
-}
 
-void poly_basemul_cache_init(poly *r, const poly *a, const poly *b,
-                                        int16_t *b_buf)
-{
-    poly_basemul_cache_init_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
-}
-void poly_basemul_cached(poly *r, const poly *a, const poly *b,
-                                    int16_t *b_buf)
-{
-    poly_basemul_cached_rvv(r->coeffs, a->coeffs, b->coeffs, qdata, b_buf);
-}
-#endif
-
-/*************************************************
- * Name:        poly_tomont
- *
- * Description: Inplace conversion of all coefficients of a polynomial
- *              from normal domain to Montgomery domain
- *
- * Arguments:   - poly *r: pointer to input/output polynomial
- **************************************************/
-#if !defined(VECTOR128)
 void poly_tomont(poly *r)
 {
     unsigned int i;
@@ -328,33 +346,14 @@ void poly_tomont(poly *r)
     for (i = 0; i < KYBER_N; i++)
         r->coeffs[i] = montgomery_reduce((int32_t)r->coeffs[i] * f);
 }
-#else
-void poly_tomont(poly *r)
-{
-    poly_tomont_rvv(r->coeffs);
-}
-#endif
 
-/*************************************************
- * Name:        poly_reduce
- *
- * Description: Applies Barrett reduction to all coefficients of a polynomial
- *              for details of the Barrett reduction see comments in reduce.c
- *
- * Arguments:   - poly *r: pointer to input/output polynomial
- **************************************************/
-#if !defined(VECTOR128)
 void poly_reduce(poly *r)
 {
     unsigned int i;
     for (i = 0; i < KYBER_N; i++)
         r->coeffs[i] = barrett_reduce(r->coeffs[i]);
 }
-#else
-void poly_reduce(poly *r)
-{
-    poly_reduce_rvv(r->coeffs);
-}
+
 #endif
 
 /*************************************************
