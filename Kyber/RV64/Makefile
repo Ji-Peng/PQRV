@@ -11,31 +11,17 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 			  	  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/kyber_ntt -I.
 
-ifeq ($(PLATFORM), C910)
-	CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
-	CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 \
-		-DRV64B
-	CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -DV0p7 -march=rv64imacv0p7 -mabi=lp64 \
-		-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-	CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -DV0p7 -march=rv64imacv0p7_zba_zbb -mabi=lp64 \
-		-DRV64B \
-		-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-	TARGET_IP = 192.168.123.80
-	TARGET_USER = sipeed
-	TARGET_DIR  = /home/sipeed/PQRV
-else
-	CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
-	CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 \
-		-DRV64B
-	CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 \
-		-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-	CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 \
-		-DRV64B \
-		-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-	TARGET_IP = 192.168.123.99
-	TARGET_USER = root
-	TARGET_DIR  = /sharefs
-endif
+CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
+CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 \
+	-DRV64B
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 \
+	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 \
+	-DRV64B \
+	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
+TARGET_IP = 192.168.123.99
+TARGET_USER = root
+TARGET_DIR  = /sharefs
 
 RM = /bin/rm
 

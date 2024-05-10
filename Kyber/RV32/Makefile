@@ -11,23 +11,13 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -DRV32=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/kyber_ntt -I.
 
-ifeq ($(PLATFORM), C910)
-	CFLAGS_RV32IM  	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32
-	CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DBIT_INTERLEAVING
-	CFLAGS_RV32IMV 	= $(CFLAGS_COMMON) -DV0p7 -march=rv32imacv0p7 -mabi=ilp32 -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
-	CFLAGS_RV32IMBV = $(CFLAGS_COMMON) -DV0p7 -march=rv32imacv0p7_zbb -mabi=ilp32 -DBIT_INTERLEAVING -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
-	TARGET_IP = 192.168.123.80
-	TARGET_USER = sipeed
-	TARGET_DIR  = /home/sipeed/PQRV
-else
-	CFLAGS_RV32IM  	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32
-	CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DBIT_INTERLEAVING
-	CFLAGS_RV32IMV 	= $(CFLAGS_COMMON) -march=rv32imacv -mabi=ilp32 -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
-	CFLAGS_RV32IMBV = $(CFLAGS_COMMON) -march=rv32imacv_zbb -mabi=ilp32 -DBIT_INTERLEAVING -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
-	TARGET_IP = 192.168.123.99
-	TARGET_USER = root
-	TARGET_DIR  = /sharefs
-endif
+CFLAGS_RV32IM  	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32
+CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DBIT_INTERLEAVING
+CFLAGS_RV32IMV 	= $(CFLAGS_COMMON) -march=rv32imacv -mabi=ilp32 -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
+CFLAGS_RV32IMBV = $(CFLAGS_COMMON) -march=rv32imacv_zbb -mabi=ilp32 -DBIT_INTERLEAVING -DVECTOR128 -DHYBRIDX3 -DHYBRIDX4
+TARGET_IP = 192.168.123.99
+TARGET_USER = root
+TARGET_DIR  = /sharefs
 
 RM = /bin/rm
 
