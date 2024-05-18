@@ -9,7 +9,7 @@ We use the CanMV-K230 development board based on the [Kendryte K230 SoC]([^1^](h
 - Microarchitecture: Dual-core, 9-stage in-order pipeline
 - Memory: 512MB
 - Operating system: Linux version 5.10.4
-- Compiler: riscv64-unknown-linux-gnu-gcc (Xuantie-900 linux-5.10.4 glibc gcc Toolchain V2.6.0 B-20220715) 10.2.0, whose download link is [here](https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1695015688704/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.6.0-20220715.tar.gz). You can find more related resources at [XuanTie community](https://www.xrvm.cn/community/download?id=4224193228112465920).
+- Compiler: riscv64-unknown-linux-gnu-gcc (Xuantie-900 linux-5.10.4 glibc gcc Toolchain V2.8.0 B-20231018) 10.4.0, whose download link is [here](https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1698113812618/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0-20231018.tar.gz). You can find more related resources at [XuanTie community](https://www.xrvm.cn/community/download?id=4224193228112465920).
 
 For the tutorial on how to use this development board, we refer readers to [K230 doc](https://github.com/kendryte/k230_docs/blob/main/README_en.md) and [K230 sdk](https://github.com/kendryte/k230_sdk). We only emphasize some key configurations here. The command we use to make the system image for the development board is `make CONF=k230_evb_only_linux_defconfig`, which generates Linux OS by BuildRoot for the big core, so that we can run RVV instructions on the big core.
 

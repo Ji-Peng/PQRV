@@ -17,7 +17,7 @@ TARGET_IP = 192.168.123.99
 
 speed: \
 	out/test_add out/test_mul out/test_ntt out/test_ntt_rv32 out/test_hybrid \
-	out/test_plantard
+	out/test_plantard out/test_plantard_rv64 out/test_ntt_rv32im out/test_ntt_rv64im
 
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
@@ -49,6 +49,21 @@ out/test_hybrid: $(COMMONDIR)/kyber_ntt/test_hybrid.S test_hybrid.c $(COMMONDIR)
 out/test_plantard: $(COMMONDIR)/kyber_ntt/ntt_rv32im.S test_plantard.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_plantard_rv64: $(COMMONDIR)/kyber_ntt/ntt_rv64im.S test_plantard_rv64.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+	mkdir -p out
+	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_ntt_rv32im: $(COMMONDIR)/kyber_ntt/ntt_rv32im.S test_ntt_rv32im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_ntt_rv64im: $(COMMONDIR)/kyber_ntt/ntt_rv64im.S test_ntt_rv64im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+	mkdir -p out
+	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
 clean:
