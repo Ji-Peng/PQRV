@@ -5,48 +5,18 @@
 #include "params.h"
 #include "reduce.h"
 
-/*************************************************
- * Name:        ntt
- *
- * Description: Inplace number-theoretic transform (NTT) in Rq.
- *              input is in standard order, output is in bitreversed order
- *
- * Arguments:   - int16_t r[256]: pointer to input/output vector of elements of
- *Zq
- **************************************************/
-/*************************************************
- * Name:        invntt_tomont
- *
- * Description: Inplace inverse number-theoretic transform in Rq and
- *              multiplication by Montgomery factor 2^16.
- *              Input is in bitreversed order, output is in standard order
- *
- * Arguments:   - int16_t r[256]: pointer to input/output vector of elements of
- *Zq
- **************************************************/
-/*************************************************
- * Name:        basemul
- *
- * Description: Multiplication of polynomials in Zq[X]/(X^2-zeta)
- *              used for multiplication of elements in Rq in NTT domain
- *
- * Arguments:   - int16_t r[2]: pointer to the output polynomial
- *              - const int16_t a[2]: pointer to the first factor
- *              - const int16_t b[2]: pointer to the second factor
- *              - int16_t zeta: integer defining the reduction polynomial
- **************************************************/
 #if defined(VECTOR128)
 void ntt(int16_t r[KYBER_N])
 {
     ntt_rvv(r, qdata);
 }
+
 void invntt(int16_t r[KYBER_N])
 {
     intt_rvv(r, qdata);
 }
 #elif defined(RV32)
 // RV32IM assembly optimized implementation with Plantard multiplication
-
 uint32_t zetas_basemul_rv32im[64] = {
     21932846,   3562152210, 752167598,  3417653460, 2112004045, 932791035,
     2951903026, 1419184148, 1817845876, 3434425636, 4233039261, 300609006,
@@ -133,20 +103,12 @@ const int16_t zetas[128] = {
     610,   1322,  -1285, -1465, 384,   -1215, -136,  1218, -1335, -874,  220,
     -1187, -1659, -1185, -1530, -1278, 794,   -1510, -854, -870,  478,   -108,
     -308,  996,   991,   958,   -1460, 1522,  1628};
-/*************************************************
- * Name:        fqmul
- *
- * Description: Multiplication followed by Montgomery reduction
- *
- * Arguments:   - int16_t a: first factor
- *              - int16_t b: second factor
- *
- * Returns 16-bit integer congruent to a*b*R^{-1} mod q
- **************************************************/
+
 static int16_t fqmul(int16_t a, int16_t b)
 {
     return montgomery_reduce((int32_t)a * b);
 }
+
 void ntt(int16_t r[256])
 {
     unsigned int len, start, j, k;
@@ -164,6 +126,7 @@ void ntt(int16_t r[256])
         }
     }
 }
+
 void invntt(int16_t r[256])
 {
     unsigned int start, len, j, k;
@@ -186,6 +149,7 @@ void invntt(int16_t r[256])
     for (j = 0; j < 256; j++)
         r[j] = fqmul(r[j], f);
 }
+
 void basemul(int16_t r[2], const int16_t a[2], const int16_t b[2], int16_t zeta)
 {
     r[0] = fqmul(a[1], b[1]);
@@ -194,4 +158,5 @@ void basemul(int16_t r[2], const int16_t a[2], const int16_t b[2], int16_t zeta)
     r[1] = fqmul(a[0], b[1]);
     r[1] += fqmul(a[1], b[0]);
 }
+
 #endif

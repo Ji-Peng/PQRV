@@ -4,7 +4,6 @@
 
 #include "cbd.h"
 #include "ntt.h"
-#include "ntt_rvv.h"
 #include "params.h"
 #include "reduce.h"
 #include "symmetric.h"
@@ -246,6 +245,38 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES],
 }
 
 /*************************************************
+ * Name:        poly_add
+ *
+ * Description: Add two polynomials; no modular reduction is performed
+ *
+ * Arguments: - poly *r: pointer to output polynomial
+ *            - const poly *a: pointer to first input polynomial
+ *            - const poly *b: pointer to second input polynomial
+ **************************************************/
+void poly_add(poly *r, const poly *a, const poly *b)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_N; i++)
+        r->coeffs[i] = a->coeffs[i] + b->coeffs[i];
+}
+
+/*************************************************
+ * Name:        poly_sub
+ *
+ * Description: Subtract two polynomials; no modular reduction is performed
+ *
+ * Arguments: - poly *r:       pointer to output polynomial
+ *            - const poly *a: pointer to first input polynomial
+ *            - const poly *b: pointer to second input polynomial
+ **************************************************/
+void poly_sub(poly *r, const poly *a, const poly *b)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_N; i++)
+        r->coeffs[i] = a->coeffs[i] - b->coeffs[i];
+}
+
+/*************************************************
  * Name:        poly_ntt
  *
  * Description: Computes negacyclic number-theoretic transform (NTT) of
@@ -385,7 +416,7 @@ void poly_toplant(poly *r)
 
 void poly_reduce(poly *r)
 {
-    poly_barrett_rdc_rv32im(r->coeffs);
+    poly_plantard_rdc_rv32im(r->coeffs);
 }
 
 #else
@@ -417,35 +448,3 @@ void poly_reduce(poly *r)
 }
 
 #endif
-
-/*************************************************
- * Name:        poly_add
- *
- * Description: Add two polynomials; no modular reduction is performed
- *
- * Arguments: - poly *r: pointer to output polynomial
- *            - const poly *a: pointer to first input polynomial
- *            - const poly *b: pointer to second input polynomial
- **************************************************/
-void poly_add(poly *r, const poly *a, const poly *b)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_N; i++)
-        r->coeffs[i] = a->coeffs[i] + b->coeffs[i];
-}
-
-/*************************************************
- * Name:        poly_sub
- *
- * Description: Subtract two polynomials; no modular reduction is performed
- *
- * Arguments: - poly *r:       pointer to output polynomial
- *            - const poly *a: pointer to first input polynomial
- *            - const poly *b: pointer to second input polynomial
- **************************************************/
-void poly_sub(poly *r, const poly *a, const poly *b)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_N; i++)
-        r->coeffs[i] = a->coeffs[i] - b->coeffs[i];
-}

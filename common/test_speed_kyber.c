@@ -91,7 +91,7 @@ int main()
                                 &b_cache);
     }
     print_results("poly_basemul_acc_cached: ", t, NTESTS);
-#elif defined(RV32)
+#elif defined(RV32) || defined(RV64)
     poly_double r_double;
     poly_half b_cache;
     for (i = 0; i < NTESTS; i++) {

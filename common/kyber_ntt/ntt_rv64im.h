@@ -5,7 +5,7 @@
 
 extern void ntt_rv64im(int16_t *, uint64_t *);
 extern void invntt_rv64im(int16_t *, uint64_t *);
-extern void poly_barrett_rdc_rv64im(int16_t *r);
+extern void poly_plantard_rdc_rv64im(int16_t *r);
 extern void poly_toplant_rv64im(int16_t *r);
 
 extern void poly_basemul_acc_rv64im(int32_t *r, const int16_t *a,

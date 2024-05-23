@@ -112,20 +112,11 @@
   mulh \a, \a, \q32
 .endm
 
-// in-place barrett reduction to a
-.macro barrett_red a, tmp, q, barrettconst
-  mul  \tmp, \a, \barrettconst
-  srai \tmp, \tmp, 26
-  mul  \tmp, \tmp, \q
-  sub  \a, \a, \tmp
-.endm
-
 .equ q,    3329
 .equ q32,  0xd0100000000                // q << 32
 .equ qinv, 0x3c0f12886ba8f301           // q^-1 mod 2^64
 .equ plantconst, 0x13afb7680bb055       // (((-2**64) % q) * qinv) % (2**64)
 .equ plantconst2, 0x1a390f4d9791e139    // (((-2**64) % q) * ((-2**64) % q) * qinv) % (2**64)
-.equ barrettconst, 20159                // used for barrett reduction
 
 // |input| < 0.5q; |output| < 3.5q
 // API: a0: poly, a1: 64-bit twiddle ptr; a6: q<<32; a7: tmp, variable twiddle factors; gp: loop;
@@ -890,12 +881,69 @@ poly_toplant_rv64im:
   addi sp, sp, 8*15
   ret
 
-.global plant_mul_rv64im
+// plantard reduction to a poly
+.global poly_plantard_rdc_rv64im
 .align 2
-plant_mul_rv64im:
-    li t0, q32
-    lh t1, (a0)
-    ld t2, (a1)
-    plant_mul_const t0, t2, t1, t3
-    sh t3, (a0)
-    ret
+poly_plantard_rdc_rv64im:
+  addi sp, sp, -8*15
+  save_regs
+  li t6, plantconst
+  li tp, q32
+  addi gp, x0, 16
+  addi a1, a0, 0
+  poly_plantard_rdc_rv64im_loop:
+    lh s0,  2*0(a0)
+    lh s1,  2*1(a0)
+    lh s2,  2*2(a0)
+    lh s3,  2*3(a0)
+    plant_red tp, t6, s0
+    plant_red tp, t6, s1
+    sh s0,  2*0(a1)
+    plant_red tp, t6, s2
+    sh s1,  2*1(a1)
+    plant_red tp, t6, s3
+    sh s2,  2*2(a1)
+    lh s4,  2*4(a0)
+    lh s5,  2*5(a0)
+    lh s6,  2*6(a0)
+    lh s7,  2*7(a0)
+    plant_red tp, t6, s4
+    sh s3,  2*3(a1)
+    plant_red tp, t6, s5
+    sh s4,  2*4(a1)
+    plant_red tp, t6, s6
+    sh s5,  2*5(a1)
+    plant_red tp, t6, s7
+    sh s6,  2*6(a1)
+    lh s8,  2*8(a0)
+    lh s9,  2*9(a0)
+    lh s10, 2*10(a0)
+    lh s11, 2*11(a0)
+    plant_red tp, t6, s8
+    sh s7,  2*7(a1)
+    plant_red tp, t6, s9
+    sh s8,  2*8(a1)
+    plant_red tp, t6, s10
+    sh s9,  2*9(a1)
+    plant_red tp, t6, s11
+    sh s10, 2*10(a1)
+    lh t0,  2*12(a0) 
+    lh t1,  2*13(a0)
+    lh t2,  2*14(a0)
+    lh t3,  2*15(a0) 
+    plant_red tp, t6, t0
+    sh s11, 2*11(a1)
+    plant_red tp, t6, t1
+    sh t0,  2*12(a1) 
+    plant_red tp, t6, t2
+    sh t1,  2*13(a1)
+    plant_red tp, t6, t3
+    sh t2,  2*14(a1)
+    sh t3,  2*15(a1)
+    addi a0, a0, 16*2
+    addi a1, a1, 16*2
+    addi gp, gp, -1
+  bne gp, zero, poly_plantard_rdc_rv64im_loop
+  restore_regs
+  addi sp, sp, 8*15
+  ret

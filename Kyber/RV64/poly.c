@@ -4,7 +4,6 @@
 
 #include "cbd.h"
 #include "ntt.h"
-#include "ntt_rvv.h"
 #include "params.h"
 #include "reduce.h"
 #include "symmetric.h"
@@ -245,6 +244,38 @@ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES],
 }
 
 /*************************************************
+ * Name:        poly_add
+ *
+ * Description: Add two polynomials; no modular reduction is performed
+ *
+ * Arguments: - poly *r: pointer to output polynomial
+ *            - const poly *a: pointer to first input polynomial
+ *            - const poly *b: pointer to second input polynomial
+ **************************************************/
+void poly_add(poly *r, const poly *a, const poly *b)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_N; i++)
+        r->coeffs[i] = a->coeffs[i] + b->coeffs[i];
+}
+
+/*************************************************
+ * Name:        poly_sub
+ *
+ * Description: Subtract two polynomials; no modular reduction is performed
+ *
+ * Arguments: - poly *r:       pointer to output polynomial
+ *            - const poly *a: pointer to first input polynomial
+ *            - const poly *b: pointer to second input polynomial
+ **************************************************/
+void poly_sub(poly *r, const poly *a, const poly *b)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_N; i++)
+        r->coeffs[i] = a->coeffs[i] - b->coeffs[i];
+}
+
+/*************************************************
  * Name:        poly_ntt
  *
  * Description: Computes negacyclic number-theoretic transform (NTT) of
@@ -324,7 +355,76 @@ void poly_reduce(poly *r)
     poly_reduce_rvv(r->coeffs);
 }
 
-// #elif defined(RV64)
+#elif defined(RV64)
+
+extern uint64_t zetas_basemul_rv64im[64];
+
+void poly_basemul_cache_init(poly_double *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
+{
+    poly_basemul_cache_init_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                                   b_cache->coeffs, zetas_basemul_rv64im);
+}
+
+void poly_basemul_acc_cache_init(poly_double *r, const poly *a, const poly *b,
+                                 poly_half *b_cache)
+{
+    poly_basemul_acc_cache_init_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                                       b_cache->coeffs, zetas_basemul_rv64im);
+}
+
+void poly_basemul_acc_cache_init_end(poly *r, const poly *a, const poly *b,
+                                     poly_half *b_cache, poly_double *r_double)
+{
+    poly_basemul_acc_cache_init_end_rv64im(
+        r->coeffs, a->coeffs, b->coeffs, b_cache->coeffs, zetas_basemul_rv64im,
+        r_double->coeffs);
+}
+
+void poly_basemul_acc_cached(poly_double *r, const poly *a, const poly *b,
+                             poly_half *b_cache)
+{
+    poly_basemul_acc_cached_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                                   b_cache->coeffs);
+}
+
+void poly_basemul_acc_cache_end(poly *r, const poly *a, const poly *b,
+                                poly_half *b_cache, poly_double *r_double)
+{
+    poly_basemul_acc_cache_end_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                                      b_cache->coeffs, r_double->coeffs);
+}
+
+void poly_basemul_acc(poly_double *r, const poly *a, const poly *b)
+{
+    poly_basemul_acc_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                            zetas_basemul_rv64im);
+}
+
+void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
+                          poly_double *r_double)
+{
+    poly_basemul_acc_end_rv64im(r->coeffs, a->coeffs, b->coeffs,
+                                zetas_basemul_rv64im, r_double->coeffs);
+}
+
+void poly_toplant(poly *r)
+{
+    poly_toplant_rv64im(r->coeffs);
+}
+
+// TODO
+void poly_reduce(poly *r)
+{
+    poly_plantard_rdc_rv64im(r->coeffs);
+}
+
+// void poly_reduce(poly *r)
+// {
+//     unsigned int i;
+//     for (i = 0; i < KYBER_N; i++)
+//         r->coeffs[i] = barrett_reduce(r->coeffs[i]);
+// }
 
 #else
 
@@ -355,35 +455,3 @@ void poly_reduce(poly *r)
 }
 
 #endif
-
-/*************************************************
- * Name:        poly_add
- *
- * Description: Add two polynomials; no modular reduction is performed
- *
- * Arguments: - poly *r: pointer to output polynomial
- *            - const poly *a: pointer to first input polynomial
- *            - const poly *b: pointer to second input polynomial
- **************************************************/
-void poly_add(poly *r, const poly *a, const poly *b)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_N; i++)
-        r->coeffs[i] = a->coeffs[i] + b->coeffs[i];
-}
-
-/*************************************************
- * Name:        poly_sub
- *
- * Description: Subtract two polynomials; no modular reduction is performed
- *
- * Arguments: - poly *r:       pointer to output polynomial
- *            - const poly *a: pointer to first input polynomial
- *            - const poly *b: pointer to second input polynomial
- **************************************************/
-void poly_sub(poly *r, const poly *a, const poly *b)
-{
-    unsigned int i;
-    for (i = 0; i < KYBER_N; i++)
-        r->coeffs[i] = a->coeffs[i] - b->coeffs[i];
-}
