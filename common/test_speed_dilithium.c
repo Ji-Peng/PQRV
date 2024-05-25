@@ -21,6 +21,7 @@ int main(void)
     uint8_t sig[CRYPTO_BYTES];
     uint8_t seed[CRHBYTES];
     polyvecl mat[K];
+    polyveck veck;
     poly *a = &mat[0].vec[0];
     poly *b = &mat[0].vec[1];
     poly *c = &mat[0].vec[2];
@@ -33,17 +34,25 @@ int main(void)
     }
     print_results("polyvec_matrix_expand:", t, NTESTS);
 
+#if defined(VECTOR128)
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        poly_uniform_eta(a, seed, 0);
+        polyveclk_uniform_eta(&mat[0], &veck, seed, 0, L);
     }
-    print_results("poly_uniform_eta:", t, NTESTS);
+    print_results("polyveclk_uniform_eta:", t, NTESTS);
+#else
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        polyvecl_uniform_eta(&mat[0], seed, 0);
+    }
+    print_results("polyvecl_uniform_eta:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        poly_uniform_gamma1(a, seed, 0);
+        polyveck_uniform_eta(&veck, seed, 0);
     }
-    print_results("poly_uniform_gamma1:", t, NTESTS);
+    print_results("polyveck_uniform_eta:", t, NTESTS);
+#endif
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();

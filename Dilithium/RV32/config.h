@@ -6,9 +6,9 @@
 // #define USE_RDPMC
 // #define DBENCH
 
-#ifndef DILITHIUM_MODE
-#    define DILITHIUM_MODE 2
-#endif
+// #ifndef DILITHIUM_MODE
+// #    define DILITHIUM_MODE 2
+// #endif
 
 #if DILITHIUM_MODE == 2
 #    define CRYPTO_ALGNAME "Dilithium2"

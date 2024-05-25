@@ -36,12 +36,12 @@ SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S
 SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S
 SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S
 
-SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c symmetric-shake.c
-HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h symmetric.h
-SOURCES_VECTOR 	= $(SOURCES_COMMON) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c symmetric-shake.c
-HEADERS_VECTOR 	= $(HEADERS_COMMON) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h symmetric.h
+SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
+HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
+SOURCES_VECTOR 	= $(SOURCES_COMMON) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
+HEADERS_VECTOR 	= $(HEADERS_COMMON) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
 
-.PHONY: all speed results clean
+.PHONY: all speed results scp_vectors diff_vectors clean
 
 all: \
 	out/test_dilithium2_rv64im 		\
@@ -84,6 +84,38 @@ results:
 	scp root@$(TARGET_IP):/sharefs/results_rv64imb.txt .
 	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
 	scp root@$(TARGET_IP):/sharefs/results_rv64imbv.txt .
+
+# ./test_vectors512_rv64im > vectors_kyber512_rv64im.txt; ./test_vectors768_rv64im > vectors_kyber768_rv64im.txt; ./test_vectors1024_rv64im > vectors_kyber1024_rv64im.txt
+# ./test_vectors512_rv64imb > vectors_kyber512_rv64imb.txt; ./test_vectors768_rv64imb > vectors_kyber768_rv64imb.txt; ./test_vectors1024_rv64imb > vectors_kyber1024_rv64imb.txt
+# ./test_vectors512_rv64imv > vectors_kyber512_rv64imv.txt; ./test_vectors768_rv64imv > vectors_kyber768_rv64imv.txt; ./test_vectors1024_rv64imv > vectors_kyber1024_rv64imv.txt
+# ./test_vectors512_rv64imbv > vectors_kyber512_rv64imbv.txt; ./test_vectors768_rv64imbv > vectors_kyber768_rv64imbv.txt; ./test_vectors1024_rv64imbv > vectors_kyber1024_rv64imbv.txt
+scp_vectors:
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64im.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imb.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imbv.txt .
+	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imbv.txt .
+
+diff_vectors:
+	diff vectors_dilithium2_rv64im.txt ../ref/vectors_dilithium2.txt
+	diff vectors_dilithium3_rv64im.txt ../ref/vectors_dilithium3.txt
+	diff vectors_dilithium5_rv64im.txt ../ref/vectors_dilithium5.txt
+	diff vectors_dilithium2_rv64imb.txt ../ref/vectors_dilithium2.txt
+	diff vectors_dilithium3_rv64imb.txt ../ref/vectors_dilithium3.txt
+	diff vectors_dilithium5_rv64imb.txt ../ref/vectors_dilithium5.txt
+	diff vectors_dilithium2_rv64imv.txt ../ref/vectors_dilithium2.txt
+	diff vectors_dilithium3_rv64imv.txt ../ref/vectors_dilithium3.txt
+	diff vectors_dilithium5_rv64imv.txt ../ref/vectors_dilithium5.txt
+	diff vectors_dilithium2_rv64imbv.txt ../ref/vectors_dilithium2.txt
+	diff vectors_dilithium3_rv64imbv.txt ../ref/vectors_dilithium3.txt
+	diff vectors_dilithium5_rv64imbv.txt ../ref/vectors_dilithium5.txt
 
 out/scp_test:	\
 	out/test_dilithium2_rv64im 		\

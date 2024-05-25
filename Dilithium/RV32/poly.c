@@ -1,12 +1,13 @@
 #include "poly.h"
 
 #include <stdint.h>
+#include <string.h>
 
+#include "fips202.h"
 #include "ntt.h"
 #include "params.h"
 #include "reduce.h"
 #include "rounding.h"
-#include "symmetric.h"
 
 #ifdef DBENCH
 #    include "cpucycles.h"
@@ -102,8 +103,8 @@ void poly_sub(poly *c, const poly *a, const poly *b)
 /*************************************************
  * Name:        poly_shiftl
  *
- * Description: Multiply polynomial by 2^D without modular reduction. Assumes
- *              input coefficients to be less than 2^{31-D} in absolute value.
+ * Description: Multiply polynomial by 2^D without modular reduction.
+ *Assumes input coefficients to be less than 2^{31-D} in absolute value.
  *
  * Arguments:   - poly *a: pointer to input/output polynomial
  **************************************************/
@@ -170,7 +171,8 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b)
     DBENCH_START();
 
     for (i = 0; i < N; ++i)
-        c->coeffs[i] = montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
+        c->coeffs[i] =
+            montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
 
     DBENCH_STOP(*tmul);
 }
@@ -183,8 +185,10 @@ void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b)
  *              with -2^{D-1} < c0 <= 2^{D-1}. Assumes coefficients to be
  *              standard representatives.
  *
- * Arguments:   - poly *a1: pointer to output polynomial with coefficients c1
- *              - poly *a0: pointer to output polynomial with coefficients c0
+ * Arguments:   - poly *a1: pointer to output polynomial with coefficients
+ *c1
+ *              - poly *a0: pointer to output polynomial with coefficients
+ *c0
  *              - const poly *a: pointer to input polynomial
  **************************************************/
 void poly_power2round(poly *a1, poly *a0, const poly *a)
@@ -202,13 +206,15 @@ void poly_power2round(poly *a1, poly *a0, const poly *a)
  * Name:        poly_decompose
  *
  * Description: For all coefficients c of the input polynomial,
- *              compute high and low bits c0, c1 such c mod Q = c1*ALPHA + c0
- *              with -ALPHA/2 < c0 <= ALPHA/2 except c1 = (Q-1)/ALPHA where we
- *              set c1 = 0 and -ALPHA/2 <= c0 = c mod Q - Q < 0.
- *              Assumes coefficients to be standard representatives.
+ *              compute high and low bits c0, c1 such c mod Q = c1*ALPHA +
+ *c0 with -ALPHA/2 < c0 <= ALPHA/2 except c1 = (Q-1)/ALPHA where we set c1
+ *= 0 and -ALPHA/2 <= c0 = c mod Q - Q < 0. Assumes coefficients to be
+ *standard representatives.
  *
- * Arguments:   - poly *a1: pointer to output polynomial with coefficients c1
- *              - poly *a0: pointer to output polynomial with coefficients c0
+ * Arguments:   - poly *a1: pointer to output polynomial with coefficients
+ *c1
+ *              - poly *a0: pointer to output polynomial with coefficients
+ *c0
  *              - const poly *a: pointer to input polynomial
  **************************************************/
 void poly_decompose(poly *a1, poly *a0, const poly *a)
@@ -252,9 +258,11 @@ unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1)
 /*************************************************
  * Name:        poly_use_hint
  *
- * Description: Use hint polynomial to correct the high bits of a polynomial.
+ * Description: Use hint polynomial to correct the high bits of a
+ *polynomial.
  *
- * Arguments:   - poly *b: pointer to output polynomial with corrected high bits
+ * Arguments:   - poly *b: pointer to output polynomial with corrected high
+ *bits
  *              - const poly *a: pointer to input polynomial
  *              - const poly *h: pointer to input hint polynomial
  **************************************************/
@@ -291,7 +299,8 @@ int poly_chknorm(const poly *a, int32_t B)
 
     /* It is ok to leak which coefficient violates the bound since
        the probability for each coefficient is independent of secret
-       data but we must not leak the sign of the centralized representative. */
+       data but we must not leak the sign of the centralized
+       representative. */
     for (i = 0; i < N; ++i) {
         /* Absolute value */
         t = a->coeffs[i] >> 31;
@@ -318,11 +327,11 @@ int poly_chknorm(const poly *a, int32_t B)
  *              - const uint8_t *buf: array of random bytes
  *              - unsigned int buflen: length of array of random bytes
  *
- * Returns number of sampled coefficients. Can be smaller than len if not enough
- * random bytes were given.
+ * Returns number of sampled coefficients. Can be smaller than len if not
+ *enough random bytes were given.
  **************************************************/
-static unsigned int rej_uniform(int32_t *a, unsigned int len,
-                                const uint8_t *buf, unsigned int buflen)
+unsigned int rej_uniform(int32_t *a, unsigned int len, const uint8_t *buf,
+                         unsigned int buflen)
 {
     unsigned int ctr, pos;
     uint32_t t;
@@ -348,23 +357,28 @@ static unsigned int rej_uniform(int32_t *a, unsigned int len,
  *
  * Description: Sample polynomial with uniformly random coefficients
  *              in [0,Q-1] by performing rejection sampling on the
- *              output stream of SHAKE256(seed|nonce).
+ *              output stream of SHAKE128(seed|nonce).
  *
  * Arguments:   - poly *a: pointer to output polynomial
- *              - const uint8_t seed[]: byte array with seed of length SEEDBYTES
+ *              - const uint8_t seed[]: byte array with seed of length
+ *SEEDBYTES
  *              - uint16_t nonce: 2-byte nonce
  **************************************************/
-#define POLY_UNIFORM_NBLOCKS \
-    ((768 + STREAM128_BLOCKBYTES - 1) / STREAM128_BLOCKBYTES)
+#define POLY_UNIFORM_NBLOCKS ((768 + SHAKE128_RATE - 1) / SHAKE128_RATE)
 void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
 {
     unsigned int i, ctr, off;
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES;
-    uint8_t buf[POLY_UNIFORM_NBLOCKS * STREAM128_BLOCKBYTES + 2];
-    stream128_state state;
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    uint8_t buf[POLY_UNIFORM_NBLOCKS * SHAKE128_RATE + 2];
+    keccak_state state;
 
-    stream128_init(&state, seed, nonce);
-    stream128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
+    memcpy(buf, seed, SEEDBYTES);
+    buf[SEEDBYTES] = nonce;
+    buf[SEEDBYTES + 1] = nonce >> 8;
+    shake128_init(&state);
+    shake128_absorb(&state, buf, SEEDBYTES + 2);
+    shake128_finalize(&state);
+    shake128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
 
     ctr = rej_uniform(a->coeffs, N, buf, buflen);
 
@@ -373,8 +387,8 @@ void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
         for (i = 0; i < off; ++i)
             buf[i] = buf[buflen - off + i];
 
-        stream128_squeezeblocks(buf + off, 1, &state);
-        buflen = STREAM128_BLOCKBYTES + off;
+        shake128_squeezeblocks(buf + off, 1, &state);
+        buflen = SHAKE128_RATE + off;
         ctr += rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
     }
 }
@@ -390,11 +404,11 @@ void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
  *              - const uint8_t *buf: array of random bytes
  *              - unsigned int buflen: length of array of random bytes
  *
- * Returns number of sampled coefficients. Can be smaller than len if not enough
- * random bytes were given.
+ * Returns number of sampled coefficients. Can be smaller than len if not
+ *enough random bytes were given.
  **************************************************/
-static unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
-                            unsigned int buflen)
+unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
+                     unsigned int buflen)
 {
     unsigned int ctr, pos;
     uint32_t t0, t1;
@@ -434,31 +448,36 @@ static unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
  *              output stream from SHAKE256(seed|nonce).
  *
  * Arguments:   - poly *a: pointer to output polynomial
- *              - const uint8_t seed[]: byte array with seed of length CRHBYTES
+ *              - const uint8_t seed[]: byte array with seed of length
+ *CRHBYTES
  *              - uint16_t nonce: 2-byte nonce
  **************************************************/
 #if ETA == 2
 #    define POLY_UNIFORM_ETA_NBLOCKS \
-        ((136 + STREAM256_BLOCKBYTES - 1) / STREAM256_BLOCKBYTES)
+        ((136 + SHAKE256_RATE - 1) / SHAKE256_RATE)
 #elif ETA == 4
 #    define POLY_UNIFORM_ETA_NBLOCKS \
-        ((227 + STREAM256_BLOCKBYTES - 1) / STREAM256_BLOCKBYTES)
+        ((227 + SHAKE256_RATE - 1) / SHAKE256_RATE)
 #endif
-void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce)
+void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES],
+                      uint16_t nonce)
 {
     unsigned int ctr;
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES;
-    uint8_t buf[POLY_UNIFORM_ETA_NBLOCKS * STREAM256_BLOCKBYTES];
-    stream256_state state;
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    uint8_t buf[POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE];
+    keccak_state state;
 
-    stream256_init(&state, seed, nonce);
-    stream256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
+    memcpy(buf, seed, CRHBYTES);
+    buf[CRHBYTES] = nonce;
+    buf[CRHBYTES + 1] = nonce >> 8;
+    shake256_absorb_once(&state, buf, CRHBYTES + 2);
+    shake256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
 
     ctr = rej_eta(a->coeffs, N, buf, buflen);
 
     while (ctr < N) {
-        stream256_squeezeblocks(buf, 1, &state);
-        ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, STREAM256_BLOCKBYTES);
+        shake256_squeezeblocks(buf, 1, &state);
+        ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, SHAKE256_RATE);
     }
 }
 
@@ -470,18 +489,25 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce)
  *              of SHAKE256(seed|nonce).
  *
  * Arguments:   - poly *a: pointer to output polynomial
- *              - const uint8_t seed[]: byte array with seed of length CRHBYTES
+ *              - const uint8_t seed[]: byte array with seed of length
+ *CRHBYTES
  *              - uint16_t nonce: 16-bit nonce
  **************************************************/
 #define POLY_UNIFORM_GAMMA1_NBLOCKS \
-    ((POLYZ_PACKEDBYTES + STREAM256_BLOCKBYTES - 1) / STREAM256_BLOCKBYTES)
-void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce)
+    ((POLYZ_PACKEDBYTES + SHAKE256_RATE - 1) / SHAKE256_RATE)
+void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES],
+                         uint16_t nonce)
 {
-    uint8_t buf[POLY_UNIFORM_GAMMA1_NBLOCKS * STREAM256_BLOCKBYTES];
-    stream256_state state;
+    uint8_t buf[POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE];
+    keccak_state state;
 
-    stream256_init(&state, seed, nonce);
-    stream256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
+    memcpy(buf, seed, CRHBYTES);
+    buf[CRHBYTES] = nonce;
+    buf[CRHBYTES + 1] = nonce >> 8;
+    shake256_init(&state);
+    shake256_absorb(&state, buf, CRHBYTES + 2);
+    shake256_finalize(&state);
+    shake256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
     polyz_unpack(a, buf);
 }
 
@@ -558,7 +584,8 @@ void polyeta_pack(uint8_t *r, const poly *a)
         t[7] = ETA - a->coeffs[8 * i + 7];
 
         r[3 * i + 0] = (t[0] >> 0) | (t[1] << 3) | (t[2] << 6);
-        r[3 * i + 1] = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
+        r[3 * i + 1] =
+            (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
         r[3 * i + 2] = (t[5] >> 1) | (t[6] << 2) | (t[7] << 5);
     }
 #elif ETA == 4
@@ -589,10 +616,12 @@ void polyeta_unpack(poly *r, const uint8_t *a)
     for (i = 0; i < N / 8; ++i) {
         r->coeffs[8 * i + 0] = (a[3 * i + 0] >> 0) & 7;
         r->coeffs[8 * i + 1] = (a[3 * i + 0] >> 3) & 7;
-        r->coeffs[8 * i + 2] = ((a[3 * i + 0] >> 6) | (a[3 * i + 1] << 2)) & 7;
+        r->coeffs[8 * i + 2] =
+            ((a[3 * i + 0] >> 6) | (a[3 * i + 1] << 2)) & 7;
         r->coeffs[8 * i + 3] = (a[3 * i + 1] >> 1) & 7;
         r->coeffs[8 * i + 4] = (a[3 * i + 1] >> 4) & 7;
-        r->coeffs[8 * i + 5] = ((a[3 * i + 1] >> 7) | (a[3 * i + 2] << 1)) & 7;
+        r->coeffs[8 * i + 5] =
+            ((a[3 * i + 1] >> 7) | (a[3 * i + 2] << 1)) & 7;
         r->coeffs[8 * i + 6] = (a[3 * i + 2] >> 2) & 7;
         r->coeffs[8 * i + 7] = (a[3 * i + 2] >> 5) & 7;
 
@@ -620,8 +649,8 @@ void polyeta_unpack(poly *r, const uint8_t *a)
 /*************************************************
  * Name:        polyt1_pack
  *
- * Description: Bit-pack polynomial t1 with coefficients fitting in 10 bits.
- *              Input coefficients are assumed to be standard representatives.
+ * Description: Bit-pack polynomial t1 with coefficients fitting in 10
+ *bits. Input coefficients are assumed to be standard representatives.
  *
  * Arguments:   - uint8_t *r: pointer to output byte array with at least
  *                            POLYT1_PACKEDBYTES bytes
@@ -677,7 +706,8 @@ void polyt1_unpack(poly *r, const uint8_t *a)
 /*************************************************
  * Name:        polyt0_pack
  *
- * Description: Bit-pack polynomial t0 with coefficients in ]-2^{D-1}, 2^{D-1}].
+ * Description: Bit-pack polynomial t0 with coefficients in ]-2^{D-1},
+ *2^{D-1}].
  *
  * Arguments:   - uint8_t *r: pointer to output byte array with at least
  *                            POLYT0_PACKEDBYTES bytes
@@ -727,7 +757,8 @@ void polyt0_pack(uint8_t *r, const poly *a)
 /*************************************************
  * Name:        polyt0_unpack
  *
- * Description: Unpack polynomial t0 with coefficients in ]-2^{D-1}, 2^{D-1}].
+ * Description: Unpack polynomial t0 with coefficients in ]-2^{D-1},
+ *2^{D-1}].
  *
  * Arguments:   - poly *r: pointer to output polynomial
  *              - const uint8_t *a: byte array with bit-packed polynomial
@@ -904,8 +935,8 @@ void polyz_unpack(poly *r, const uint8_t *a)
 /*************************************************
  * Name:        polyw1_pack
  *
- * Description: Bit-pack polynomial w1 with coefficients in [0,15] or [0,43].
- *              Input coefficients are assumed to be standard representatives.
+ * Description: Bit-pack polynomial w1 with coefficients in [0,15] or
+ *[0,43]. Input coefficients are assumed to be standard representatives.
  *
  * Arguments:   - uint8_t *r: pointer to output byte array with at least
  *                            POLYW1_PACKEDBYTES bytes

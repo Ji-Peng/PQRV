@@ -1,20 +1,1553 @@
 #include "polyvec.h"
 
 #include <stdint.h>
+#include <string.h>
 
+#include "fips202x.h"
 #include "params.h"
 #include "poly.h"
 
-/*************************************************
- * Name:        expand_mat
- *
- * Description: Implementation of ExpandA. Generates matrix A with uniformly
- *              random coefficients a_{i,j} by performing rejection
- *              sampling on the output stream of SHAKE128(rho|j|i).
- *
- * Arguments:   - polyvecl mat[K]: output matrix
- *              - const uint8_t rho[]: byte array containing seed rho
- **************************************************/
+#define POLY_UNIFORM_NBLOCKS ((768 + SHAKE128_RATE - 1) / SHAKE128_RATE)
+
+#if ETA == 2
+#    define POLY_UNIFORM_ETA_NBLOCKS \
+        ((136 + SHAKE256_RATE - 1) / SHAKE256_RATE)
+#elif ETA == 4
+#    define POLY_UNIFORM_ETA_NBLOCKS \
+        ((227 + SHAKE256_RATE - 1) / SHAKE256_RATE)
+#endif
+
+#define POLY_UNIFORM_GAMMA1_NBLOCKS \
+    ((POLYZ_PACKEDBYTES + SHAKE256_RATE - 1) / SHAKE256_RATE)
+
+#if K == 4 && L == 4
+#    if defined(HYBRIDX3)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[5][3][2] = {
+        {{0, 0}, {0, 1}, {0, 2}}, {{0, 3}, {1, 0}, {1, 1}},
+        {{1, 2}, {1, 3}, {2, 0}}, {{2, 1}, {2, 2}, {2, 3}},
+        {{3, 0}, {3, 1}, {3, 2}},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x3_absorb_once(statex3, inN, 34);
+        shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    memcpy(buf[0].coeffs, seed, 32);
+    buf[0].coeffs[32] = 3;
+    buf[0].coeffs[33] = 3;
+    shake128_absorb_once(&statex1, buf[0].coeffs, 34);
+    shake128_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_NBLOCKS, &statex1);
+    ctr[0] = rej_uniform(mat[3].vec[3].coeffs, N, buf[0].coeffs, buflen);
+    while (ctr[0] < N) {
+        shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+        ctr[0] += rej_uniform(mat[3].vec[3].coeffs + ctr[0], N - ctr[0],
+                              buf[0].coeffs, SHAKE128_RATE);
+    }
+    free(statex3);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[2 + 1][3] = {
+        {nonce_l + 0, nonce_l + 1, nonce_l + 2},
+        {nonce_l + 3, nonce_k + 0, nonce_k + 1},
+        {nonce_k + 2, nonce_k + 3, 0},
+    };
+    int32_t *buf_polys[2 + 1][3] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs},
+        {v_l->vec[3].coeffs, v_k->vec[0].coeffs, v_k->vec[1].coeffs},
+        {v_k->vec[2].coeffs, v_k->vec[3].coeffs, 0},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+        shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex3);
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+    for (j = 0; j < 2; j++) {
+        if (ctr[j] < N)
+            keccakx2_get_oneway_state(statex2, &statex1, j);
+        while (ctr[j] < N) {
+            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                              buf[0].coeffs, SHAKE256_RATE);
+        }
+    }
+    free(statex2);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[3] = {
+        L * nonce + 0,
+        L * nonce + 1,
+        L * nonce + 2,
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = (L * nonce + 3);
+    buf[0].coeffs[CRHBYTES + 1] = (L * nonce + 3) >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                           &statex1);
+    polyz_unpack(&v->vec[3], buf[0].coeffs);
+    free(statex3);
+}
+#    elif defined(HYBRIDX4)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[(K * L) >> 2][4][2] = {
+        {{0, 0}, {0, 1}, {0, 2}, {0, 3}},
+        {{1, 0}, {1, 1}, {1, 2}, {1, 3}},
+        {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
+        {{3, 0}, {3, 1}, {3, 2}, {3, 3}},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x4_absorb_once(statex4, inN, 34);
+        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex4);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[(K + L) >> 2][4] = {
+        {nonce_l, nonce_l + 1, nonce_l + 2, nonce_l + 3},
+        {nonce_k, nonce_k + 1, nonce_k + 2, nonce_k + 3},
+    };
+    int32_t *buf_polys[(K + L) >> 2][4] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
+         v_l->vec[3].coeffs},
+        {v_k->vec[0].coeffs, v_k->vec[1].coeffs, v_k->vec[2].coeffs,
+         v_k->vec[3].coeffs},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K + L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex4);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[4] = {
+        L * nonce + 0,
+        L * nonce + 1,
+        L * nonce + 2,
+        L * nonce + 3,
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 4; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+    shake256x4_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex4);
+    for (j = 0; j < 4; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+    free(statex4);
+}
+#    elif defined(VECTOR128)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[(K * L) >> 1][2][2] = {
+        {{0, 0}, {0, 1}}, {{0, 2}, {0, 3}}, {{1, 0}, {1, 1}},
+        {{1, 2}, {1, 3}}, {{2, 0}, {2, 1}}, {{2, 2}, {2, 3}},
+        {{3, 0}, {3, 1}}, {{3, 2}, {3, 3}},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 1; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x2_absorb_once(statex2, inN, 34);
+        shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex2);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[(K + L) >> 1][2] = {
+        {nonce_l + 0, nonce_l + 1},
+        {nonce_l + 2, nonce_l + 3},
+        {nonce_k + 0, nonce_k + 1},
+        {nonce_k + 2, nonce_k + 3},
+    };
+    int32_t *buf_polys[(K + L) >> 1][2] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs},
+        {v_l->vec[2].coeffs, v_l->vec[3].coeffs},
+        {v_k->vec[0].coeffs, v_k->vec[1].coeffs},
+        {v_k->vec[2].coeffs, v_k->vec[3].coeffs},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K + L) >> 1; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex2);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int i, j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[2][2] = {
+        {L * nonce + 0, L * nonce + 1},
+        {L * nonce + 2, L * nonce + 3},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; ++j) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                                 statex2);
+        for (j = 0; j < 2; j++)
+            polyz_unpack(&v->vec[i * 2 + j], buf[j].coeffs);
+    }
+    free(statex2);
+}
+#    endif
+#elif K == 6 && L == 5
+#    if defined(HYBRIDX3)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[10][3][2] = {
+        {{0, 0}, {0, 1}, {0, 2}}, {{0, 3}, {0, 4}, {1, 0}},
+        {{1, 1}, {1, 2}, {1, 3}}, {{1, 4}, {2, 0}, {2, 1}},
+        {{2, 2}, {2, 3}, {2, 4}}, {{3, 0}, {3, 1}, {3, 2}},
+        {{3, 3}, {3, 4}, {4, 0}}, {{4, 1}, {4, 2}, {4, 3}},
+        {{4, 4}, {5, 0}, {5, 1}}, {{5, 2}, {5, 3}, {5, 4}},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x3_absorb_once(statex3, inN, 34);
+        shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex3);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[3 + 1][3] = {
+        {nonce_l + 0, nonce_l + 1, nonce_l + 2},
+        {nonce_l + 3, nonce_l + 4, nonce_k + 0},
+        {nonce_k + 1, nonce_k + 2, nonce_k + 3},
+        {nonce_k + 4, nonce_k + 5, 0},
+    };
+    int32_t *buf_polys[3 + 1][3] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs},
+        {v_l->vec[3].coeffs, v_l->vec[4].coeffs, v_k->vec[0].coeffs},
+        {v_k->vec[1].coeffs, v_k->vec[2].coeffs, v_k->vec[3].coeffs},
+        {v_k->vec[4].coeffs, v_k->vec[5].coeffs, 0},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+        shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex3);
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+    for (j = 0; j < 2; j++) {
+        if (ctr[j] < N)
+            keccakx2_get_oneway_state(statex2, &statex1, j);
+        while (ctr[j] < N) {
+            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                              buf[0].coeffs, SHAKE256_RATE);
+        }
+    }
+    free(statex2);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccakx2_state *statex2;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[3 + 2] = {
+        L * nonce + 0, L * nonce + 1, L * nonce + 2,
+        L * nonce + 3, L * nonce + 4,
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+    free(statex3);
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j + 3];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j + 3] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        polyz_unpack(&v->vec[j + 3], buf[j].coeffs);
+    free(statex2);
+}
+#    elif defined(HYBRIDX4)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[((K * L) >> 2) + 1][4][2] = {
+        {{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{0, 4}, {1, 0}, {1, 1}, {1, 2}},
+        {{1, 3}, {1, 4}, {2, 0}, {2, 1}}, {{2, 2}, {2, 3}, {2, 4}, {3, 0}},
+        {{3, 1}, {3, 2}, {3, 3}, {3, 4}}, {{4, 0}, {4, 1}, {4, 2}, {4, 3}},
+        {{4, 4}, {5, 0}, {5, 1}, {5, 2}}, {{5, 3}, {5, 4}, {0, 0}, {0, 0}},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x4_absorb_once(statex4, inN, 34);
+        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex4);
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, 32);
+        buf[j].coeffs[32] = buf_index[i][j][1];
+        buf[j].coeffs[33] = buf_index[i][j][0];
+    }
+    shake128x2_absorb_once(statex2, inN, 34);
+    shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        ctr[j] = rej_uniform(
+            mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+            buf[j].coeffs, buflen);
+    for (j = 0; j < 2; j++) {
+        if (ctr[j] < N)
+            keccakx2_get_oneway_state(statex2, &statex1, j);
+        while (ctr[j] < N) {
+            shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
+                    ctr[j],
+                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+        }
+    }
+    free(statex2);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[((K + L) >> 2) + 1][4] = {
+        {nonce_l + 0, nonce_l + 1, nonce_l + 2, nonce_l + 3},
+        {nonce_l + 4, nonce_k + 0, nonce_k + 1, nonce_k + 2},
+        {nonce_k + 3, nonce_k + 4, nonce_k + 5, 0},
+    };
+    int32_t *buf_polys[((K + L) >> 2) + 1][4] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
+         v_l->vec[3].coeffs},
+        {v_l->vec[4].coeffs, v_k->vec[0].coeffs, v_k->vec[1].coeffs,
+         v_k->vec[2].coeffs},
+        {v_k->vec[3].coeffs, v_k->vec[4].coeffs, v_k->vec[5].coeffs, 0},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K + L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex4);
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+    for (j = 0; j < 3; j++) {
+        if (ctr[j] < N)
+            keccakx3_get_oneway_state(statex3, &statex1, j);
+        while (ctr[j] < N) {
+            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                              buf[0].coeffs, SHAKE256_RATE);
+        }
+    }
+    free(statex3);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[4] = {
+        L * nonce + 0,
+        L * nonce + 1,
+        L * nonce + 2,
+        L * nonce + 3,
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 4; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+    shake256x4_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex4);
+    for (j = 0; j < 4; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = (L * nonce + 4);
+    buf[0].coeffs[CRHBYTES + 1] = (L * nonce + 4) >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                           &statex1);
+    polyz_unpack(&v->vec[4], buf[0].coeffs);
+    free(statex4);
+}
+#    elif defined(VECTOR128)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[(K * L) >> 1][2][2] = {
+        {{0, 0}, {0, 1}}, {{0, 2}, {0, 3}}, {{0, 4}, {1, 0}},
+        {{1, 1}, {1, 2}}, {{1, 3}, {1, 4}}, {{2, 0}, {2, 1}},
+        {{2, 2}, {2, 3}}, {{2, 4}, {3, 0}}, {{3, 1}, {3, 2}},
+        {{3, 3}, {3, 4}}, {{4, 0}, {4, 1}}, {{4, 2}, {4, 3}},
+        {{4, 4}, {5, 0}}, {{5, 1}, {5, 2}}, {{5, 3}, {5, 4}},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 1; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x2_absorb_once(statex2, inN, 34);
+        shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex2);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[((K + L) >> 1) + 1][2] = {
+        {nonce_l + 0, nonce_l + 1}, {nonce_l + 2, nonce_l + 3},
+        {nonce_l + 4, nonce_k + 0}, {nonce_k + 1, nonce_k + 2},
+        {nonce_k + 3, nonce_k + 4}, {nonce_k + 5, 0},
+    };
+    int32_t *buf_polys[((K + L) >> 1) + 1][2] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs},
+        {v_l->vec[2].coeffs, v_l->vec[3].coeffs},
+        {v_l->vec[4].coeffs, v_k->vec[0].coeffs},
+        {v_k->vec[1].coeffs, v_k->vec[2].coeffs},
+        {v_k->vec[3].coeffs, v_k->vec[4].coeffs},
+        {v_k->vec[5].coeffs, 0},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K + L) >> 1; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = buf_nonce[i][0];
+    buf[0].coeffs[CRHBYTES + 1] = buf_nonce[i][0] >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_ETA_NBLOCKS,
+                           &statex1);
+    ctr[0] = rej_eta(buf_polys[i][0], N, buf[0].coeffs, buflen);
+    while (ctr[0] < N) {
+        shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+        ctr[0] += rej_eta(buf_polys[i][0] + ctr[0], N - ctr[0],
+                          buf[0].coeffs, SHAKE256_RATE);
+    }
+    free(statex2);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int i, j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[2][2] = {
+        {L * nonce + 0, L * nonce + 1},
+        {L * nonce + 2, L * nonce + 3},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; ++j) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                                 statex2);
+        for (j = 0; j < 2; j++)
+            polyz_unpack(&v->vec[i * 2 + j], buf[j].coeffs);
+    }
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = (L * nonce + 4);
+    buf[0].coeffs[CRHBYTES + 1] = (L * nonce + 4) >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                           &statex1);
+    polyz_unpack(&v->vec[4], buf[0].coeffs);
+    free(statex2);
+}
+#    endif
+#elif K == 8 && L == 7
+#    if defined(HYBRIDX3)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[18 + 1][3][2] = {
+        {{0, 0}, {0, 1}, {0, 2}}, {{0, 3}, {0, 4}, {0, 5}},
+        {{0, 6}, {1, 0}, {1, 1}}, {{1, 2}, {1, 3}, {1, 4}},
+        {{1, 5}, {1, 6}, {2, 0}}, {{2, 1}, {2, 2}, {2, 3}},
+        {{2, 4}, {2, 5}, {2, 6}}, {{3, 0}, {3, 1}, {3, 2}},
+        {{3, 3}, {3, 4}, {3, 5}}, {{3, 6}, {4, 0}, {4, 1}},
+        {{4, 2}, {4, 3}, {4, 4}}, {{4, 5}, {4, 6}, {5, 0}},
+        {{5, 1}, {5, 2}, {5, 3}}, {{5, 4}, {5, 5}, {5, 6}},
+        {{6, 0}, {6, 1}, {6, 2}}, {{6, 3}, {6, 4}, {6, 5}},
+        {{6, 6}, {7, 0}, {7, 1}}, {{7, 2}, {7, 3}, {7, 4}},
+        {{7, 5}, {7, 6}, {0, 0}},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 18; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x3_absorb_once(statex3, inN, 34);
+        shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex3);
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, 32);
+        buf[j].coeffs[32] = buf_index[i][j][1];
+        buf[j].coeffs[33] = buf_index[i][j][0];
+    }
+    shake128x2_absorb_once(statex2, inN, 34);
+    shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        ctr[j] = rej_uniform(
+            mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+            buf[j].coeffs, buflen);
+    for (j = 0; j < 2; j++) {
+        if (ctr[j] < N)
+            keccakx2_get_oneway_state(statex2, &statex1, j);
+        while (ctr[j] < N) {
+            shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
+                    ctr[j],
+                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+        }
+    }
+    free(statex2);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[3];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[5][3] = {
+        {nonce_l + 0, nonce_l + 1, nonce_l + 2},
+        {nonce_l + 3, nonce_l + 4, nonce_l + 5},
+        {nonce_l + 6, nonce_k + 0, nonce_k + 1},
+        {nonce_k + 2, nonce_k + 3, nonce_k + 4},
+        {nonce_k + 5, nonce_k + 6, nonce_k + 7},
+    };
+    int32_t *buf_polys[5][3] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs},
+        {v_l->vec[3].coeffs, v_l->vec[4].coeffs, v_l->vec[5].coeffs},
+        {v_l->vec[6].coeffs, v_k->vec[0].coeffs, v_k->vec[1].coeffs},
+        {v_k->vec[2].coeffs, v_k->vec[3].coeffs, v_k->vec[4].coeffs},
+        {v_k->vec[5].coeffs, v_k->vec[6].coeffs, v_k->vec[7].coeffs},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 3; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+        shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
+        for (j = 0; j < 3; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 3; j++) {
+            if (ctr[j] < N)
+                keccakx3_get_oneway_state(statex3, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex3);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int i, j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[2][3] = {
+        {L * nonce + 0, L * nonce + 1, L * nonce + 2},
+        {L * nonce + 3, L * nonce + 4, L * nonce + 5},
+    };
+
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 3; ++j) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+        shake256x3_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                                 statex3);
+        for (j = 0; j < 3; j++)
+            polyz_unpack(&v->vec[i * 3 + j], buf[j].coeffs);
+    }
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = (L * nonce + 6);
+    buf[0].coeffs[CRHBYTES + 1] = (L * nonce + 6) >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                           &statex1);
+    polyz_unpack(&v->vec[6], buf[0].coeffs);
+    free(statex3);
+}
+#    elif defined(HYBRIDX4)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[(K * L) >> 2][4][2] = {
+        {{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{0, 4}, {0, 5}, {0, 6}, {1, 0}},
+        {{1, 1}, {1, 2}, {1, 3}, {1, 4}}, {{1, 5}, {1, 6}, {2, 0}, {2, 1}},
+        {{2, 2}, {2, 3}, {2, 4}, {2, 5}}, {{2, 6}, {3, 0}, {3, 1}, {3, 2}},
+        {{3, 3}, {3, 4}, {3, 5}, {3, 6}}, {{4, 0}, {4, 1}, {4, 2}, {4, 3}},
+        {{4, 4}, {4, 5}, {4, 6}, {5, 0}}, {{5, 1}, {5, 2}, {5, 3}, {5, 4}},
+        {{5, 5}, {5, 6}, {6, 0}, {6, 1}}, {{6, 2}, {6, 3}, {6, 4}, {6, 5}},
+        {{6, 6}, {7, 0}, {7, 1}, {7, 2}}, {{7, 3}, {7, 4}, {7, 5}, {7, 6}},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x4_absorb_once(statex4, inN, 34);
+        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex4);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[4];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccakx3_state *statex3;
+    keccak_state statex1;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[((K + L) >> 2) + 1][4] = {
+        {nonce_l + 0, nonce_l + 1, nonce_l + 2, nonce_l + 3},
+        {nonce_l + 4, nonce_l + 5, nonce_l + 6, nonce_k + 0},
+        {nonce_k + 1, nonce_k + 2, nonce_k + 3, nonce_k + 4},
+        {nonce_k + 5, nonce_k + 6, nonce_k + 7, 0},
+    };
+    int32_t *buf_polys[((K + L) >> 2) + 1][4] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
+         v_l->vec[3].coeffs},
+        {v_l->vec[4].coeffs, v_l->vec[5].coeffs, v_l->vec[6].coeffs,
+         v_k->vec[0].coeffs},
+        {v_k->vec[1].coeffs, v_k->vec[2].coeffs, v_k->vec[3].coeffs,
+         v_k->vec[4].coeffs},
+        {v_k->vec[5].coeffs, v_k->vec[6].coeffs, v_k->vec[7].coeffs, 0},
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K + L) >> 2; i++) {
+        for (j = 0; j < 4; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
+        for (j = 0; j < 4; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 4; j++) {
+            if (ctr[j] < N)
+                keccakx4_get_oneway_state(statex4, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    free(statex4);
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+    for (j = 0; j < 3; j++) {
+        if (ctr[j] < N)
+            keccakx3_get_oneway_state(statex3, &statex1, j);
+        while (ctr[j] < N) {
+            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                              buf[0].coeffs, SHAKE256_RATE);
+        }
+    }
+    free(statex3);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[4];
+    keccakx4_state *statex4;
+    keccakx3_state *statex3;
+    const uint8_t *inN[4];
+    uint8_t *outN[4];
+    const uint16_t buf_nonce[4 + 3] = {
+        L * nonce + 0, L * nonce + 1, L * nonce + 2, L * nonce + 3,
+        L * nonce + 4, L * nonce + 5, L * nonce + 6,
+    };
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 4; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
+    shake256x4_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex4);
+    for (j = 0; j < 4; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+    free(statex4);
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[4 + j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[4 + j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        polyz_unpack(&v->vec[4 + j], buf[j].coeffs);
+    free(statex3);
+}
+#    elif defined(VECTOR128)
+void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint8_t *seed = rho;
+    const uint8_t buf_index[(K * L) >> 1][2][2] = {
+        {{0, 0}, {0, 1}}, {{0, 2}, {0, 3}}, {{0, 4}, {0, 5}},
+        {{0, 6}, {1, 0}}, {{1, 1}, {1, 2}}, {{1, 3}, {1, 4}},
+        {{1, 5}, {1, 6}}, {{2, 0}, {2, 1}}, {{2, 2}, {2, 3}},
+        {{2, 4}, {2, 5}}, {{2, 6}, {3, 0}}, {{3, 1}, {3, 2}},
+        {{3, 3}, {3, 4}}, {{3, 5}, {3, 6}}, {{4, 0}, {4, 1}},
+        {{4, 2}, {4, 3}}, {{4, 4}, {4, 5}}, {{4, 6}, {5, 0}},
+        {{5, 1}, {5, 2}}, {{5, 3}, {5, 4}}, {{5, 5}, {5, 6}},
+        {{6, 0}, {6, 1}}, {{6, 2}, {6, 3}}, {{6, 4}, {6, 5}},
+        {{6, 6}, {7, 0}}, {{7, 1}, {7, 2}}, {{7, 3}, {7, 4}},
+        {{7, 5}, {7, 6}},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < (K * L) >> 1; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, 32);
+            buf[j].coeffs[32] = buf_index[i][j][1];
+            buf[j].coeffs[33] = buf_index[i][j][0];
+        }
+        shake128x2_absorb_once(statex2, inN, 34);
+        shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_uniform(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
+                buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] +=
+                    rej_uniform(mat[buf_index[i][j][0]]
+                                        .vec[buf_index[i][j][1]]
+                                        .coeffs +
+                                    ctr[j],
+                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+            }
+        }
+    }
+    free(statex2);
+}
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i, j, ctr[2];
+    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
+    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[7 + 1][2] = {
+        {nonce_l + 0, nonce_l + 1}, {nonce_l + 2, nonce_l + 3},
+        {nonce_l + 4, nonce_l + 5}, {nonce_l + 6, nonce_k + 0},
+        {nonce_k + 1, nonce_k + 2}, {nonce_k + 3, nonce_k + 4},
+        {nonce_k + 5, nonce_k + 6}, {nonce_k + 7, 0},
+    };
+    int32_t *buf_polys[7 + 1][2] = {
+        {v_l->vec[0].coeffs, v_l->vec[1].coeffs},
+        {v_l->vec[2].coeffs, v_l->vec[3].coeffs},
+        {v_l->vec[4].coeffs, v_l->vec[5].coeffs},
+        {v_l->vec[6].coeffs, v_k->vec[0].coeffs},
+        {v_k->vec[1].coeffs, v_k->vec[2].coeffs},
+        {v_k->vec[3].coeffs, v_k->vec[4].coeffs},
+        {v_k->vec[5].coeffs, v_k->vec[6].coeffs},
+        {v_k->vec[7].coeffs, 0},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 7; i++) {
+        for (j = 0; j < 2; j++) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
+            if (ctr[j] < N)
+                keccakx2_get_oneway_state(statex2, &statex1, j);
+            while (ctr[j] < N) {
+                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
+                                  buf[0].coeffs, SHAKE256_RATE);
+            }
+        }
+    }
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = buf_nonce[i][0];
+    buf[0].coeffs[CRHBYTES + 1] = buf_nonce[i][0] >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_ETA_NBLOCKS,
+                           &statex1);
+    ctr[0] = rej_eta(buf_polys[i][0], N, buf[0].coeffs, buflen);
+    while (ctr[0] < N) {
+        shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
+        ctr[0] += rej_eta(buf_polys[i][0] + ctr[0], N - ctr[0],
+                          buf[0].coeffs, SHAKE256_RATE);
+    }
+    free(statex2);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int i, j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    keccak_state statex1;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[3][2] = {
+        {L * nonce + 0, L * nonce + 1},
+        {L * nonce + 2, L * nonce + 3},
+        {L * nonce + 4, L * nonce + 5},
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 2; ++j) {
+            outN[j] = buf[j].coeffs;
+            inN[j] = buf[j].coeffs;
+            memcpy(buf[j].coeffs, seed, CRHBYTES);
+            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
+            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
+        }
+        shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+        shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                                 statex2);
+        for (j = 0; j < 2; j++)
+            polyz_unpack(&v->vec[i * 2 + j], buf[j].coeffs);
+    }
+    memcpy(buf[0].coeffs, seed, CRHBYTES);
+    buf[0].coeffs[CRHBYTES + 0] = (L * nonce + 6);
+    buf[0].coeffs[CRHBYTES + 1] = (L * nonce + 6) >> 8;
+    shake256_absorb_once(&statex1, buf[0].coeffs, CRHBYTES + 2);
+    shake256_squeezeblocks(buf[0].coeffs, POLY_UNIFORM_GAMMA1_NBLOCKS,
+                           &statex1);
+    polyz_unpack(&v->vec[6], buf[0].coeffs);
+    free(statex2);
+}
+#    endif
+#endif
+
+#if !defined(HYBRIDX4) && !defined(HYBRIDX3) && !defined(VECTOR128)
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
     unsigned int i, j;
@@ -23,8 +1556,29 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         for (j = 0; j < L; ++j)
             poly_uniform(&mat[i].vec[j], rho, (i << 8) + j);
 }
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k)
+{
+    unsigned int i;
 
-void polyvec_matrix_pointwise_montgomery(polyveck *t, const polyvecl mat[K],
+    for (i = 0; i < L; ++i)
+        poly_uniform_eta(&v_l->vec[i], seed, nonce_l++);
+    for (i = 0; i < K; ++i)
+        poly_uniform_eta(&v_k->vec[i], seed, nonce_k++);
+}
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int i;
+
+    for (i = 0; i < L; ++i)
+        poly_uniform_gamma1(&v->vec[i], seed, L * nonce + i);
+}
+#endif
+
+void polyvec_matrix_pointwise_montgomery(polyveck *t,
+                                         const polyvecl mat[K],
                                          const polyvecl *v)
 {
     unsigned int i;
@@ -44,15 +1598,6 @@ void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[CRHBYTES],
 
     for (i = 0; i < L; ++i)
         poly_uniform_eta(&v->vec[i], seed, nonce++);
-}
-
-void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
-                             uint16_t nonce)
-{
-    unsigned int i;
-
-    for (i = 0; i < L; ++i)
-        poly_uniform_gamma1(&v->vec[i], seed, L * nonce + i);
 }
 
 void polyvecl_reduce(polyvecl *v)
@@ -84,8 +1629,8 @@ void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v)
 /*************************************************
  * Name:        polyvecl_ntt
  *
- * Description: Forward NTT of all polynomials in vector of length L. Output
- *              coefficients can be up to 16*Q larger than input coefficients.
+ * Description: Forward NTT of all polynomials in vector of length L.
+ *Output coefficients can be up to 16*Q larger than input coefficients.
  *
  * Arguments:   - polyvecl *v: pointer to input/output vector
  **************************************************/
@@ -117,9 +1662,9 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
 /*************************************************
  * Name:        polyvecl_pointwise_acc_montgomery
  *
- * Description: Pointwise multiply vectors of polynomials of length L, multiply
- *              resulting vector by 2^{-32} and add (accumulate) polynomials
- *              in it. Input/output vectors are in NTT domain representation.
+ * Description: Pointwise multiply vectors of polynomials of length L,
+ *multiply resulting vector by 2^{-32} and add (accumulate) polynomials in
+ *it. Input/output vectors are in NTT domain representation.
  *
  * Arguments:   - poly *w: output polynomial
  *              - const polyvecl *u: pointer to first input vector
@@ -147,8 +1692,8 @@ void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
  * Arguments:   - const polyvecl *v: pointer to vector
  *              - int32_t B: norm bound
  *
- * Returns 0 if norm of all polynomials is strictly smaller than B <= (Q-1)/8
- * and 1 otherwise.
+ * Returns 0 if norm of all polynomials is strictly smaller than B <=
+ *(Q-1)/8 and 1 otherwise.
  **************************************************/
 int polyvecl_chknorm(const polyvecl *v, int32_t bound)
 {
@@ -262,8 +1807,8 @@ void polyveck_shiftl(polyveck *v)
 /*************************************************
  * Name:        polyveck_ntt
  *
- * Description: Forward NTT of all polynomials in vector of length K. Output
- *              coefficients can be up to 16*Q larger than input coefficients.
+ * Description: Forward NTT of all polynomials in vector of length K.
+ *Output coefficients can be up to 16*Q larger than input coefficients.
  *
  * Arguments:   - polyveck *v: pointer to input/output vector
  **************************************************/
@@ -310,8 +1855,8 @@ void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
  * Arguments:   - const polyveck *v: pointer to vector
  *              - int32_t B: norm bound
  *
- * Returns 0 if norm of all polynomials are strictly smaller than B <= (Q-1)/8
- * and 1 otherwise.
+ * Returns 0 if norm of all polynomials are strictly smaller than B <=
+ *(Q-1)/8 and 1 otherwise.
  **************************************************/
 int polyveck_chknorm(const polyveck *v, int32_t bound)
 {
@@ -327,15 +1872,14 @@ int polyveck_chknorm(const polyveck *v, int32_t bound)
 /*************************************************
  * Name:        polyveck_power2round
  *
- * Description: For all coefficients a of polynomials in vector of length K,
- *              compute a0, a1 such that a mod^+ Q = a1*2^D + a0
- *              with -2^{D-1} < a0 <= 2^{D-1}. Assumes coefficients to be
- *              standard representatives.
+ * Description: For all coefficients a of polynomials in vector of length
+ *K, compute a0, a1 such that a mod^+ Q = a1*2^D + a0 with -2^{D-1} < a0 <=
+ *2^{D-1}. Assumes coefficients to be standard representatives.
  *
- * Arguments:   - polyveck *v1: pointer to output vector of polynomials with
- *                              coefficients a1
- *              - polyveck *v0: pointer to output vector of polynomials with
- *                              coefficients a0
+ * Arguments:   - polyveck *v1: pointer to output vector of polynomials
+ *with coefficients a1
+ *              - polyveck *v0: pointer to output vector of polynomials
+ *with coefficients a0
  *              - const polyveck *v: pointer to input vector
  **************************************************/
 void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v)
@@ -349,16 +1893,16 @@ void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v)
 /*************************************************
  * Name:        polyveck_decompose
  *
- * Description: For all coefficients a of polynomials in vector of length K,
- *              compute high and low bits a0, a1 such a mod^+ Q = a1*ALPHA + a0
- *              with -ALPHA/2 < a0 <= ALPHA/2 except a1 = (Q-1)/ALPHA where we
- *              set a1 = 0 and -ALPHA/2 <= a0 = a mod Q - Q < 0.
- *              Assumes coefficients to be standard representatives.
+ * Description: For all coefficients a of polynomials in vector of length
+ *K, compute high and low bits a0, a1 such a mod^+ Q = a1*ALPHA + a0 with
+ *-ALPHA/2 < a0 <= ALPHA/2 except a1 = (Q-1)/ALPHA where we set a1 = 0 and
+ *-ALPHA/2 <= a0 = a mod Q - Q < 0. Assumes coefficients to be standard
+ *representatives.
  *
- * Arguments:   - polyveck *v1: pointer to output vector of polynomials with
- *                              coefficients a1
- *              - polyveck *v0: pointer to output vector of polynomials with
- *                              coefficients a0
+ * Arguments:   - polyveck *v1: pointer to output vector of polynomials
+ *with coefficients a1
+ *              - polyveck *v0: pointer to output vector of polynomials
+ *with coefficients a0
  *              - const polyveck *v: pointer to input vector
  **************************************************/
 void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v)
@@ -409,7 +1953,8 @@ void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h)
         poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
 }
 
-void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES], const polyveck *w1)
+void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES],
+                      const polyveck *w1)
 {
     unsigned int i;
 

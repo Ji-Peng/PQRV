@@ -1,36 +1,33 @@
 Test speed of Dilithium2
-polyvec_matrix_expand:         801554 cycles
-poly_uniform_eta:               23667 cycles
-poly_uniform_gamma1:            50836 cycles
-poly_ntt:                       33968 cycles
-poly_invntt:                    44131 cycles
-poly_pointwise_montgomery:       7904 cycles
-poly_challenge:                 10985 cycles
-Keypair:                      1600670 cycles
-Sign:                         6997836 cycles
-Verify:                       1767532 cycles
+polyvec_matrix_expand:         464077 cycles
+polyveclk_uniform_eta:         125442 cycles
+poly_ntt:                       34184 cycles
+poly_invntt:                    57726 cycles
+poly_pointwise_montgomery:       7890 cycles
+poly_challenge:                 11266 cycles
+Keypair:                      1250548 cycles
+Sign:                         6376366 cycles
+Verify:                       1442500 cycles
 
 Test speed of Dilithium3
-polyvec_matrix_expand:        1500647 cycles
-poly_uniform_eta:               23101 cycles
-poly_uniform_gamma1:            50780 cycles
-poly_ntt:                       33926 cycles
-poly_invntt:                    44058 cycles
-poly_pointwise_montgomery:       7634 cycles
-poly_challenge:                 11225 cycles
-Keypair:                      2748714 cycles
-Sign:                         11358837 cycles
-Verify:                       2873772 cycles
+polyvec_matrix_expand:         830993 cycles
+polyveclk_uniform_eta:         174932 cycles
+poly_ntt:                       35115 cycles
+poly_invntt:                    44814 cycles
+poly_pointwise_montgomery:       7639 cycles
+poly_challenge:                 11218 cycles
+Keypair:                      1997678 cycles
+Sign:                         10571139 cycles
+Verify:                       2225745 cycles
 
 Test speed of Dilithium5
-polyvec_matrix_expand:        2802904 cycles
-poly_uniform_eta:               23698 cycles
-poly_uniform_gamma1:            50796 cycles
-poly_ntt:                       33970 cycles
-poly_invntt:                    44082 cycles
-poly_pointwise_montgomery:       7884 cycles
-poly_challenge:                 11404 cycles
-Keypair:                      4582803 cycles
-Sign:                         14113991 cycles
-Verify:                       4787404 cycles
+polyvec_matrix_expand:        1567657 cycles
+polyveclk_uniform_eta:         224786 cycles
+poly_ntt:                       33984 cycles
+poly_invntt:                    44126 cycles
+poly_pointwise_montgomery:       7889 cycles
+poly_challenge:                 11387 cycles
+Keypair:                      3276719 cycles
+Sign:                         12159745 cycles
+Verify:                       3565994 cycles
 

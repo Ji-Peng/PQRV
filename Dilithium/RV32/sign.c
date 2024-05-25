@@ -8,7 +8,6 @@
 #include "poly.h"
 #include "polyvec.h"
 #include "randombytes.h"
-#include "symmetric.h"
 
 /*************************************************
  * Name:        crypto_sign_keypair
@@ -42,8 +41,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
     polyvec_matrix_expand(mat, rho);
 
     /* Sample short vectors s1 and s2 */
-    polyvecl_uniform_eta(&s1, rhoprime, 0);
-    polyveck_uniform_eta(&s2, rhoprime, L);
+    polyveclk_uniform_eta(&s1, &s2, rhoprime, 0, L);
 
     /* Matrix-vector multiplication */
     s1hat = s1;
@@ -151,8 +149,8 @@ rej:
     if (polyvecl_chknorm(&z, GAMMA1 - BETA))
         goto rej;
 
-    /* Check that subtracting cs2 does not change high bits of w and low bits
-     * do not reveal secret information */
+    /* Check that subtracting cs2 does not change high bits of w and low
+     * bits do not reveal secret information */
     polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
     polyveck_invntt_tomont(&h);
     polyveck_sub(&w0, &w0, &h);
@@ -298,8 +296,8 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
  *
  * Returns 0 if signed message could be verified correctly and -1 otherwise
  **************************************************/
-int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm, size_t smlen,
-                     const uint8_t *pk)
+int crypto_sign_open(uint8_t *m, size_t *mlen, const uint8_t *sm,
+                     size_t smlen, const uint8_t *pk)
 {
     size_t i;
 

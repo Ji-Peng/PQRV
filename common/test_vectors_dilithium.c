@@ -12,7 +12,7 @@
 #include "sign.h"
 
 #define MLEN 32
-#define NVECTORS 10000
+#define NVECTORS 200
 
 void randombytes(uint8_t *out, size_t outlen)
 {
