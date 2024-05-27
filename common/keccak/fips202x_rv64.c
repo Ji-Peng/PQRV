@@ -27,3 +27,11 @@ IMPL_SHA3_RV64_APIS(6)
 #if defined(VECTOR128) && defined(HYBRIDX8)
 IMPL_SHA3_RV64_APIS(8)
 #endif
+
+#if defined(VECTOR128) && defined(HYBRIDX10)
+IMPL_SHA3_RV64_APIS(10)
+#endif
+
+#if defined(VECTOR128) && defined(HYBRIDX14)
+IMPL_SHA3_RV64_APIS(14)
+#endif

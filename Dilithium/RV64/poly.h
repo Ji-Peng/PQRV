@@ -9,6 +9,10 @@ typedef struct {
     int32_t coeffs[N];
 } poly;
 
+unsigned int rej_uniform(int32_t *a, unsigned int len, const uint8_t *buf,
+                         unsigned int buflen);
+unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
+                     unsigned int buflen);
 void poly_reduce(poly *a);
 void poly_caddq(poly *a);
 void poly_add(poly *c, const poly *a, const poly *b);

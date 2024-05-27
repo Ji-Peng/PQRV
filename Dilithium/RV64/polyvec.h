@@ -51,5 +51,7 @@ void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES], const polyveck *w1);
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]);
 void polyvec_matrix_pointwise_montgomery(polyveck *t, const polyvecl mat[K],
                                          const polyvecl *v);
-
+void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
+                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
+                           uint16_t nonce_k);
 #endif

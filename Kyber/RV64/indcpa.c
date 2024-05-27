@@ -259,7 +259,7 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
  *              - int transposed: boolean deciding whether A or A^T is generated
  **************************************************/
 
-#if defined(HYBRIDX6) && KYBER_K != 2
+#if defined(HYBRIDX6) && KYBER_K != 2 && !defined(RV64B)
 #    if KYBER_K == 3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {

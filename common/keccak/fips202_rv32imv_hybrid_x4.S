@@ -1644,7 +1644,7 @@ inner_loop:
     addi tp, tp, -1
     bnez tp, inner_loop
 
-    # outer loop cpntrol
+    # outer loop control
     StoreStates_s \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
