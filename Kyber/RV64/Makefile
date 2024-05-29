@@ -11,14 +11,12 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 			  	  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/kyber_ntt -I.
 
-CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
-CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 \
-	-DRV64B
-CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 \
+CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64 -DRV64IM
+CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 -DRV64IMB
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DRV64IMV \
 	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 \
-	-DRV64B \
-	-DVECTOR128
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DRV64IMBV \
+	-DVECTOR128 -DHYBRIDX8
 TARGET_IP = 192.168.123.99
 TARGET_USER = root
 TARGET_DIR  = /sharefs

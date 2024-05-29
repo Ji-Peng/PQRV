@@ -47,10 +47,12 @@ static void pack_pk(uint8_t r[KYBER_INDCPA_PUBLICKEYBYTES], polyvec *pk,
  * Description: De-serialize public key from a byte array;
  *              approximate inverse of pack_pk
  *
- * Arguments:   - polyvec *pk: pointer to output public-key polynomial vector
- *              - uint8_t *seed: pointer to output seed to generate matrix A
- *              - const uint8_t *packedpk: pointer to input serialized public
- *key
+ * Arguments:   - polyvec *pk: pointer to output public-key polynomial
+ *vector
+ *              - uint8_t *seed: pointer to output seed to generate matrix
+ *A
+ *              - const uint8_t *packedpk: pointer to input serialized
+ *public key
  **************************************************/
 static void unpack_pk(polyvec *pk, uint8_t seed[KYBER_SYMBYTES],
                       const uint8_t packedpk[KYBER_INDCPA_PUBLICKEYBYTES])
@@ -67,8 +69,8 @@ static void unpack_pk(polyvec *pk, uint8_t seed[KYBER_SYMBYTES],
  * Description: Serialize the secret key
  *
  * Arguments:   - uint8_t *r: pointer to output serialized secret key
- *              - polyvec *sk: pointer to input vector of polynomials (secret
- *key)
+ *              - polyvec *sk: pointer to input vector of polynomials
+ *(secret key)
  **************************************************/
 static void pack_sk(uint8_t r[KYBER_INDCPA_SECRETKEYBYTES], polyvec *sk)
 {
@@ -85,10 +87,10 @@ static void pack_sk(uint8_t r[KYBER_INDCPA_SECRETKEYBYTES], polyvec *sk)
  *
  * Description: De-serialize the secret key; inverse of pack_sk
  *
- * Arguments:   - polyvec *sk: pointer to output vector of polynomials (secret
- *key)
- *              - const uint8_t *packedsk: pointer to input serialized secret
- *key
+ * Arguments:   - polyvec *sk: pointer to output vector of polynomials
+ *(secret key)
+ *              - const uint8_t *packedsk: pointer to input serialized
+ *secret key
  **************************************************/
 static void unpack_sk(polyvec *sk,
                       const uint8_t packedsk[KYBER_INDCPA_SECRETKEYBYTES])
@@ -107,7 +109,8 @@ static void unpack_sk(polyvec *sk,
  *              poly *pk: pointer to the input vector of polynomials b
  *              poly *v: pointer to the input polynomial v
  **************************************************/
-static void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b, poly *v)
+static void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b,
+                            poly *v)
 {
     polyvec_compress(r, b);
     poly_compress(r + KYBER_POLYVECCOMPRESSEDBYTES, v);
@@ -121,7 +124,8 @@ static void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b, poly *v)
  *
  * Arguments:   - polyvec *b: pointer to the output vector of polynomials b
  *              - poly *v: pointer to the output polynomial v
- *              - const uint8_t *c: pointer to the input serialized ciphertext
+ *              - const uint8_t *c: pointer to the input serialized
+ *ciphertext
  **************************************************/
 static void unpack_ciphertext(polyvec *b, poly *v,
                               const uint8_t c[KYBER_INDCPA_BYTES])
@@ -137,10 +141,10 @@ static void unpack_ciphertext(polyvec *b, poly *v,
  *              uniform random integers mod q
  *
  * Arguments:   - int16_t *r: pointer to output buffer
- *              - unsigned int len: requested number of 16-bit integers (uniform
- *mod q)
- *              - const uint8_t *buf: pointer to input buffer (assumed to be
- *uniformly random bytes)
+ *              - unsigned int len: requested number of 16-bit integers
+ *(uniform mod q)
+ *              - const uint8_t *buf: pointer to input buffer (assumed to
+ *be uniformly random bytes)
  *              - unsigned int buflen: length of input buffer in bytes
  *
  * Returns number of sampled 16-bit integers (at most len)
@@ -153,8 +157,10 @@ static unsigned int rej_uniform(int16_t *r, unsigned int len,
 
     ctr = pos = 0;
     while (ctr < len && pos + 3 <= buflen) {
-        val0 = ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
-        val1 = ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4)) & 0xFFF;
+        val0 =
+            ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
+        val1 =
+            ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4)) & 0xFFF;
         pos += 3;
 
         if (val0 < KYBER_Q)
@@ -166,8 +172,9 @@ static unsigned int rej_uniform(int16_t *r, unsigned int len,
     return ctr;
 }
 
-#define GEN_MATRIX_NBLOCKS \
-    ((12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES)
+#define GEN_MATRIX_NBLOCKS                                       \
+    ((12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / \
+     XOF_BLOCKBYTES)
 
 #define REJ_UNIFORM_VECTOR_BUFLEN (GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES)
 
@@ -231,7 +238,8 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
         ctr += num1;
     }
     while (ctr < KYBER_N && pos <= REJ_UNIFORM_VECTOR_BUFLEN - 3) {
-        val0 = ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
+        val0 =
+            ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
         val1 = ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4));
         pos += 3;
         if (val0 < KYBER_Q)
@@ -246,19 +254,19 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
 #define gen_a(A, B) gen_matrix(A, B, 0)
 #define gen_at(A, B) gen_matrix(A, B, 1)
 
-#if KYBER_K == 2
-#    if defined(HYBRIDX4)
+#if KYBER_K == 2 && (defined(RV32IMV) || defined(RV32IMBV))
+// using 1x 4-way sha3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {
     unsigned int i, j, ctr[4];
     ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[4];
-    keccakx4_state *state;
+    keccakx4_state *statex4;
     keccak_state statex1;
     const uint8_t *inN[4];
     uint8_t *outN[4];
     const uint8_t buf_index[4][2] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
-    if ((state = malloc(sizeof(keccakx4_state))) == NULL) {
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
@@ -275,14 +283,14 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
             buf[j].coeffs[33] = buf_index[j][0];
         }
     }
-    shake128x4_absorb_once(state, inN, 34);
-    shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
+    shake128x4_absorb_once(statex4, inN, 34);
+    shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, statex4);
     for (j = 0; j < 4; j++)
         ctr[j] = rej_uniform_vector(
             a[buf_index[j][0]].vec[buf_index[j][1]].coeffs, buf[j].coeffs);
     for (j = 0; j < 4; j++) {
         if (ctr[j] < KYBER_N)
-            keccakx4_get_oneway_state(state, &statex1, j);
+            keccakx4_get_oneway_state(statex4, &statex1, j);
         while (ctr[j] < KYBER_N) {
             shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
             ctr[j] += rej_uniform(
@@ -292,128 +300,19 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
     }
     for (i = 0; i < KYBER_K; i++)
         for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs,
+                             qdata);
+    free(statex4);
 }
-#    elif defined(HYBRIDX3)
+#endif
+
+#if KYBER_K == 3 && (defined(RV32IMV) || defined(RV32IMBV))
+// using 3x 3-way sha3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {
     unsigned int i, j, ctr[3];
     ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[3];
-    keccakx3_state *state;
-    keccak_state statex1;
-    const uint8_t *inN[3];
-    uint8_t *outN[3];
-    const uint8_t buf_index[3][2] = {{0, 0}, {0, 1}, {1, 0}};
-
-    if ((state = malloc(sizeof(keccakx3_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-
-    for (j = 0; j < 3; j++) {
-        outN[j] = buf[j].coeffs;
-        inN[j] = buf[j].coeffs;
-        memcpy(buf[j].coeffs, seed, 32);
-        if (transposed) {
-            buf[j].coeffs[32] = buf_index[j][0];
-            buf[j].coeffs[33] = buf_index[j][1];
-        } else {
-            buf[j].coeffs[32] = buf_index[j][1];
-            buf[j].coeffs[33] = buf_index[j][0];
-        }
-    }
-    shake128x3_absorb_once(state, inN, 34);
-    shake128x3_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
-    for (j = 0; j < 3; j++)
-        ctr[j] = rej_uniform_vector(
-            a[buf_index[j][0]].vec[buf_index[j][1]].coeffs, buf[j].coeffs);
-    for (j = 0; j < 3; j++) {
-        if (ctr[j] < KYBER_N)
-            keccakx3_get_oneway_state(state, &statex1, j);
-        while (ctr[j] < KYBER_N) {
-            shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-            ctr[j] += rej_uniform(
-                a[buf_index[j][0]].vec[buf_index[j][1]].coeffs + ctr[j],
-                KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-        }
-    }
-    memcpy(buf[0].coeffs, seed, 32);
-    buf[0].coeffs[32] = 1;
-    buf[0].coeffs[33] = 1;
-    shake128_absorb_once(&statex1, buf[0].coeffs, 34);
-    shake128_squeezeblocks(buf[0].coeffs, GEN_MATRIX_NBLOCKS, &statex1);
-    ctr[0] = rej_uniform_vector(a[1].vec[1].coeffs, buf[0].coeffs);
-    while (ctr[0] < KYBER_N) {
-        shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-        ctr[0] += rej_uniform(a[1].vec[1].coeffs + ctr[0], KYBER_N - ctr[0],
-                              buf[0].coeffs, SHAKE128_RATE);
-    }
-    for (i = 0; i < KYBER_K; i++)
-        for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
-}
-#    elif defined(VECTOR128)
-void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
-{
-    unsigned int i, j, ctr[2];
-    ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[2];
-    keccakx2_state *state;
-    keccak_state statex1;
-    const uint8_t *inN[2];
-    uint8_t *outN[2];
-    const uint8_t buf_index[(KYBER_K * KYBER_K) / 2][2][2] = {{{0, 0}, {0, 1}},
-                                                              {{1, 0}, {1, 1}}};
-
-    if ((state = malloc(sizeof(keccakx2_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (KYBER_K * KYBER_K) / 2; i++) {
-        for (j = 0; j < 2; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            if (transposed) {
-                buf[j].coeffs[32] = buf_index[i][j][0];
-                buf[j].coeffs[33] = buf_index[i][j][1];
-            } else {
-                buf[j].coeffs[32] = buf_index[i][j][1];
-                buf[j].coeffs[33] = buf_index[i][j][0];
-            }
-        }
-        shake128x2_absorb_once(state, inN, 34);
-        shake128x2_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
-        for (j = 0; j < 2; j++)
-            ctr[j] = rej_uniform_vector(
-                a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
-                buf[j].coeffs);
-        for (j = 0; j < 2; j++) {
-            if (ctr[j] < KYBER_N)
-                keccakx2_get_oneway_state(state, &statex1, j);
-            while (ctr[j] < KYBER_N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_uniform(
-                    a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
-                        ctr[j],
-                    KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    for (i = 0; i < KYBER_K; i++)
-        for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
-}
-#    endif
-#elif KYBER_K == 3
-#    if defined(HYBRIDX3)
-void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
-{
-    unsigned int i, j, ctr[3];
-    ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[3];
-    keccakx3_state *state;
+    keccakx3_state *statex3;
     keccak_state statex1;
     const uint8_t *inN[3];
     uint8_t *outN[3];
@@ -422,7 +321,7 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
         {{1, 0}, {1, 1}, {1, 2}},
         {{2, 0}, {2, 1}, {2, 2}}};
 
-    if ((state = malloc(sizeof(keccakx3_state))) == NULL) {
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
@@ -440,15 +339,15 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
                 buf[j].coeffs[33] = buf_index[i][j][0];
             }
         }
-        shake128x3_absorb_once(state, inN, 34);
-        shake128x3_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
+        shake128x3_absorb_once(statex3, inN, 34);
+        shake128x3_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
             ctr[j] = rej_uniform_vector(
                 a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
                 buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < KYBER_N)
-                keccakx3_get_oneway_state(state, &statex1, j);
+                keccakx3_get_oneway_state(statex3, &statex1, j);
             while (ctr[j] < KYBER_N) {
                 shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
                 ctr[j] += rej_uniform(
@@ -460,160 +359,41 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
     }
     for (i = 0; i < KYBER_K; i++)
         for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs,
+                             qdata);
+    free(statex3);
 }
-#    elif defined(HYBRIDX4)
+#endif
+
+#if KYBER_K == 4 && defined(RV32IMV)
+// using 4x 3-way sha3 + 1x 4-way sha3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {
     unsigned int i, j, ctr[4];
     ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[4];
-    keccakx4_state *state;
+    keccakx3_state *statex3;
+    keccakx4_state *statex4;
     keccak_state statex1;
     const uint8_t *inN[4];
     uint8_t *outN[4];
-    const uint8_t buf_index[(KYBER_K * KYBER_K) / 4][4][2] = {
-        {{0, 0}, {0, 1}, {0, 2}, {1, 0}}, {{1, 1}, {1, 2}, {2, 0}, {2, 1}}};
-
-    if ((state = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-
-    for (i = 0; i < (KYBER_K * KYBER_K) / 4; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            if (transposed) {
-                buf[j].coeffs[32] = buf_index[i][j][0];
-                buf[j].coeffs[33] = buf_index[i][j][1];
-            } else {
-                buf[j].coeffs[32] = buf_index[i][j][1];
-                buf[j].coeffs[33] = buf_index[i][j][0];
-            }
-        }
-        shake128x4_absorb_once(state, inN, 34);
-        shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_uniform_vector(
-                a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
-                buf[j].coeffs);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < KYBER_N)
-                keccakx4_get_oneway_state(state, &statex1, j);
-            while (ctr[j] < KYBER_N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_uniform(
-                    a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
-                        ctr[j],
-                    KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    memcpy(buf[0].coeffs, seed, 32);
-    buf[0].coeffs[32] = 2;
-    buf[0].coeffs[33] = 2;
-    shake128_absorb_once(&statex1, buf[0].coeffs, 34);
-    shake128_squeezeblocks(buf[0].coeffs, GEN_MATRIX_NBLOCKS, &statex1);
-    ctr[0] = rej_uniform_vector(a[2].vec[2].coeffs, buf[0].coeffs);
-    while (ctr[0] < KYBER_N) {
-        shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-        ctr[0] += rej_uniform(a[2].vec[2].coeffs + ctr[0], KYBER_N - ctr[0],
-                              buf[0].coeffs, SHAKE128_RATE);
-    }
-    for (i = 0; i < KYBER_K; i++)
-        for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
-}
-#    elif defined(VECTOR128)
-void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
-{
-    unsigned int i, j, ctr[2];
-    ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[2];
-    keccakx2_state *state;
-    keccak_state statex1;
-    const uint8_t *inN[2];
-    uint8_t *outN[2];
-    const uint8_t buf_index[(KYBER_K * KYBER_K) / 2][2][2] = {
-        {{0, 0}, {0, 1}}, {{0, 2}, {1, 0}}, {{1, 1}, {1, 2}}, {{2, 0}, {2, 1}}};
-
-    if ((state = malloc(sizeof(keccakx2_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (KYBER_K * KYBER_K) / 2; i++) {
-        for (j = 0; j < 2; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            if (transposed) {
-                buf[j].coeffs[32] = buf_index[i][j][0];
-                buf[j].coeffs[33] = buf_index[i][j][1];
-            } else {
-                buf[j].coeffs[32] = buf_index[i][j][1];
-                buf[j].coeffs[33] = buf_index[i][j][0];
-            }
-        }
-        shake128x2_absorb_once(state, inN, 34);
-        shake128x2_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
-        for (j = 0; j < 2; j++)
-            ctr[j] = rej_uniform_vector(
-                a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
-                buf[j].coeffs);
-        for (j = 0; j < 2; j++) {
-            if (ctr[j] < KYBER_N)
-                keccakx2_get_oneway_state(state, &statex1, j);
-            while (ctr[j] < KYBER_N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_uniform(
-                    a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
-                        ctr[j],
-                    KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    memcpy(buf[0].coeffs, seed, 32);
-    buf[0].coeffs[32] = 2;
-    buf[0].coeffs[33] = 2;
-    shake128_absorb_once(&statex1, buf[0].coeffs, 34);
-    shake128_squeezeblocks(buf[0].coeffs, GEN_MATRIX_NBLOCKS, &statex1);
-    ctr[0] = rej_uniform_vector(a[2].vec[2].coeffs, buf[0].coeffs);
-    while (ctr[0] < KYBER_N) {
-        shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-        ctr[0] += rej_uniform(a[2].vec[2].coeffs + ctr[0], KYBER_N - ctr[0],
-                              buf[0].coeffs, SHAKE128_RATE);
-    }
-    for (i = 0; i < KYBER_K; i++)
-        for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
-}
-#    endif
-#elif KYBER_K == 4
-#    if defined(HYBRIDX3)
-void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
-{
-    unsigned int i, j, ctr[3];
-    ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[3];
-    keccakx3_state *state;
-    keccak_state statex1;
-    const uint8_t *inN[3];
-    uint8_t *outN[3];
-    const uint8_t buf_index[(KYBER_K * KYBER_K) / 3][3][2] = {
+    const uint8_t buf_index[4][3][2] = {
         {{0, 0}, {0, 1}, {0, 2}},
         {{0, 3}, {1, 0}, {1, 1}},
         {{1, 2}, {1, 3}, {2, 0}},
         {{2, 1}, {2, 2}, {2, 3}},
-        {{3, 0}, {3, 1}, {3, 2}}};
+    };
+    const uint8_t buf_index_x4[4][2] = {
+        {3, 0},
+        {3, 1},
+        {3, 2},
+        {3, 3},
+    };
 
-    if ((state = malloc(sizeof(keccakx3_state))) == NULL) {
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
-
-    for (i = 0; i < (KYBER_K * KYBER_K) / 3; i++) {
+    for (i = 0; i < 4; i++) {
         for (j = 0; j < 3; j++) {
             outN[j] = buf[j].coeffs;
             inN[j] = buf[j].coeffs;
@@ -626,15 +406,15 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
                 buf[j].coeffs[33] = buf_index[i][j][0];
             }
         }
-        shake128x3_absorb_once(state, inN, 34);
-        shake128x3_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
+        shake128x3_absorb_once(statex3, inN, 34);
+        shake128x3_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
             ctr[j] = rej_uniform_vector(
                 a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
                 buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < KYBER_N)
-                keccakx3_get_oneway_state(state, &statex1, j);
+                keccakx3_get_oneway_state(statex3, &statex1, j);
             while (ctr[j] < KYBER_N) {
                 shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
                 ctr[j] += rej_uniform(
@@ -644,28 +424,55 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
             }
         }
     }
-    memcpy(buf[0].coeffs, seed, 32);
-    buf[0].coeffs[32] = 3;
-    buf[0].coeffs[33] = 3;
-    shake128_absorb_once(&statex1, buf[0].coeffs, 34);
-    shake128_squeezeblocks(buf[0].coeffs, GEN_MATRIX_NBLOCKS, &statex1);
-    ctr[0] = rej_uniform_vector(a[3].vec[3].coeffs, buf[0].coeffs);
-    while (ctr[0] < KYBER_N) {
-        shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-        ctr[0] += rej_uniform(a[3].vec[3].coeffs + ctr[0], KYBER_N - ctr[0],
-                              buf[0].coeffs, SHAKE128_RATE);
+    free(statex3);
+
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
     }
+    for (j = 0; j < 4; j++) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, 32);
+        if (transposed) {
+            buf[j].coeffs[32] = buf_index_x4[j][0];
+            buf[j].coeffs[33] = buf_index_x4[j][1];
+        } else {
+            buf[j].coeffs[32] = buf_index_x4[j][1];
+            buf[j].coeffs[33] = buf_index_x4[j][0];
+        }
+    }
+    shake128x4_absorb_once(statex4, inN, 34);
+    shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, statex4);
+    for (j = 0; j < 4; j++)
+        ctr[j] = rej_uniform_vector(
+            a[buf_index_x4[j][0]].vec[buf_index_x4[j][1]].coeffs,
+            buf[j].coeffs);
+    for (j = 0; j < 4; j++) {
+        if (ctr[j] < KYBER_N)
+            keccakx4_get_oneway_state(statex4, &statex1, j);
+        while (ctr[j] < KYBER_N) {
+            shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
+            ctr[j] += rej_uniform(
+                a[buf_index_x4[j][0]].vec[buf_index_x4[j][1]].coeffs +
+                    ctr[j],
+                KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
+        }
+    }
+    free(statex4);
+
     for (i = 0; i < KYBER_K; i++)
         for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs,
+                             qdata);
 }
-#    elif defined(HYBRIDX4)
+#elif KYBER_K == 4 && defined(RV32IMBV)
+// using 4x 4-way sha3
 void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
 {
     unsigned int i, j, ctr[4];
     ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[4];
-    keccakx4_state *state;
+    keccakx4_state *statex4;
     keccak_state statex1;
     const uint8_t *inN[4];
     uint8_t *outN[4];
@@ -675,7 +482,7 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
         {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
         {{3, 0}, {3, 1}, {3, 2}, {3, 3}}};
 
-    if ((state = malloc(sizeof(keccakx4_state))) == NULL) {
+    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
@@ -693,15 +500,15 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
                 buf[j].coeffs[33] = buf_index[i][j][0];
             }
         }
-        shake128x4_absorb_once(state, inN, 34);
-        shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
+        shake128x4_absorb_once(statex4, inN, 34);
+        shake128x4_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, statex4);
         for (j = 0; j < 4; j++)
             ctr[j] = rej_uniform_vector(
                 a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
                 buf[j].coeffs);
         for (j = 0; j < 4; j++) {
             if (ctr[j] < KYBER_N)
-                keccakx4_get_oneway_state(state, &statex1, j);
+                keccakx4_get_oneway_state(statex4, &statex1, j);
             while (ctr[j] < KYBER_N) {
                 shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
                 ctr[j] += rej_uniform(
@@ -713,67 +520,15 @@ void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
     }
     for (i = 0; i < KYBER_K; i++)
         for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
+            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs,
+                             qdata);
+    free(statex4);
 }
-#    elif defined(VECTOR128)
-void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
-{
-    unsigned int i, j, ctr[2];
-    ALIGNED_UINT8(GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf[2];
-    keccakx2_state *state;
-    keccak_state statex1;
-    const uint8_t *inN[2];
-    uint8_t *outN[2];
-    const uint8_t buf_index[(KYBER_K * KYBER_K) / 2][2][2] = {
-        {{0, 0}, {0, 1}}, {{0, 2}, {0, 3}}, {{1, 0}, {1, 1}}, {{1, 2}, {1, 3}},
-        {{2, 0}, {2, 1}}, {{2, 2}, {2, 3}}, {{3, 0}, {3, 1}}, {{3, 2}, {3, 3}}};
-
-    if ((state = malloc(sizeof(keccakx2_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (KYBER_K * KYBER_K) / 2; i++) {
-        for (j = 0; j < 2; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            if (transposed) {
-                buf[j].coeffs[32] = buf_index[i][j][0];
-                buf[j].coeffs[33] = buf_index[i][j][1];
-            } else {
-                buf[j].coeffs[32] = buf_index[i][j][1];
-                buf[j].coeffs[33] = buf_index[i][j][0];
-            }
-        }
-        shake128x2_absorb_once(state, inN, 34);
-        shake128x2_squeezeblocks(outN, GEN_MATRIX_NBLOCKS, state);
-        for (j = 0; j < 2; j++)
-            ctr[j] = rej_uniform_vector(
-                a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
-                buf[j].coeffs);
-        for (j = 0; j < 2; j++) {
-            if (ctr[j] < KYBER_N)
-                keccakx2_get_oneway_state(state, &statex1, j);
-            while (ctr[j] < KYBER_N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_uniform(
-                    a[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs +
-                        ctr[j],
-                    KYBER_N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    for (i = 0; i < KYBER_K; i++)
-        for (j = 0; j < KYBER_K; j++)
-            normal2ntt_order(a[i].vec[j].coeffs, a[i].vec[j].coeffs, qdata);
-    free(state);
-}
-#    endif
 #endif
 
-#if !defined(VECTOR128)
-void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
+#if !defined(RV32IMV) && !defined(RV32IMBV)
+void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES],
+                int transposed)
 {
     unsigned int ctr, i, j, k;
     unsigned int buflen, off;
@@ -797,8 +552,8 @@ void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
                     buf[k] = buf[buflen - off + k];
                 xof_squeezeblocks(buf + off, 1, &state);
                 buflen = off + XOF_BLOCKBYTES;
-                ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf,
-                                   buflen);
+                ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr,
+                                   buf, buflen);
             }
         }
     }
@@ -839,18 +594,22 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
     // matrix-vector multiplication
 #if defined(VECTOR128)
     polyvec_half skpv_cache;
-    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv, &skpv_cache);
+    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv,
+                                   &skpv_cache);
     poly_tomont(&pkpv.vec[0]);
     for (i = 1; i < KYBER_K; i++) {
-        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv, &skpv_cache);
+        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv,
+                                   &skpv_cache);
         poly_tomont(&pkpv.vec[i]);
     }
 #elif defined(RV32)
     polyvec_half skpv_cache;
-    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv, &skpv_cache);
+    polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv,
+                                   &skpv_cache);
     poly_toplant(&pkpv.vec[0]);
     for (i = 1; i < KYBER_K; i++) {
-        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv, &skpv_cache);
+        polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv,
+                                   &skpv_cache);
         poly_toplant(&pkpv.vec[i]);
     }
 #else
@@ -878,9 +637,11 @@ void indcpa_keypair(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
  *              - const uint8_t *m: pointer to input message
  *                                  (of length KYBER_INDCPA_MSGBYTES bytes)
  *              - const uint8_t *pk: pointer to input public key
- *                                   (of length KYBER_INDCPA_PUBLICKEYBYTES)
- *              - const uint8_t *coins: pointer to input random coins used as
- *seed (of length KYBER_SYMBYTES) to deterministically generate all randomness
+ *                                   (of length
+ *KYBER_INDCPA_PUBLICKEYBYTES)
+ *              - const uint8_t *coins: pointer to input random coins used
+ *as seed (of length KYBER_SYMBYTES) to deterministically generate all
+ *randomness
  **************************************************/
 void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
                 const uint8_t m[KYBER_INDCPA_MSGBYTES],
@@ -936,7 +697,8 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
  *              - const uint8_t *c: pointer to input ciphertext
  *                                  (of length KYBER_INDCPA_BYTES)
  *              - const uint8_t *sk: pointer to input secret key
- *                                   (of length KYBER_INDCPA_SECRETKEYBYTES)
+ *                                   (of length
+ *KYBER_INDCPA_SECRETKEYBYTES)
  **************************************************/
 void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
                 const uint8_t c[KYBER_INDCPA_BYTES],

@@ -13,38 +13,16 @@
  * Name:        polyvec_gen_eta1_skpv_e
  *
  * Description: Sample two polynomials deterministically from a seed and a
- * nonce, with output polynomials close to centered binomial distribution, with
- * parameter KYBER_ETA1
+ * nonce, with output polynomials close to centered binomial distribution,
+ *with parameter KYBER_ETA1
  *
  * Arguments:   - polyvec *skpv: pointer to output polynomial
  *              - polyvec *e: pointer to output polynomial
  *              - const uint8_t *noiseseed: pointer to input seed
  *                                     (of length KYBER_SYMBYTES bytes)
  **************************************************/
-#if !defined(VECTOR128) || defined(RV64B)
-void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
-                             const uint8_t *noiseseed)
-{
-    unsigned int i;
-    uint8_t nonce = 0;
-    uint8_t extkey[KYBER_SYMBYTES + 1];
-    uint8_t buf[KYBER_ETA1 * KYBER_N / 4];
-
-    memcpy(extkey, noiseseed, KYBER_SYMBYTES);
-
-    for (i = 0; i < KYBER_K; i++) {
-        extkey[KYBER_SYMBYTES] = nonce++;
-        shake256(buf, sizeof(buf), extkey, sizeof(extkey));
-        poly_cbd_eta1(&skpv->vec[i], buf);
-    }
-    for (i = 0; i < KYBER_K; i++) {
-        extkey[KYBER_SYMBYTES] = nonce++;
-        shake256(buf, sizeof(buf), extkey, sizeof(extkey));
-        poly_cbd_eta1(&e->vec[i], buf);
-    }
-}
-#else
-#    if KYBER_K == 2
+#if KYBER_K == 2 && defined(RV64IMV)
+// 1x 4-way sha3
 void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
                              const uint8_t *noiseseed)
 {
@@ -64,7 +42,10 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
     poly_cbd_eta1(&e->vec[0], buf[2].coeffs);
     poly_cbd_eta1(&e->vec[1], buf[3].coeffs);
 }
-#    elif KYBER_K == 3
+#endif
+
+#if KYBER_K == 3 && defined(RV64IMV)
+// 1x 6-way sha3
 void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
                              const uint8_t *noiseseed)
 {
@@ -86,7 +67,10 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
     poly_cbd_eta1(&e->vec[1], buf[4].coeffs);
     poly_cbd_eta1(&e->vec[2], buf[5].coeffs);
 }
-#    elif KYBER_K == 4
+#endif
+
+#if KYBER_K == 4 && (defined(RV64IMV) || defined(RV64IMBV))
+// 1x 8-way sha3
 void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
                              const uint8_t *noiseseed)
 {
@@ -110,23 +94,36 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
     poly_cbd_eta1(&e->vec[2], buf[6].coeffs);
     poly_cbd_eta1(&e->vec[3], buf[7].coeffs);
 }
-#    endif
 #endif
 
-#if !defined(VECTOR128) || defined(RV64B) || KYBER_K == 2
-void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
-                                     const uint8_t coins[KYBER_SYMBYTES])
+#if (!defined(RV64IMV) && !defined(RV64IMBV)) || \
+    (KYBER_K == 2 && defined(RV64IMBV)) ||       \
+    (KYBER_K == 3 && defined(RV64IMBV))
+void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
+                             const uint8_t *noiseseed)
 {
     unsigned int i;
     uint8_t nonce = 0;
-    for (i = 0; i < KYBER_K; i++)
-        poly_getnoise_eta1(sp->vec + i, coins, nonce++);
-    for (i = 0; i < KYBER_K; i++)
-        poly_getnoise_eta2(ep->vec + i, coins, nonce++);
-    poly_getnoise_eta2(epp, coins, nonce++);
+    uint8_t extkey[KYBER_SYMBYTES + 1];
+    uint8_t buf[KYBER_ETA1 * KYBER_N / 4];
+
+    memcpy(extkey, noiseseed, KYBER_SYMBYTES);
+
+    for (i = 0; i < KYBER_K; i++) {
+        extkey[KYBER_SYMBYTES] = nonce++;
+        shake256(buf, sizeof(buf), extkey, sizeof(extkey));
+        poly_cbd_eta1(&skpv->vec[i], buf);
+    }
+    for (i = 0; i < KYBER_K; i++) {
+        extkey[KYBER_SYMBYTES] = nonce++;
+        shake256(buf, sizeof(buf), extkey, sizeof(extkey));
+        poly_cbd_eta1(&e->vec[i], buf);
+    }
 }
-#else
-#    if KYBER_K == 3
+#endif
+
+#if KYBER_K == 3 && defined(RV64IMV)
+// 1x 6-way sha3
 void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
                                      const uint8_t coins[KYBER_SYMBYTES])
 {
@@ -153,7 +150,10 @@ void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
              KYBER_SYMBYTES + 1);
     poly_cbd_eta2(epp, buf[0].coeffs);
 }
-#    elif KYBER_K == 4
+#endif
+
+#if KYBER_K == 4 && (defined(RV64IMV) || defined(RV64IMBV))
+// 1x 8-way sha3
 void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
                                      const uint8_t coins[KYBER_SYMBYTES])
 {
@@ -182,7 +182,21 @@ void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
              KYBER_SYMBYTES + 1);
     poly_cbd_eta2(epp, buf[0].coeffs);
 }
-#    endif
+#endif
+
+#if (!defined(RV64IMV) && !defined(RV64IMBV)) || KYBER_K == 2 || \
+    (KYBER_K == 3 && defined(RV64IMBV))
+void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
+                                     const uint8_t coins[KYBER_SYMBYTES])
+{
+    unsigned int i;
+    uint8_t nonce = 0;
+    for (i = 0; i < KYBER_K; i++)
+        poly_getnoise_eta1(sp->vec + i, coins, nonce++);
+    for (i = 0; i < KYBER_K; i++)
+        poly_getnoise_eta2(ep->vec + i, coins, nonce++);
+    poly_getnoise_eta2(epp, coins, nonce++);
+}
 #endif
 
 /*************************************************
@@ -191,10 +205,12 @@ void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
  * Description: Compress and serialize vector of polynomials
  *
  * Arguments:   - uint8_t *r: pointer to output byte array
- *                            (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
+ *                            (needs space for
+ *KYBER_POLYVECCOMPRESSEDBYTES)
  *              - const polyvec *a: pointer to input vector of polynomials
  **************************************************/
-void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
+void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
+                      const polyvec *a)
 {
     unsigned int i, j, k;
 
@@ -205,8 +221,8 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
             for (k = 0; k < 8; k++) {
                 t[k] = a->vec[i].coeffs[8 * j + k];
                 t[k] += ((int16_t)t[k] >> 15) & KYBER_Q;
-                t[k] =
-                    ((((uint32_t)t[k] << 11) + KYBER_Q / 2) / KYBER_Q) & 0x7ff;
+                t[k] = ((((uint32_t)t[k] << 11) + KYBER_Q / 2) / KYBER_Q) &
+                       0x7ff;
             }
 
             r[0] = (t[0] >> 0);
@@ -230,8 +246,8 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
             for (k = 0; k < 4; k++) {
                 t[k] = a->vec[i].coeffs[4 * j + k];
                 t[k] += ((int16_t)t[k] >> 15) & KYBER_Q;
-                t[k] =
-                    ((((uint32_t)t[k] << 10) + KYBER_Q / 2) / KYBER_Q) & 0x3ff;
+                t[k] = ((((uint32_t)t[k] << 10) + KYBER_Q / 2) / KYBER_Q) &
+                       0x3ff;
             }
 
             r[0] = (t[0] >> 0);
@@ -256,7 +272,8 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
  *
  * Arguments:   - polyvec *r:       pointer to output vector of polynomials
  *              - const uint8_t *a: pointer to input byte array
- *                                  (of length KYBER_POLYVECCOMPRESSEDBYTES)
+ *                                  (of length
+ *KYBER_POLYVECCOMPRESSEDBYTES)
  **************************************************/
 void polyvec_decompress(polyvec *r,
                         const uint8_t a[KYBER_POLYVECCOMPRESSEDBYTES])
@@ -269,10 +286,12 @@ void polyvec_decompress(polyvec *r,
         for (j = 0; j < KYBER_N / 8; j++) {
             t[0] = (a[0] >> 0) | ((uint16_t)a[1] << 8);
             t[1] = (a[1] >> 3) | ((uint16_t)a[2] << 5);
-            t[2] = (a[2] >> 6) | ((uint16_t)a[3] << 2) | ((uint16_t)a[4] << 10);
+            t[2] = (a[2] >> 6) | ((uint16_t)a[3] << 2) |
+                   ((uint16_t)a[4] << 10);
             t[3] = (a[4] >> 1) | ((uint16_t)a[5] << 7);
             t[4] = (a[5] >> 4) | ((uint16_t)a[6] << 4);
-            t[5] = (a[6] >> 7) | ((uint16_t)a[7] << 1) | ((uint16_t)a[8] << 9);
+            t[5] = (a[6] >> 7) | ((uint16_t)a[7] << 1) |
+                   ((uint16_t)a[8] << 9);
             t[6] = (a[8] >> 2) | ((uint16_t)a[9] << 6);
             t[7] = (a[9] >> 5) | ((uint16_t)a[10] << 3);
             a += 11;
@@ -341,7 +360,8 @@ void polyvec_frombytes(polyvec *r, const uint8_t a[KYBER_POLYVECBYTES])
  *
  * Description: Applies Barrett reduction to each coefficient
  *              of each element of a vector of polynomials;
- *              for details of the Barrett reduction see comments in reduce.c
+ *              for details of the Barrett reduction see comments in
+ *reduce.c
  *
  * Arguments:   - polyvec *r: pointer to input/output polynomial
  **************************************************/
@@ -358,8 +378,10 @@ void polyvec_reduce(polyvec *r)
  * Description: Add vectors of polynomials
  *
  * Arguments: - polyvec *r: pointer to output vector of polynomials
- *            - const polyvec *a: pointer to first input vector of polynomials
- *            - const polyvec *b: pointer to second input vector of polynomials
+ *            - const polyvec *a: pointer to first input vector of
+ *polynomials
+ *            - const polyvec *b: pointer to second input vector of
+ *polynomials
  **************************************************/
 void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b)
 {
@@ -371,7 +393,8 @@ void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b)
 /*************************************************
  * Name:        polyvec_ntt
  *
- * Description: Apply forward NTT to all elements of a vector of polynomials
+ * Description: Apply forward NTT to all elements of a vector of
+ *polynomials
  *
  * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
  **************************************************/
@@ -385,8 +408,8 @@ void polyvec_ntt(polyvec *r)
 /*************************************************
  * Name:        polyvec_invntt
  *
- * Description: Apply inverse NTT to all elements of a vector of polynomials
- *              and multiply by Montgomery factor 2^16
+ * Description: Apply inverse NTT to all elements of a vector of
+ *polynomials and multiply by Montgomery factor 2^16
  *
  * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
  **************************************************/
@@ -409,7 +432,8 @@ void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
     }
 }
 
-void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a,
+                                    const polyvec *b,
                                     polyvec_half *b_cache)
 {
     unsigned int i;
@@ -421,20 +445,22 @@ void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
     }
 }
 
-void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
-                                polyvec_half *b_cache)
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a,
+                                const polyvec *b, polyvec_half *b_cache)
 {
     unsigned int i;
 
     poly_basemul_cached(r, &a->vec[0], &b->vec[0], &b_cache->vec[0]);
     for (i = 1; i < KYBER_K; i++) {
-        poly_basemul_acc_cached(r, &a->vec[i], &b->vec[i], &b_cache->vec[i]);
+        poly_basemul_acc_cached(r, &a->vec[i], &b->vec[i],
+                                &b_cache->vec[i]);
     }
 }
 
 #elif defined(RV64)
 
-void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
+void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a,
+                                    const polyvec *b,
                                     polyvec_half *b_cache)
 {
     unsigned int i;
@@ -445,12 +471,12 @@ void polyvec_basemul_acc_cache_init(poly *r, const polyvec *a, const polyvec *b,
         poly_basemul_acc_cache_init(&r_double, &a->vec[i], &b->vec[i],
                                     &b_cache->vec[i]);
     }
-    poly_basemul_acc_cache_init_end(r, &a->vec[i], &b->vec[i], &b_cache->vec[i],
-                                    &r_double);
+    poly_basemul_acc_cache_init_end(r, &a->vec[i], &b->vec[i],
+                                    &b_cache->vec[i], &r_double);
 }
 
-void polyvec_basemul_acc_cached(poly *r, const polyvec *a, const polyvec *b,
-                                polyvec_half *b_cache)
+void polyvec_basemul_acc_cached(poly *r, const polyvec *a,
+                                const polyvec *b, polyvec_half *b_cache)
 {
     unsigned int i;
     poly_double r_double;
@@ -493,4 +519,3 @@ void polyvec_basemul_acc(poly *r, const polyvec *a, const polyvec *b)
 }
 
 #endif
-
