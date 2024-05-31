@@ -1,6 +1,7 @@
 #include "poly.h"
 
 #include <stdint.h>
+#include <string.h>
 
 #include "fips202.h"
 #include "ntt.h"
@@ -329,8 +330,8 @@ int poly_chknorm(const poly *a, int32_t B)
  * Returns number of sampled coefficients. Can be smaller than len if not
  *enough random bytes were given.
  **************************************************/
-static unsigned int rej_uniform(int32_t *a, unsigned int len,
-                                const uint8_t *buf, unsigned int buflen)
+unsigned int rej_uniform(int32_t *a, unsigned int len, const uint8_t *buf,
+                         unsigned int buflen)
 {
     unsigned int ctr, pos;
     uint32_t t;
@@ -406,8 +407,8 @@ void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
  * Returns number of sampled coefficients. Can be smaller than len if not
  *enough random bytes were given.
  **************************************************/
-static unsigned int rej_eta(int32_t *a, unsigned int len,
-                            const uint8_t *buf, unsigned int buflen)
+unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
+                     unsigned int buflen)
 {
     unsigned int ctr, pos;
     uint32_t t0, t1;
@@ -469,9 +470,7 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES],
     memcpy(buf, seed, CRHBYTES);
     buf[CRHBYTES] = nonce;
     buf[CRHBYTES + 1] = nonce >> 8;
-    shake256_init(&state);
-    shake256_absorb(&state, buf, CRHBYTES + 2);
-    shake256_finalize(&state);
+    shake256_absorb_once(&state, buf, CRHBYTES + 2);
     shake256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
 
     ctr = rej_eta(a->coeffs, N, buf, buflen);
@@ -505,9 +504,7 @@ void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES],
     memcpy(buf, seed, CRHBYTES);
     buf[CRHBYTES] = nonce;
     buf[CRHBYTES + 1] = nonce >> 8;
-    shake256_init(&state);
-    shake256_absorb(&state, buf, CRHBYTES + 2);
-    shake256_finalize(&state);
+    shake256_absorb_once(&state, buf, CRHBYTES + 2);
     shake256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
     polyz_unpack(a, buf);
 }

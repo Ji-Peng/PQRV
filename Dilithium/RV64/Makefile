@@ -11,14 +11,12 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/dilithium_ntt -I.
 
-CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
-CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 \
-	-DRV64B
-CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 \
-	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 \
-	-DRV64B \
-	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
+CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64 -DRV64IM
+CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 -DRV64IMB
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DRV64IMV \
+	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8 -DHYBRIDX10
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DRV64IMBV \
+	-DVECTOR128 -DHYBRIDX8 -DHYBRIDX10 -DHYBRIDX14
 
 TARGET_IP 	= 192.168.123.99
 TARGET_USER = root
@@ -33,8 +31,8 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDI
 
 SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S
 SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S
-SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S
-SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S
+SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S
+SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
@@ -192,7 +190,7 @@ out/test_speed5_rv64im: $(COMMONDIR)/test_speed_dilithium.c $(SOURCES) $(SOURCES
 
 out/test_mul_rv64im: $(COMMONDIR)/test_mul_dilithium.c $(SOURCES) $(SOURCES_RV64IM) $(HEADERS)
 	mkdir -p out/
-	$(CC) $(CFLAGS_RV64IM) -UDBENCH \
+	$(CC) $(CFLAGS_RV64IM) -UDBENCH -DDILITHIUM_MODE=2 \
 	  -o $@ $(filter %.c, $^) $(filter %.S, $^)
 
 # For RV64IMB
@@ -238,7 +236,7 @@ out/test_speed5_rv64imb: $(COMMONDIR)/test_speed_dilithium.c $(SOURCES) $(SOURCE
 
 out/test_mul_rv64imb: $(COMMONDIR)/test_mul_dilithium.c $(SOURCES) $(SOURCES_RV64IMB) $(HEADERS)
 	mkdir -p out/
-	$(CC) $(CFLAGS_RV64IMB) -UDBENCH \
+	$(CC) $(CFLAGS_RV64IMB) -UDBENCH -DDILITHIUM_MODE=2 \
 	  -o $@ $(filter %.c, $^) $(filter %.S, $^)
 
 # For RV64IMV
@@ -284,7 +282,7 @@ out/test_speed5_rv64imv: $(COMMONDIR)/test_speed_dilithium.c $(SOURCES) $(SOURCE
 
 out/test_mul_rv64imv: $(COMMONDIR)/test_mul_dilithium.c $(SOURCES) $(SOURCES_RV64IMV) $(HEADERS)
 	mkdir -p out/
-	$(CC) $(CFLAGS_RV64IMV) -UDBENCH \
+	$(CC) $(CFLAGS_RV64IMV) -UDBENCH -DDILITHIUM_MODE=2 \
 	  -o $@ $(filter %.c, $^) $(filter %.S, $^)
 
 # For RV64IMBV
@@ -330,7 +328,7 @@ out/test_speed5_rv64imbv: $(COMMONDIR)/test_speed_dilithium.c $(SOURCES) $(SOURC
 
 out/test_mul_rv64imbv: $(COMMONDIR)/test_mul_dilithium.c $(SOURCES) $(SOURCES_RV64IMBV) $(HEADERS)
 	mkdir -p out/
-	$(CC) $(CFLAGS_RV64IMBV) -UDBENCH \
+	$(CC) $(CFLAGS_RV64IMBV) -UDBENCH -DDILITHIUM_MODE=2 \
 	  -o $@ $(filter %.c, $^) $(filter %.S, $^)
 
 clean:
