@@ -29,10 +29,10 @@ HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202_rv32.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
 
-SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S
-SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S
-SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S
-SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S
+SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S
+SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S
+SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S
+SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h

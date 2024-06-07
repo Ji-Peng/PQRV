@@ -6,6 +6,8 @@ CFLAGS = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv64imafdcv_zba_zbb -mabi=lp64d -I$(COMMONDIR) -I$(COMMONDIR)/kyber_ntt -I.
 CFLAGS_RV32IMBV = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv32imacv_zbb -mabi=ilp32 -DRV32=1 -I$(COMMONDIR) -I$(COMMONDIR)/kyber_ntt -I.
+CFLAGS_RV32IM 	= -O3 -fomit-frame-pointer -static -flax-vector-conversions \
+		 -march=rv32imac -mabi=ilp32 -DRV32=1 -I$(COMMONDIR) -I$(COMMONDIR)/dilithium_ntt -I.
 RM = /bin/rm
 
 SOURCES = add.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
@@ -16,15 +18,26 @@ TARGET_IP = 192.168.123.99
 .PHONY: speed results clean
 
 speed: \
-	out/test_add out/test_mul out/test_ntt out/test_ntt_rv32 out/test_hybrid \
-	out/test_plantard out/test_plantard_rv64 out/test_ntt_rv32im out/test_ntt_rv64im
+	out/test_add64 out/test_dilithium_ntt
+
+# out/test_add  out/test_mul out/test_ntt out/test_ntt_rv32 out/test_hybrido ut/test_plantard out/test_plantard_rv64 out/test_ntt_rv32im out/test_ntt_rv64im
 
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
 
+out/test_dilithium_ntt: $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S test_dilithium_ntt.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
 out/test_add: $(SOURCES) $(HEADERS)
 	mkdir -p out
 	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_add64: add64.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
 out/test_mul: vmul.c vmul.S

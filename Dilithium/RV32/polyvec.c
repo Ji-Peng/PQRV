@@ -1117,16 +1117,6 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
 }
 #endif
 
-void polyvec_matrix_pointwise_montgomery(polyveck *t,
-                                         const polyvecl mat[K],
-                                         const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
-}
-
 /**************************************************************/
 /************ Vectors of polynomials of length L **************/
 /**************************************************************/
@@ -1182,45 +1172,12 @@ void polyvecl_ntt(polyvecl *v)
         poly_ntt(&v->vec[i]);
 }
 
-void polyvecl_invntt_tomont(polyvecl *v)
+void polyvecl_invntt(polyvecl *v)
 {
     unsigned int i;
 
     for (i = 0; i < L; ++i)
         poly_invntt(&v->vec[i]);
-}
-
-void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
-                                        const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < L; ++i)
-        poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
-}
-
-/*************************************************
- * Name:        polyvecl_pointwise_acc_montgomery
- *
- * Description: Pointwise multiply vectors of polynomials of length L,
- *multiply resulting vector by 2^{-32} and add (accumulate) polynomials in
- *it. Input/output vectors are in NTT domain representation.
- *
- * Arguments:   - poly *w: output polynomial
- *              - const polyvecl *u: pointer to first input vector
- *              - const polyvecl *v: pointer to second input vector
- **************************************************/
-void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
-                                       const polyvecl *v)
-{
-    unsigned int i;
-    poly t;
-
-    poly_pointwise_montgomery(w, &u->vec[0], &v->vec[0]);
-    for (i = 1; i < L; ++i) {
-        poly_pointwise_montgomery(&t, &u->vec[i], &v->vec[i]);
-        poly_add(w, w, &t);
-    }
 }
 
 /*************************************************
@@ -1361,7 +1318,7 @@ void polyveck_ntt(polyveck *v)
 }
 
 /*************************************************
- * Name:        polyveck_invntt_tomont
+ * Name:        polyveck_invntt
  *
  * Description: Inverse NTT and multiplication by 2^{32} of polynomials
  *              in vector of length K. Input coefficients need to be less
@@ -1369,21 +1326,12 @@ void polyveck_ntt(polyveck *v)
  *
  * Arguments:   - polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_invntt_tomont(polyveck *v)
+void polyveck_invntt(polyveck *v)
 {
     unsigned int i;
 
     for (i = 0; i < K; ++i)
         poly_invntt(&v->vec[i]);
-}
-
-void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
-                                        const polyveck *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
 }
 
 /*************************************************
@@ -1500,4 +1448,142 @@ void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES],
 
     for (i = 0; i < K; ++i)
         polyw1_pack(&r[i * POLYW1_PACKEDBYTES], &w1->vec[i]);
+}
+
+#if defined(RV32)
+
+void polyvecl_ntt_6l(polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < L; ++i)
+        poly_ntt_6l(&v->vec[i]);
+}
+
+void polyvecl_invntt_6l(polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < L; ++i)
+        poly_invntt_6l(&v->vec[i]);
+}
+
+void polyveck_ntt_6l(polyveck *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        poly_ntt_6l(&v->vec[i]);
+}
+
+void polyveck_invntt_6l(polyveck *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        poly_invntt_6l(&v->vec[i]);
+}
+
+void polyvecl_pointwise_poly_6l(polyvecl *r, const poly *a,
+                                const polyvecl *v)
+{
+    unsigned int i;
+    poly_cache a_cache;
+    poly_basemul_6l_cache_init_end(&r->vec[0], &v->vec[0], a, &a_cache);
+    for (i = 1; i < L; i++)
+        poly_basemul_6l_cache_end(&r->vec[i], &v->vec[i], a, &a_cache);
+}
+
+void polyveck_pointwise_poly_6l(polyveck *r, const poly *a,
+                                const polyveck *v)
+{
+    unsigned int i;
+    poly_cache a_cache;
+    poly_basemul_6l_cache_init_end(&r->vec[0], &v->vec[0], a, &a_cache);
+    for (i = 1; i < K; i++)
+        poly_basemul_6l_cache_end(&r->vec[i], &v->vec[i], a, &a_cache);
+}
+
+// void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl
+// *v)
+// {
+//     unsigned int i;
+//     poly_double w_double;
+
+//     poly_basemul_init(&w_double, &u->vec[0], &v->vec[0]);
+//     for (i = 1; i < L - 1; i++)
+//         poly_basemul_acc(&w_double, &u->vec[i], &v->vec[i]);
+//     poly_basemul_acc_end(w, &u->vec[i], &v->vec[i], &w_double);
+// }
+
+// void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
+//                               const polyvecl *v)
+// {
+//     unsigned int i, j;
+//     polyvecl_cache v_cache;
+//     poly_double t_double;
+
+//     poly_basemul_cache_init(&t_double, &mat[0].vec[0], &v->vec[0],
+//                             &v_cache.vec[0]);
+//     for (j = 1; j < L - 1; j++)
+//         poly_basemul_acc_cache_init(&t_double, &mat[0].vec[j],
+//         &v->vec[j],
+//                                     &v_cache.vec[j]);
+//     poly_basemul_acc_cache_init_end(&t->vec[0], &mat[0].vec[j],
+//     &v->vec[j],
+//                                     &v_cache.vec[j], &t_double);
+//     for (i = 1; i < K; i++) {
+//         j = 0;
+//         poly_basemul_cached(&t_double, &mat[i].vec[j], &v->vec[j],
+//                             &v_cache.vec[j]);
+//         for (j = 1; j < L - 1; j++) {
+//             poly_basemul_acc_cached(&t_double, &mat[i].vec[j],
+//             &v->vec[j],
+//                                     &v_cache.vec[j]);
+//         }
+//         poly_basemul_acc_cache_end(&t->vec[i], &mat[i].vec[j],
+//         &v->vec[j],
+//                                    &v_cache.vec[j], &t_double);
+//     }
+// }
+
+#else
+
+#endif
+
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < L; ++i)
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
+}
+
+void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
+}
+
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
+{
+    unsigned int i;
+    poly t;
+
+    poly_pointwise(w, &u->vec[0], &v->vec[0]);
+    for (i = 1; i < L; ++i) {
+        poly_pointwise(&t, &u->vec[i], &v->vec[i]);
+        poly_add(w, w, &t);
+    }
+}
+
+void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
+                              const polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
 }

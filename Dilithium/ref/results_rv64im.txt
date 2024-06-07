@@ -4,7 +4,7 @@ poly_uniform_eta:               14893 cycles
 poly_uniform_gamma1:            30822 cycles
 poly_ntt:                       27112 cycles
 poly_invntt:             32352 cycles
-poly_pointwise_montgomery:       5806 cycles
+poly_pointwise:       5806 cycles
 poly_challenge:                  6502 cycles
 Keypair:                      1084439 cycles
 Sign:                         4965104 cycles
@@ -16,7 +16,7 @@ poly_uniform_eta:               14901 cycles
 poly_uniform_gamma1:            30742 cycles
 poly_ntt:                       27111 cycles
 poly_invntt:             32372 cycles
-poly_pointwise_montgomery:       5782 cycles
+poly_pointwise:       5782 cycles
 poly_challenge:                  6689 cycles
 Keypair:                      1845868 cycles
 Sign:                         7988421 cycles
@@ -28,7 +28,7 @@ poly_uniform_eta:               14829 cycles
 poly_uniform_gamma1:            30717 cycles
 poly_ntt:                       27106 cycles
 poly_invntt:             32349 cycles
-poly_pointwise_montgomery:       5792 cycles
+poly_pointwise:       5792 cycles
 poly_challenge:                  6934 cycles
 Keypair:                      3038491 cycles
 Sign:                         9982532 cycles

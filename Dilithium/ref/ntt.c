@@ -72,7 +72,7 @@ void ntt(int32_t a[N])
 }
 
 /*************************************************
- * Name:        invntt_tomont
+ * Name:        intt
  *
  * Description: Inverse NTT and multiplication by Montgomery factor 2^32.
  *              In-place. No modular reductions after additions or
@@ -82,7 +82,7 @@ void ntt(int32_t a[N])
  *
  * Arguments:   - uint32_t p[N]: input/output coefficient array
  **************************************************/
-void invntt_tomont(int32_t a[N])
+void intt(int32_t a[N])
 {
     unsigned int start, len, j, k;
     int32_t t, zeta;

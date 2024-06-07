@@ -149,13 +149,13 @@ void poly_invntt(poly *a)
 {
     DBENCH_START();
 
-    invntt_tomont(a->coeffs);
+    intt(a->coeffs);
 
     DBENCH_STOP(*tmul);
 }
 
 /*************************************************
- * Name:        poly_pointwise_montgomery
+ * Name:        poly_pointwise
  *
  * Description: Pointwise multiplication of polynomials in NTT domain
  *              representation and multiplication of resulting polynomial
@@ -165,7 +165,7 @@ void poly_invntt(poly *a)
  *              - const poly *a: pointer to first input polynomial
  *              - const poly *b: pointer to second input polynomial
  **************************************************/
-void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b)
+void poly_pointwise(poly *c, const poly *a, const poly *b)
 {
     unsigned int i;
     DBENCH_START();

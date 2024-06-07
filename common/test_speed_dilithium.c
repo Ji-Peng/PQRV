@@ -68,9 +68,9 @@ int main(void)
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        poly_pointwise_montgomery(c, a, b);
+        poly_pointwise(c, a, b);
     }
-    print_results("poly_pointwise_montgomery:", t, NTESTS);
+    print_results("poly_pointwise:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();

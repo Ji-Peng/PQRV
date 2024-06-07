@@ -9,6 +9,7 @@
 #define R2modQ 2365951  // 2^64 % Q
 #define QINV 58728449   // q^(-1) mod 2^32
 #define INVN -32736     // N^-1 mod Q
+#define INV64 8249473   // 64^-1 mod Q
 
 int32_t root = ROOT_OF_UNITY;
 
@@ -46,6 +47,20 @@ int32_t tree_6layer_intt[] = {
     92,  220, 60,  188, 124, 252, 8,   136, 72,  200, 40,  168, 104,
     232, 24,  152, 88,  216, 56,  184, 120, 248, 16,  144, 80,  208,
     48,  176, 112, 240, 32,  160, 96,  224, 64,  192, 128};
+
+int32_t tree_33merging_ntt[] = {
+    128, 64,  192, 32,  160, 96,  224, 16,  8,   136, 4,   132, 68,
+    196, 144, 72,  200, 36,  164, 100, 228, 80,  40,  168, 20,  148,
+    84,  212, 208, 104, 232, 52,  180, 116, 244, 48,  24,  152, 12,
+    140, 76,  204, 176, 88,  216, 44,  172, 108, 236, 112, 56,  184,
+    28,  156, 92,  220, 240, 120, 248, 60,  188, 124, 252};
+
+int32_t tree_33merging_intt[] = {
+    4,   132, 68,  196, 8,   136, 16,  36,  164, 100, 228, 72,  200,
+    144, 20,  148, 84,  212, 40,  168, 80,  52,  180, 116, 244, 104,
+    232, 208, 12,  140, 76,  204, 24,  152, 48,  44,  172, 108, 236,
+    88,  216, 176, 28,  156, 92,  220, 56,  184, 112, 60,  188, 124,
+    252, 120, 248, 240, 32,  160, 96,  224, 64,  192, 128};
 
 int32_t tree_6layer_basemul[] = {4,  132, 68, 196, 36, 164, 100, 228,
                                  20, 148, 84, 212, 52, 180, 116, 244,
@@ -104,8 +119,8 @@ void mul_int32(void *des, void *src1, void *src2)
     uint64_t tmp_v;
     uint64_t des_v;
 
-    src1_v = (uint64_t)(*(int16_t *)src1);
-    src2_v = (uint64_t)(*(uint64_t *)src2);
+    src1_v = (uint64_t)(*(int32_t *)src1);
+    src2_v = (uint64_t)(*(int32_t *)src2);
     tmp_v = src1_v * src2_v;
 
     *(uint32_t *)des = (uint32_t)tmp_v;
@@ -188,9 +203,78 @@ void gen_table_c_6layer(void)
     printf("\n\n");
 }
 
+void gen_table_3_3_merging(void)
+{
+    int32_t t0, t1, j, zetas[64], zetasqinv[64];
+    int32_t qinv, invN, q, mont;
+
+    q = Q;
+    qinv = QINV;
+    invN = INV64;
+    mont = MONT;
+
+    memset(zetas, 0, 64 * sizeof(int32_t));
+    memset(zetasqinv, 0, 64 * sizeof(int32_t));
+    for (j = 0; j < 64 - 1; j++) {
+        expmod_int32(&t0, &root, tree_33merging_ntt[j], &q);
+        mulmod_int32(&zetas[j], &t0, &mont, &q);
+        t0 = zetas[j];
+        mul_int32(&zetasqinv[j], &t0, &qinv);
+    }
+    printf("33merging ntt:\n");
+    for (j = 0; j < 64 - 1; j++) {
+        printf("%d, ", zetas[j]);
+        printf("%d, ", zetasqinv[j]);
+    }
+    printf("\n\n");
+
+    memset(zetas, 0, 64 * sizeof(int32_t));
+    memset(zetasqinv, 0, 64 * sizeof(int32_t));
+    for (j = 0; j < 64 - 1; j++) {
+        expmod_int32(&t0, &root, 512 - tree_33merging_intt[j], &q);
+        if (j == 62) {
+            mulmod_int32(&t0, &t0, &mont, &q);
+            mulmod_int32(&t0, &t0, &mont, &q);
+            mulmod_int32(&zetas[j], &t0, &invN, &q);
+            t0 = zetas[j];
+            mul_int32(&zetasqinv[j], &t0, &qinv);
+        } else {
+            mulmod_int32(&zetas[j], &t0, &mont, &q);
+            t0 = zetas[j];
+            mul_int32(&zetasqinv[j], &t0, &qinv);
+        }
+    }
+    printf("33merging intt:\n");
+    for (j = 0; j < 64 - 1; j++) {
+        printf("%d, ", zetas[j]);
+        printf("%d, ", zetasqinv[j]);
+    }
+    printf("\n\n");
+
+    memset(zetas, 0, 64 * sizeof(int32_t));
+    memset(zetasqinv, 0, 64 * sizeof(int32_t));
+    for (j = 0; j < 32; j++) {
+        expmod_int32(&t0, &root, tree_6layer_basemul[j], &q);
+        mulmod_int32(&zetas[j], &t0, &mont, &q);
+        t0 = zetas[j];
+        mul_int32(&zetasqinv[j], &t0, &qinv);
+    }
+    printf("6-layer basemul:\n");
+    for (j = 0; j < 32; j++) {
+        printf("%d, ", zetas[j]);
+        printf("%d, ", zetasqinv[j]);
+    }
+    printf("\n\n");
+
+    t0 = 167912;
+    mul_int32(&t0, &t0, &qinv);
+    printf("invN*qinv: %d\n", t0);
+}
+
 int main()
 {
     // GenTable_c_ref();
-    gen_table_c_6layer();
+    // gen_table_c_6layer();
+    gen_table_3_3_merging();
     return 0;
 }

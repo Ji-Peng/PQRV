@@ -49,7 +49,7 @@ int main(void)
         poly_naivemul(&c, &a, &b);
         poly_ntt(&a);
         poly_ntt(&b);
-        poly_pointwise_montgomery(&d, &a, &b);
+        poly_pointwise(&d, &a, &b);
         poly_invntt(&d);
 
         for (j = 0; j < N; ++j) {

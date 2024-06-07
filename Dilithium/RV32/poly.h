@@ -18,9 +18,6 @@ void poly_caddq(poly *a);
 void poly_add(poly *c, const poly *a, const poly *b);
 void poly_sub(poly *c, const poly *a, const poly *b);
 void poly_shiftl(poly *a);
-void poly_ntt(poly *a);
-void poly_invntt(poly *a);
-void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b);
 void poly_power2round(poly *a1, poly *a0, const poly *a);
 void poly_decompose(poly *a1, poly *a0, const poly *a);
 unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1);
@@ -41,5 +38,46 @@ void polyt0_unpack(poly *r, const uint8_t *a);
 void polyz_pack(uint8_t *r, const poly *a);
 void polyz_unpack(poly *r, const uint8_t *a);
 void polyw1_pack(uint8_t *r, const poly *a);
+void poly_ntt(poly *a);
+void poly_invntt(poly *a);
+void poly_pointwise(poly *c, const poly *a, const poly *b);
+
+#if defined(RV32)
+typedef struct {
+    int32_t coeffs[(N >> 2) * 3];
+} poly_cache;
+
+typedef struct {
+    int64_t coeffs[N];
+} poly_double;
+
+void poly_ntt_6l(poly *a);
+void poly_invntt_6l(poly *a);
+void poly_basemul_6l_init(poly_double *r, const poly *a, const poly *b);
+void poly_basemul_6l_acc(poly_double *r, const poly *a, const poly *b);
+void poly_basemul_6l_acc_end(poly *r, const poly *a, const poly *b,
+                             poly_double *r_double);
+void poly_basemul_6l_cache_init(poly_double *r, const poly *a,
+                                const poly *b, poly_cache *b_cache);
+void poly_basemul_6l_acc_cache_init(poly_double *r, const poly *a,
+                                    const poly *b, poly_cache *b_cache);
+void poly_basemul_6l_acc_cache_init_end(poly *r, const poly *a,
+                                        const poly *b, poly_cache *b_cache,
+                                        poly_double *r_double);
+void poly_basemul_6l_cache_init_end(poly *r, const poly *a, const poly *b,
+                                    poly_cache *b_cache);
+void poly_basemul_6l_cached(poly_double *r, const poly *a, const poly *b,
+                            poly_cache *b_cache);
+void poly_basemul_6l_acc_cached(poly_double *r, const poly *a,
+                                const poly *b, poly_cache *b_cache);
+void poly_basemul_6l_acc_cache_end(poly *r, const poly *a, const poly *b,
+                                   poly_cache *b_cache,
+                                   poly_double *r_double);
+void poly_basemul_6l_cache_end(poly *r, const poly *a, const poly *b,
+                               poly_cache *b_cache);
+
+#else
+
+#endif
 
 #endif

@@ -47,9 +47,9 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
     /* Matrix-vector multiplication */
     s1hat = s1;
     polyvecl_ntt(&s1hat);
-    polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
+    polyvec_matrix_pointwise(&t1, mat, &s1hat);
     polyveck_reduce(&t1);
-    polyveck_invntt_tomont(&t1);
+    polyveck_invntt(&t1);
 
     /* Add error vector s2 */
     polyveck_add(&t1, &t1, &s2);
@@ -125,9 +125,9 @@ rej:
     /* Matrix-vector multiplication */
     z = y;
     polyvecl_ntt(&z);
-    polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
+    polyvec_matrix_pointwise(&w1, mat, &z);
     polyveck_reduce(&w1);
-    polyveck_invntt_tomont(&w1);
+    polyveck_invntt(&w1);
 
     /* Decompose w and call the random oracle */
     polyveck_caddq(&w1);
@@ -143,8 +143,8 @@ rej:
     poly_ntt(&cp);
 
     /* Compute z, reject if it reveals secret */
-    polyvecl_pointwise_poly_montgomery(&z, &cp, &s1);
-    polyvecl_invntt_tomont(&z);
+    polyvecl_pointwise_poly(&z, &cp, &s1);
+    polyvecl_invntt(&z);
     polyvecl_add(&z, &z, &y);
     polyvecl_reduce(&z);
     if (polyvecl_chknorm(&z, GAMMA1 - BETA))
@@ -152,16 +152,16 @@ rej:
 
     /* Check that subtracting cs2 does not change high bits of w and low
      * bits do not reveal secret information */
-    polyveck_pointwise_poly_montgomery(&h, &cp, &s2);
-    polyveck_invntt_tomont(&h);
+    polyveck_pointwise_poly(&h, &cp, &s2);
+    polyveck_invntt(&h);
     polyveck_sub(&w0, &w0, &h);
     polyveck_reduce(&w0);
     if (polyveck_chknorm(&w0, GAMMA2 - BETA))
         goto rej;
 
     /* Compute hints for w1 */
-    polyveck_pointwise_poly_montgomery(&h, &cp, &t0);
-    polyveck_invntt_tomont(&h);
+    polyveck_pointwise_poly(&h, &cp, &t0);
+    polyveck_invntt(&h);
     polyveck_reduce(&h);
     if (polyveck_chknorm(&h, GAMMA2))
         goto rej;
@@ -254,16 +254,16 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
     polyvec_matrix_expand(mat, rho);
 
     polyvecl_ntt(&z);
-    polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
+    polyvec_matrix_pointwise(&w1, mat, &z);
 
     poly_ntt(&cp);
     polyveck_shiftl(&t1);
     polyveck_ntt(&t1);
-    polyveck_pointwise_poly_montgomery(&t1, &cp, &t1);
+    polyveck_pointwise_poly(&t1, &cp, &t1);
 
     polyveck_sub(&w1, &w1, &t1);
     polyveck_reduce(&w1);
-    polyveck_invntt_tomont(&w1);
+    polyveck_invntt(&w1);
 
     /* Reconstruct w1 */
     polyveck_caddq(&w1);

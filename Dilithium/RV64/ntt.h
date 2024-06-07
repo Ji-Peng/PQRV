@@ -6,6 +6,6 @@
 #include "params.h"
 
 void ntt(int32_t a[N]);
-void invntt_tomont(int32_t a[N]);
+void intt(int32_t a[N]);
 
 #endif

@@ -8,13 +8,15 @@
 
 #define ARRAY_SIZE 11
 
-float a_array[ARRAY_SIZE] = {1.18869953,  1.55298864,  -0.17365574, -1.86193886,
-                             -1.52391526, -0.36566814, 0.70753702,  0.73992422,
-                             -0.13493693, 1.09563677,  1.03797902};
+float a_array[ARRAY_SIZE] = {1.18869953,  1.55298864,  -0.17365574,
+                             -1.86193886, -1.52391526, -0.36566814,
+                             0.70753702,  0.73992422,  -0.13493693,
+                             1.09563677,  1.03797902};
 
-float b_array[ARRAY_SIZE] = {1.19655525, 0.23393777,  -0.11629651, -0.54508896,
-                             -1.2424749, -1.54835913, 0.86935212,  0.12946646,
-                             0.81831905, -0.42723697, -0.89793257};
+float b_array[ARRAY_SIZE] = {1.19655525,  0.23393777, -0.11629651,
+                             -0.54508896, -1.2424749, -1.54835913,
+                             0.86935212,  0.12946646, 0.81831905,
+                             -0.42723697, -0.89793257};
 
 // float c_array[ARRAY_SIZE] = {
 // 2.38525478,  1.78692641, -0.28995225, -2.40702783,
@@ -35,7 +37,8 @@ void add(const float *a, const float *b, float *c, size_t length)
 void add_vec(const float *a, const float *b, float *c, size_t length)
 {
     while (length > 0) {
-        size_t vl = vsetvl_e32m1(length);  // 设置向量寄存器每次操作的元素个数
+        size_t vl =
+            vsetvl_e32m1(length);  // 设置向量寄存器每次操作的元素个数
         vfloat32m1_t va =
             vle32_v_f32m1(a, vl);  // 从数组a中加载vl个元素到向量寄存器va中
         vfloat32m1_t vb =
@@ -149,8 +152,10 @@ unsigned int rej_uniform(int16_t *r, unsigned int len, const uint8_t *buf,
 
     ctr = pos = 0;
     while (ctr < len && pos + 3 <= buflen) {
-        val0 = ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
-        val1 = ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4)) & 0xFFF;
+        val0 =
+            ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
+        val1 =
+            ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4)) & 0xFFF;
         pos += 3;
 
         if (val0 < KYBER_Q)
@@ -220,7 +225,8 @@ unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
         ctr += num1;
     }
     while (ctr < KYBER_N && pos <= REJ_UNIFORM_AVX_BUFLEN - 3) {
-        val0 = ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
+        val0 =
+            ((buf[pos + 0] >> 0) | ((uint16_t)buf[pos + 1] << 8)) & 0xFFF;
         val1 = ((buf[pos + 1] >> 4) | ((uint16_t)buf[pos + 2] << 4));
         pos += 3;
         if (val0 < KYBER_Q)

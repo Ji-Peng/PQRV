@@ -95,7 +95,7 @@ void ntt(int16_t r[256]) {
 }
 
 /*************************************************
-* Name:        invntt_tomont
+* Name:        intt
 *
 * Description: Inplace inverse number-theoretic transform in Rq and
 *              multiplication by Montgomery factor 2^16.

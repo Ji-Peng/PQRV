@@ -24,13 +24,13 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             poly_uniform(&mat[i].vec[j], rho, (i << 8) + j);
 }
 
-void polyvec_matrix_pointwise_montgomery(polyveck *t, const polyvecl mat[K],
+void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
                                          const polyvecl *v)
 {
     unsigned int i;
 
     for (i = 0; i < K; ++i)
-        polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
+        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
 }
 
 /**************************************************************/
@@ -97,7 +97,7 @@ void polyvecl_ntt(polyvecl *v)
         poly_ntt(&v->vec[i]);
 }
 
-void polyvecl_invntt_tomont(polyvecl *v)
+void polyvecl_invntt(polyvecl *v)
 {
     unsigned int i;
 
@@ -105,17 +105,17 @@ void polyvecl_invntt_tomont(polyvecl *v)
         poly_invntt(&v->vec[i]);
 }
 
-void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
                                         const polyvecl *v)
 {
     unsigned int i;
 
     for (i = 0; i < L; ++i)
-        poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }
 
 /*************************************************
- * Name:        polyvecl_pointwise_acc_montgomery
+ * Name:        polyvecl_pointwise_acc
  *
  * Description: Pointwise multiply vectors of polynomials of length L, multiply
  *              resulting vector by 2^{-32} and add (accumulate) polynomials
@@ -125,15 +125,15 @@ void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a,
  *              - const polyvecl *u: pointer to first input vector
  *              - const polyvecl *v: pointer to second input vector
  **************************************************/
-void polyvecl_pointwise_acc_montgomery(poly *w, const polyvecl *u,
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
                                        const polyvecl *v)
 {
     unsigned int i;
     poly t;
 
-    poly_pointwise_montgomery(w, &u->vec[0], &v->vec[0]);
+    poly_pointwise(w, &u->vec[0], &v->vec[0]);
     for (i = 1; i < L; ++i) {
-        poly_pointwise_montgomery(&t, &u->vec[i], &v->vec[i]);
+        poly_pointwise(&t, &u->vec[i], &v->vec[i]);
         poly_add(w, w, &t);
     }
 }
@@ -276,7 +276,7 @@ void polyveck_ntt(polyveck *v)
 }
 
 /*************************************************
- * Name:        polyveck_invntt_tomont
+ * Name:        polyveck_invntt
  *
  * Description: Inverse NTT and multiplication by 2^{32} of polynomials
  *              in vector of length K. Input coefficients need to be less
@@ -284,7 +284,7 @@ void polyveck_ntt(polyveck *v)
  *
  * Arguments:   - polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_invntt_tomont(polyveck *v)
+void polyveck_invntt(polyveck *v)
 {
     unsigned int i;
 
@@ -292,13 +292,13 @@ void polyveck_invntt_tomont(polyveck *v)
         poly_invntt(&v->vec[i]);
 }
 
-void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a,
+void polyveck_pointwise_poly(polyveck *r, const poly *a,
                                         const polyveck *v)
 {
     unsigned int i;
 
     for (i = 0; i < K; ++i)
-        poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }
 
 /*************************************************

@@ -4,7 +4,7 @@ polyvecl_uniform_eta:           79439 cycles
 polyveck_uniform_eta:           79387 cycles
 poly_ntt:                       33966 cycles
 poly_invntt:                    44201 cycles
-poly_pointwise_montgomery:       7920 cycles
+poly_pointwise:       7920 cycles
 poly_challenge:                 11030 cycles
 Keypair:                      1591978 cycles
 Sign:                         6929710 cycles
@@ -16,7 +16,7 @@ polyvecl_uniform_eta:          113558 cycles
 polyveck_uniform_eta:          136852 cycles
 poly_ntt:                       34162 cycles
 poly_invntt:                    45476 cycles
-poly_pointwise_montgomery:       7887 cycles
+poly_pointwise:       7887 cycles
 poly_challenge:                 11215 cycles
 Keypair:                      2746541 cycles
 Sign:                         11098896 cycles
@@ -28,7 +28,7 @@ polyvecl_uniform_eta:          127975 cycles
 polyveck_uniform_eta:          150353 cycles
 poly_ntt:                       34049 cycles
 poly_invntt:                    45415 cycles
-poly_pointwise_montgomery:       7881 cycles
+poly_pointwise:       7881 cycles
 poly_challenge:                 11425 cycles
 Keypair:                      4562671 cycles
 Sign:                         13899258 cycles

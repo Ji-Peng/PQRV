@@ -149,13 +149,13 @@ void poly_invntt(poly *a)
 {
     DBENCH_START();
 
-    invntt_tomont(a->coeffs);
+    intt(a->coeffs);
 
     DBENCH_STOP(*tmul);
 }
 
 /*************************************************
- * Name:        poly_pointwise_montgomery
+ * Name:        poly_pointwise
  *
  * Description: Pointwise multiplication of polynomials in NTT domain
  *              representation and multiplication of resulting polynomial
@@ -165,7 +165,7 @@ void poly_invntt(poly *a)
  *              - const poly *a: pointer to first input polynomial
  *              - const poly *b: pointer to second input polynomial
  **************************************************/
-void poly_pointwise_montgomery(poly *c, const poly *a, const poly *b)
+void poly_pointwise(poly *c, const poly *a, const poly *b)
 {
     unsigned int i;
     DBENCH_START();
@@ -963,3 +963,104 @@ void polyw1_pack(uint8_t *r, const poly *a)
 
     DBENCH_STOP(*tpack);
 }
+
+#if defined(RV32)
+
+extern int32_t zetas_basemul_6l_rv32im[32 * 2];
+
+void poly_ntt_6l(poly *a)
+{
+    ntt_6l(a->coeffs);
+}
+
+void poly_invntt_6l(poly *a)
+{
+    intt_6l(a->coeffs);
+}
+
+void poly_basemul_6l_init(poly_double *r, const poly *a, const poly *b)
+{
+    poly_basemul_6l_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                zetas_basemul_6l_rv32im);
+}
+
+void poly_basemul_6l_acc(poly_double *r, const poly *a, const poly *b)
+{
+    poly_basemul_6l_acc_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                               zetas_basemul_6l_rv32im);
+}
+
+void poly_basemul_6l_acc_end(poly *r, const poly *a, const poly *b,
+                             poly_double *r_double)
+{
+    poly_basemul_6l_acc_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                   zetas_basemul_6l_rv32im,
+                                   r_double->coeffs);
+}
+
+void poly_basemul_6l_cache_init(poly_double *r, const poly *a,
+                                const poly *b, poly_cache *b_cache)
+{
+    poly_basemul_6l_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                      b_cache->coeffs,
+                                      zetas_basemul_6l_rv32im);
+}
+
+void poly_basemul_6l_acc_cache_init(poly_double *r, const poly *a,
+                                    const poly *b, poly_cache *b_cache)
+{
+    poly_basemul_6l_acc_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                          b_cache->coeffs,
+                                          zetas_basemul_6l_rv32im);
+}
+
+void poly_basemul_6l_acc_cache_init_end(poly *r, const poly *a,
+                                        const poly *b, poly_cache *b_cache,
+                                        poly_double *r_double)
+{
+    poly_basemul_6l_acc_cache_init_end_rv32im(
+        r->coeffs, a->coeffs, b->coeffs, b_cache->coeffs,
+        zetas_basemul_6l_rv32im, r_double->coeffs);
+}
+
+void poly_basemul_6l_cache_init_end(poly *r, const poly *a, const poly *b,
+                                    poly_cache *b_cache)
+{
+    poly_basemul_6l_cache_init_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                          b_cache->coeffs,
+                                          zetas_basemul_6l_rv32im);
+}
+
+void poly_basemul_6l_cached(poly_double *r, const poly *a, const poly *b,
+                            poly_cache *b_cache)
+{
+    poly_basemul_6l_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                  b_cache->coeffs);
+}
+
+void poly_basemul_6l_acc_cached(poly_double *r, const poly *a,
+                                const poly *b, poly_cache *b_cache)
+{
+    poly_basemul_6l_acc_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                      b_cache->coeffs);
+}
+
+void poly_basemul_6l_acc_cache_end(poly *r, const poly *a, const poly *b,
+                                   poly_cache *b_cache,
+                                   poly_double *r_double)
+{
+    poly_basemul_6l_acc_cache_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                         b_cache->coeffs,
+                                         r_double->coeffs);
+}
+
+void poly_basemul_6l_cache_end(poly *r, const poly *a, const poly *b,
+                               poly_cache *b_cache)
+{
+    poly_basemul_6l_cache_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                     b_cache->coeffs);
+}
+
+#else
+
+#endif
