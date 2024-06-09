@@ -147,10 +147,10 @@
 .equ qinv, 58728449
 # v = ??? (((int64_t)1 << 48) + M / 2) / M is used for barrett reduce
 # .equ V, ???
-# ninv = 2^64 * (1/64) mod q is used for reverting standard domain
-.equ ninv, 167912
-# ninvqinv <- low(ninv*qinv)
-.equ ninvqinv, 4261384168
+# inv64 = 2^64 * (1/64) mod q is used for reverting standard domain
+.equ inv64, 167912
+# inv64qinv <- low(inv64*qinv)
+.equ inv64qinv, 4261384168
 # q/2
 .equ q_div2, 4190208
 
@@ -172,17 +172,17 @@ ntt_6l_rv32im:
 ntt_6l_rv32im_looper_123:
     # t0-t6,tp = a[0,32,64,...,224]
     load_coeffs 32, a0
-    # level1
+    # level 1
     ct_bfu t0, t4, s0, s1, a6, a2, a3
     ct_bfu t1, t5, s0, s1, a6, a2, a3
     ct_bfu t2, t6, s0, s1, a6, a2, a3
     ct_bfu t3, tp, s0, s1, a6, a2, a3
-    # level2
+    # level 2
     ct_bfu t0, t2, s2, s3, a6, a2, a3
     ct_bfu t1, t3, s2, s3, a6, a2, a3
     ct_bfu t4, t6, s4, s5, a6, a2, a3
     ct_bfu t5, tp, s4, s5, a6, a2, a3
-    # # level3
+    # # level 3
     ct_bfu t0, t1, s6, s7, a6, a2, a3
     ct_bfu t2, t3, s8, s9, a6, a2, a3
     ct_bfu t4, t5, s10,s11,a6, a2, a3
@@ -196,7 +196,7 @@ ntt_6l_rv32im_looper_123:
 addi a0, a0, -32*4
 # a1 points to next 7 zetas & 7 zetasqinv
 addi a1, a1, 4*7*2
-# set outer loop control register a5, 8: inner loop number
+# set outer loop control register a5, 8: outer loop number
 addi a5, a1, 8*4*7*2
 ntt_6l_rv32im_outer_456:
     load_zetas_zetasqinv
@@ -205,17 +205,17 @@ ntt_6l_rv32im_outer_456:
     ntt_6l_rv32im_inner_456:
         # a[0,4,...,28]
         load_coeffs 4, a0
-        # level1
+        # level 4
         ct_bfu t0, t4, s0, s1, a6, a2, a3
         ct_bfu t1, t5, s0, s1, a6, a2, a3
         ct_bfu t2, t6, s0, s1, a6, a2, a3
         ct_bfu t3, tp, s0, s1, a6, a2, a3
-        # level2
+        # level 5
         ct_bfu t0, t2, s2, s3, a6, a2, a3
         ct_bfu t1, t3, s2, s3, a6, a2, a3
         ct_bfu t4, t6, s4, s5, a6, a2, a3
         ct_bfu t5, tp, s4, s5, a6, a2, a3
-        # level3
+        # level 6
         ct_bfu t0, t1, s6, s7, a6, a2, a3
         ct_bfu t2, t3, s8, s9, a6, a2, a3
         ct_bfu t4, t5, s10,s11,a6, a2, a3
@@ -243,7 +243,7 @@ ntt_6l_rv32im_outer_456:
 intt_6l_rv32im:
     addi sp, sp, -4*15
     save_regs
-# set outer loop control register a5, 8: inner loop number
+# set outer loop control register a5, 8: outer loop number
 addi a5, a1, 8*4*7*2
 li a6, q
 intt_6l_rv32im_outer_123:
@@ -253,17 +253,17 @@ intt_6l_rv32im_outer_123:
     intt_6l_rv32im_inner_123:
         # a[0,4,...,28]
         load_coeffs 4, a0
-        # level1
+        # level 1
         gs_bfu t0, t1, s0, s1, a6, a2, a3
         gs_bfu t2, t3, s2, s3, a6, a2, a3
         gs_bfu t4, t5, s4, s5, a6, a2, a3
         gs_bfu t6, tp, s6, s7, a6, a2, a3
-        # level2
+        # level 2
         gs_bfu t0, t2, s8, s9, a6, a2, a3
         gs_bfu t1, t3, s8, s9, a6, a2, a3
         gs_bfu t4, t6, s10,s11,a6, a2, a3
         gs_bfu t5, tp, s10,s11,a6, a2, a3
-        # level3
+        # level 3
         gs_bfu t0, t4, gp, ra, a6, a2, a3
         gs_bfu t1, t5, gp, ra, a6, a2, a3
         gs_bfu t2, t6, gp, ra, a6, a2, a3
@@ -283,24 +283,24 @@ intt_6l_rv32im_outer_123:
     # loop control, 32: loop numbers, 4: wordLen
     addi a4, a0, 32*4
     load_zetas_zetasqinv
-    # Load ninv & ninvqinv for reverting to standard domain
-    li a7, ninv
-    li a5, ninvqinv
+    # Load inv64 & inv64qinv for reverting to standard domain
+    li a7, inv64
+    li a5, inv64qinv
 # 456 layers
 intt_6l_rv32im_looper_456:
     # a[0,32,64,...,224]
     load_coeffs 32, a0
-    # level1
+    # level 4
     gs_bfu t0, t1, s0, s1, a6, a2, a3
     gs_bfu t2, t3, s2, s3, a6, a2, a3
     gs_bfu t4, t5, s4, s5, a6, a2, a3
     gs_bfu t6, tp, s6, s7, a6, a2, a3
-    # level2
+    # level 5
     gs_bfu t0, t2, s8, s9, a6, a2, a3
     gs_bfu t1, t3, s8, s9, a6, a2, a3
     gs_bfu t4, t6, s10,s11,a6, a2, a3
     gs_bfu t5, tp, s10,s11,a6, a2, a3
-    # level3
+    # level 6
     gs_bfu t0, t4, gp, ra, a6, a2, a3
     gs_bfu t1, t5, gp, ra, a6, a2, a3
     gs_bfu t2, t6, gp, ra, a6, a2, a3
@@ -316,7 +316,7 @@ intt_6l_rv32im_looper_456:
     bne a0, a4, intt_6l_rv32im_looper_456
     restore_regs
     addi sp, sp, 4*15
-    ret    
+    ret
 
 # void poly_basemul_6l_rv32im(int32_t r[256], const int32_t a[256], const int32_t b[256], int32_t zeta[32*2])
 # register usage: 

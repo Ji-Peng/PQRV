@@ -5,6 +5,8 @@
 
 extern void ntt_6l_rv32im(int32_t *r, int32_t *zetas);
 extern void intt_6l_rv32im(int32_t *r, int32_t *zetas);
+extern void ntt_8l_rv32im(int32_t *r, int32_t *zetas);
+extern void intt_8l_rv32im(int32_t *r, int32_t *zetas);
 // todo: needed?
 extern void poly_barrett_rdc_rv32im(int32_t *r);
 extern void poly_tomont_rv32im(int32_t *r);
