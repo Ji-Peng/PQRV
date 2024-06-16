@@ -6,8 +6,10 @@
 
 #ifdef RVV
 #    include "ntt_rvv.h"
-#else
+#elif defined(RV32)
 #    include "ntt_rv32im.h"
+#elif defined(RV64)
+#    include "ntt_rv64im.h"
 #endif
 #include "speed_print.h"
 
@@ -61,6 +63,30 @@ int main()
          basemul_acc_cache_end);
     PERF(poly_plantard_rdc_rv32im(r), plantard_rdc);
     PERF(poly_toplant_rv32im(r), toplant);
+#elif defined(KYBER_NTT_RV64_H)
+    int16_t r[256], a[256], b[256], b_cache[256];
+    int32_t r_double[256];
+    uint64_t zetas[128];
+    printf("Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV64IM\n");
+    PERF(ntt_rv64im(r, zetas), ntt);
+    PERF(invntt_rv64im(r, zetas), intt);
+    PERF(poly_basemul_acc_rv64im(r_double, a, b, zetas), basemul_acc);
+    PERF(poly_basemul_acc_end_rv64im(r, a, b, zetas, r_double),
+         basemul_acc_end);
+    PERF(poly_basemul_cache_init_rv64im(r_double, a, b, b_cache, zetas),
+         basemul_cache_init);
+    PERF(
+        poly_basemul_acc_cache_init_rv64im(r_double, a, b, b_cache, zetas),
+        basemul_acc_cache_init);
+    PERF(poly_basemul_acc_cache_init_end_rv64im(r, a, b, b_cache, zetas,
+                                                r_double),
+         basemul_acc_cache_init_end);
+    PERF(poly_basemul_acc_cached_rv64im(r_double, a, b, b_cache),
+         basemul_acc_cached);
+    PERF(poly_basemul_acc_cache_end_rv64im(r, a, b, b_cache, r_double),
+         basemul_acc_cache_end);
+    PERF(poly_plantard_rdc_rv64im(r), plantard_rdc);
+    PERF(poly_toplant_rv64im(r), toplant);
 #elif defined(KYBER_NTT_RVV_H)
     int16_t r[256];
     const int16_t qdata[1472];
