@@ -270,6 +270,7 @@ ntt_8l_rv32im_looper_78:
 intt_8l_rv32im:
     addi sp, sp, -4*15
     save_regs
+    li a6, q
     # 12 layers merging
     # loop control
     addi a4, a0, 32*8*4
@@ -283,7 +284,7 @@ intt_8l_rv32im_looper_12:
     gs_bfu t4, t5, s6, s7, a6, a2, a3
     gs_bfu t6, tp, s8, s9, a6, a2, a3
     gs_bfu t4, t6, s10,s11,a6, a2, a3
-    gs_bfu t4, tp, s10,s11,a6, a2, a3
+    gs_bfu t5, tp, s10,s11,a6, a2, a3
     store_coeffs 1, a0
     addi a0, a0, 8*4
     addi a1, a1, 4*3*2*2
@@ -356,127 +357,371 @@ intt_8l_rv32im_looper_678:
     addi sp, sp, 4*15
     ret
 
-# void poly_basemul_init_8l_rv32im(int64_t r[256], const int32_t a[256], const int32_t b[256])
-# todo: pipeline optimization
-.globl poly_basemul_init_8l_rv32im
+# void poly_basemul_8l_init_rv32im(int64_t r[256], const int32_t a[256], const int32_t b[256])
+.globl poly_basemul_8l_init_rv32im
 .align 2
-poly_basemul_init_8l_rv32im:
+poly_basemul_8l_init_rv32im:
     addi sp, sp, -4*15
     save_regs
     # loop control
-    addi gp, a0, 32*8*8
-poly_basemul_init_8l_rv32im_looper:
+    li gp, 32*8*8
+    add gp, gp, a0
+poly_basemul_8l_init_rv32im_looper:
     lw t0, 0*4(a1) # a0
-    lw t1, 1*4(a1) # a1
-    lw t2, 2*4(a1) # a2
-    lw t3, 3*4(a1) # a3
     lw s0, 0*4(a2) # b0
+    lw t1, 1*4(a1) # a1
     lw s1, 1*4(a2) # b1
-    lw s2, 2*4(a2) # b2
-    lw s3, 3*4(a2) # b3
-    lw t4, 4*4(a1) # a4
-    lw t5, 5*4(a1) # a5
-    lw t6, 6*4(a1) # a6
-    lw tp, 7*4(a1) # a7
-    lw s4, 4*4(a2) # b4
-    lw s5, 5*4(a2) # b5
-    lw s6, 6*4(a2) # b6
-    lw s7, 7*4(a2) # b7
     mul64 s9, s8, t0, s0
+    lw t2, 2*4(a1) # a2
+    lw s2, 2*4(a2) # b2
     mul64 s11,s10,t1, s1
-    mul64 a4, a3, t2, s2
-    mul64 a6, a5, t3, s3
     sw64 s9, s8, 0*8, a0
+    lw t3, 3*4(a1) # a3
+    lw s3, 3*4(a2) # b3
+    mul64 a4, a3, t2, s2
     sw64 s11,s10,1*8, a0
+    mul64 a6, a5, t3, s3
     sw64 a4, a3, 2*8, a0
+    lw t4, 4*4(a1) # a4
+    lw s4, 4*4(a2) # b4
     sw64 a6, a5, 3*8, a0
     mul64 s9, s8, t4, s4
-    mul64 s11,s10,t5, s5
-    mul64 a4, a3, t6, s6
-    mul64 a6, a5, tp, s7
+    lw t5, 5*4(a1) # a5
+    lw s5, 5*4(a2) # b5
     sw64 s9, s8, 4*8, a0
+    mul64 s11,s10,t5, s5
+    lw t6, 6*4(a1) # a6
+    lw s6, 6*4(a2) # b6
     sw64 s11,s10,5*8, a0
+    mul64 a4, a3, t6, s6
+    lw tp, 7*4(a1) # a7
+    lw s7, 7*4(a2) # b7
     sw64 a4, a3, 6*8, a0
+    mul64 a6, a5, tp, s7
     sw64 a6, a5, 7*8, a0
     # loop control
     addi a0, a0, 8*8
     addi a1, a1, 4*8
     addi a2, a2, 4*8
-    bne gp, a0, poly_basemul_init_8l_rv32im_looper
+    bne gp, a0, poly_basemul_8l_init_rv32im_looper
     restore_regs
     addi sp, sp, 4*15
     ret
 
-# void poly_basemul_acc_8l_rv32im(int64_t r[256], const int32_t a[256], const int32_t b[256])
-# todo: pipeline optimization
-.globl poly_basemul_acc_8l_rv32im
+# void poly_basemul_8l_acc_rv32im(int64_t r[256], const int32_t a[256], const int32_t b[256])
+.globl poly_basemul_8l_acc_rv32im
 .align 2
-poly_basemul_acc_8l_rv32im:
+poly_basemul_8l_acc_rv32im:
     addi sp, sp, -4*15
     save_regs
     # loop control
-    addi gp, a0, 32*8*8
-poly_basemul_acc_8l_rv32im_looper:
+    li gp, 32*8*8
+    add gp, gp, a0
+poly_basemul_8l_acc_rv32im_looper:
+    lw t0, 0*4(a1) # a0
+    lw s0, 0*4(a2) # b0
+    lw64  s11,s10,0*8, a0
+    mul64 s9, s8, t0, s0
+    lw t1, 1*4(a1) # a1
+    lw s1, 1*4(a2) # b1
+    add64 s11,s10,s9,s8
+    sw64  s11,s10,0*8, a0
+    lw64  a6, a5, 1*8, a0
+    mul64 a4, a3,t1, s1
+    lw t2, 2*4(a1) # a2
+    lw s2, 2*4(a2) # b2
+    add64 a6, a5, a4, a3
+    sw64  a6, a5, 1*8, a0
+    lw64  s11,s10,2*8, a0
+    mul64 s9, s8, t2, s2
+    lw t3, 3*4(a1) # a3
+    lw s3, 3*4(a2) # b3
+    add64 s11,s10,s9,s8
+    sw64  s11,s10,2*8, a0
+    lw64  a6, a5, 3*8, a0
+    mul64 a4, a3, t3, s3
+    lw t4, 4*4(a1) # a4
+    lw s4, 4*4(a2) # b4
+    add64 a6, a5, a4, a3
+    sw64  a6, a5, 3*8, a0
+    lw64  s11,s10,4*8, a0
+    mul64 s9, s8, t4, s4
+    lw t5, 5*4(a1) # a5
+    lw s5, 5*4(a2) # b5
+    add64 s11,s10,s9,s8
+    sw64  s11,s10,4*8, a0
+    lw64  a6, a5, 5*8, a0
+    mul64 a4, a3, t5, s5
+    lw t6, 6*4(a1) # a6
+    lw s6, 6*4(a2) # b6
+    add64 a6, a5, a4, a3
+    sw64  a6, a5, 5*8, a0
+    lw64  s11,s10,6*8, a0
+    mul64 s9, s8, t6, s6
+    lw tp, 7*4(a1) # a7
+    lw s7, 7*4(a2) # b7
+    add64 s11,s10,s9, s8
+    sw64  s11,s10,6*8, a0
+    lw64  a6, a5, 7*8, a0
+    mul64 a4, a3, tp, s7
+    addi a1, a1, 4*8
+    addi a2, a2, 4*8
+    add64 a6, a5, a4, a3
+    sw64  a6, a5, 7*8, a0
+    # loop control
+    addi a0, a0, 8*8
+    bne gp, a0, poly_basemul_8l_acc_rv32im_looper
+    restore_regs
+    addi sp, sp, 4*15
+    ret
+
+# void poly_basemul_8l_acc_end_rv32im(int32_t r[256], const int32_t a[256], const int32_t b[256], int64_t r_double[256])
+.globl poly_basemul_8l_acc_end_rv32im
+.align 2
+poly_basemul_8l_acc_end_rv32im:
+    addi sp, sp, -4*16
+    save_regs
+    li a7, q
+    li ra, qinv
+    # loop control
+    li gp, 32*8*4
+    add gp, gp, a0
+    sw gp, 4*15(sp)
+poly_basemul_8l_acc_end_rv32im_looper:
+    lw t0, 0*4(a1) # a0
+    lw s0, 0*4(a2) # b0
+    lw64  s11,s10,0*8, a3
+    mul64 s9, s8, t0, s0
+    lw t1, 1*4(a1) # a1
+    lw s1, 1*4(a2) # b1
+    add64 s11,s10,s9,s8
+    montrdc gp, s11, s10, a7, ra
+    lw64  s9, s8, 1*8, a3
+    sw    gp, 0*4(a0)
+    mul64 a6, a5,t1, s1
+    lw t2, 2*4(a1) # a2
+    lw s2, 2*4(a2) # b2
+    add64 s9, s8, a6, a5
+    montrdc gp, s9, s8, a7, ra
+    lw64  s11,s10,2*8, a3
+    sw    gp, 1*4(a0)
+    mul64 s9, s8, t2, s2
+    lw t3, 3*4(a1) # a3
+    lw s3, 3*4(a2) # b3
+    add64 s11,s10,s9,s8
+    montrdc gp, s11, s10, a7, ra
+    lw64  s9, s8, 3*8, a3
+    sw    gp, 2*4(a0)
+    mul64 a6, a5, t3, s3
+    lw t4, 4*4(a1) # a4
+    lw s4, 4*4(a2) # b4
+    add64 s9, s8, a6, a5
+    montrdc gp, s9, s8, a7, ra
+    lw64  s11,s10,4*8, a3
+    sw    gp, 3*4(a0)
+    mul64 s9, s8, t4, s4
+    lw t5, 5*4(a1) # a5
+    lw s5, 5*4(a2) # b5
+    add64 s11,s10,s9,s8
+    montrdc gp, s11, s10, a7, ra
+    lw64  s9, s8, 5*8, a3
+    sw    gp, 4*4(a0)
+    mul64 a6, a5, t5, s5
+    lw t6, 6*4(a1) # a6
+    lw s6, 6*4(a2) # b6
+    add64 s9, s8, a6, a5
+    montrdc gp, s9, s8, a7, ra
+    lw64  s11,s10,6*8, a3
+    sw    gp, 5*4(a0)
+    mul64 s9, s8, t6, s6
+    lw tp, 7*4(a1) # a7
+    lw s7, 7*4(a2) # b7
+    add64 s11,s10,s9, s8
+    montrdc gp, s11, s10, a7, ra
+    lw64  s9, s8, 7*8, a3
+    mul64 a6, a5, tp, s7
+    sw    gp, 6*4(a0)
+    add64 s9, s8, a6, a5
+    addi a1, a1, 4*8
+    montrdc gp, s9, s8, a7, ra
+    addi a2, a2, 4*8
+    addi a3, a3, 8*8
+    sw    gp, 7*4(a0)
+    # loop control
+    addi a0, a0, 4*8
+    lw gp, 4*15(sp)
+    bne gp, a0, poly_basemul_8l_acc_end_rv32im_looper
+    restore_regs
+    addi sp, sp, 4*16
+    ret
+
+# void poly_basemul_8l_rv32im(int32_t r[256], const int32_t a[256], const int32_t b[256])
+.globl poly_basemul_8l_rv32im
+.align 2
+poly_basemul_8l_rv32im:
+    addi sp, sp, -4*15
+    save_regs
+    li a7, q
+    li ra, qinv
+    # loop control
+    li a5, 32*8*4
+    add a5, a5, a0
+poly_basemul_8l_rv32im_looper:
+    lw t0, 0*4(a1) # a0
+    lw s0, 0*4(a2) # b0
+    lw t1, 1*4(a1) # a1
+    lw s1, 1*4(a2) # b1
+    mul64 s9, s8, t0, s0
+    mul64 s11, s10, t1, s1
+    montrdc a3, s9, s8, a7, ra
+    montrdc a4, s11, s10, a7, ra
+    sw    a3, 0*4(a0)
+    sw    a4, 1*4(a0)
+    lw t2, 2*4(a1) # a2
+    lw s2, 2*4(a2) # b2
+    lw t3, 3*4(a1) # a3
+    lw s3, 3*4(a2) # b3
+    mul64 s9, s8, t2, s2
+    mul64 s11, s10, t3, s3
+    montrdc a3, s9, s8, a7, ra
+    montrdc a4, s11, s10, a7, ra
+    sw    a3, 2*4(a0)
+    sw    a4, 3*4(a0)
+    lw t4, 4*4(a1) # a4
+    lw s4, 4*4(a2) # b4
+    lw t5, 5*4(a1) # a5
+    lw s5, 5*4(a2) # b5
+    mul64 s9, s8, t4, s4
+    mul64 s11, s10, t5, s5
+    montrdc a3, s9, s8, a7, ra
+    montrdc a4, s11, s10, a7, ra
+    sw    a3, 4*4(a0)
+    sw    a4, 5*4(a0)
+    lw t6, 6*4(a1) # a6
+    lw s6, 6*4(a2) # b6
+    lw tp, 7*4(a1) # a7
+    lw s7, 7*4(a2) # b7
+    mul64 s9, s8, t6, s6
+    mul64 s11, s10, tp, s7
+    montrdc a3, s9, s8, a7, ra
+    montrdc a4, s11, s10, a7, ra
+    sw    a3, 6*4(a0)
+    sw    a4, 7*4(a0)
+    # loop control
+    addi a0, a0, 4*8
+    addi a1, a1, 4*8
+    addi a2, a2, 4*8
+    bne a5, a0, poly_basemul_8l_rv32im_looper
+    restore_regs
+    addi sp, sp, 4*15
+    ret
+
+# void polyvec_basemul_poly_8l(int32_t *r_vec, const int32_t *a_poly, const int32_t *b_vec, int32_t veclen);
+.globl polyvec_basemul_poly_8l_rv32im
+.align 2
+polyvec_basemul_poly_8l_rv32im:
+    addi sp, sp, -4*15
+    save_regs
+    li a7, q
+    li ra, qinv
+    # outer loop control
+    addi a6, a1, 32*8*4
+polyvec_basemul_poly_8l_rv32im_outer_loop:
     lw t0, 0*4(a1) # a0
     lw t1, 1*4(a1) # a1
     lw t2, 2*4(a1) # a2
     lw t3, 3*4(a1) # a3
-    lw s0, 0*4(a2) # b0
-    lw s1, 1*4(a2) # b1
-    lw s2, 2*4(a2) # b2
-    lw s3, 3*4(a2) # b3
     lw t4, 4*4(a1) # a4
     lw t5, 5*4(a1) # a5
     lw t6, 6*4(a1) # a6
     lw tp, 7*4(a1) # a7
-    lw s4, 4*4(a2) # b4
-    lw s5, 5*4(a2) # b5
-    lw s6, 6*4(a2) # b6
-    lw s7, 7*4(a2) # b7
-
-    mul64 s9, s8, t0, s0
-    lw64  s11,s10,0*8, a0
-    mul64 a4, a3,t1, s1
-    add64 s11,s10,s9,s8
-    lw64  a6, a5, 1*8, a0
-    sw64  s11,s10,0*8, a0
-    add64 a6, a5, a4, a3
-    sw64  a6, a5, 1*8, a0
-
-    mul64 s9, s8, t2, s2
-    lw64  s11,s10,2*8, a0
-    mul64 a4, a3, t3, s3
-    add64 s11,s10,s9,s8
-    lw64  a6, a5, 3*8, a0
-    sw64  s11,s10,2*8, a0
-    add64 a6, a5, a4, a3
-    sw64  a6, a5, 3*8, a0
-
-    mul64 s9, s8, t4, s4
-    lw64  s11,s10,4*8, a0
-    mul64 a4, a3, t5, s5
-    add64 s11,s10,s9,s8
-    lw64  a6, a5, 5*8, a0
-    sw64  s11,s10,4*8, a0
-    add64 a6, a5, a4, a3
-    sw64  a6, a5, 5*8, a0
-
-    mul64 s9, s8, t6, s6
-    lw64  s11,s10,6*8, a0
-    mul64 a4, a3, tp, s7
-    add64 s11,s10,s9, s8
-    lw64  a6, a5, 7*8, a0
-    sw64  s11,s10,6*8, a0
-    add64 a6, a5, a4, a3
-    sw64  a6, a5, 7*8, a0
-
-    # loop control
-    addi a0, a0, 8*8
-    addi a1, a1, 4*8
-    addi a2, a2, 4*8
-    bne gp, a0, poly_basemul_acc_8l_rv32im_looper
+    # inner loop control
+    li gp, 0
+    polyvec_basemul_poly_8l_rv32im_inner_loop:
+        lw s0, 0*4(a2) # b0
+        lw s1, 1*4(a2) # b1
+        lw s2, 2*4(a2) # b2
+        lw s3, 3*4(a2) # b3
+        mul64 s9, s8, t0, s0
+        mul64 s11, s10, t1, s1
+        montrdc a4, s9, s8, a7, ra
+        montrdc a5, s11, s10, a7, ra
+        sw    a4, 0*4(a0)
+        sw    a5, 1*4(a0)
+        mul64 s9, s8, t2, s2
+        mul64 s11, s10, t3, s3
+        montrdc a4, s9, s8, a7, ra
+        montrdc a5, s11, s10, a7, ra
+        lw s4, 4*4(a2) # b4
+        lw s5, 5*4(a2) # b5
+        lw s6, 6*4(a2) # b6
+        lw s7, 7*4(a2) # b7
+        mul64 s9, s8, t4, s4
+        sw    a4, 2*4(a0)
+        mul64 s11, s10, t5, s5
+        sw    a5, 3*4(a0)
+        montrdc a4, s9, s8, a7, ra
+        montrdc a5, s11, s10, a7, ra
+        sw    a4, 4*4(a0)
+        sw    a5, 5*4(a0)
+        mul64 s9, s8, t6, s6
+        mul64 s11, s10, tp, s7
+        montrdc a4, s9, s8, a7, ra
+        montrdc a5, s11, s10, a7, ra
+        sw    a4, 6*4(a0)
+        sw    a5, 7*4(a0)
+        # inner loop control & update index
+        addi gp, gp, 1
+        addi a0, a0, 256*4
+        addi a2, a2, 256*4
+        bne a3, gp, polyvec_basemul_poly_8l_rv32im_inner_loop
+    # reset a0 & a2
+    slli a4, a3, 10
+    sub a0, a0, a4
+    sub a2, a2, a4
+    # outer loop control & update index
+    addi a0, a0, 8*4
+    addi a1, a1, 8*4
+    addi a2, a2, 8*4
+    bne a6, a1, polyvec_basemul_poly_8l_rv32im_outer_loop
     restore_regs
     addi sp, sp, 4*15
+    ret
+
+# void poly_reduce_rv32im(int32_t in[256]);
+.globl poly_reduce_rv32im
+.align 2
+poly_reduce_rv32im:
+    li a1, 4194304  # 1<<22
+    li a2, q
+    addi a3, a0, 64*4*4
+poly_reduce_rv32im_loop:
+    lw a4, 0*4(a0)
+    lw a5, 1*4(a0)
+    lw a6, 2*4(a0)
+    lw a7, 3*4(a0)
+    add  t0, a4, a1
+    add  t1, a5, a1
+    add  t2, a6, a1
+    add  t3, a7, a1
+    srai t0, t0, 23
+    srai t1, t1, 23
+    srai t2, t2, 23
+    srai t3, t3, 23
+    mul  t0, t0, a2
+    mul  t1, t1, a2
+    mul  t2, t2, a2
+    mul  t3, t3, a2
+    sub  a4, a4, t0
+    sub  a5, a5, t1
+    sub  a6, a6, t2
+    sub  a7, a7, t3
+    sw a4, 0*4(a0)
+    sw a5, 1*4(a0)
+    sw a6, 2*4(a0)
+    sw a7, 3*4(a0)
+    addi a0, a0, 4*4
+    bne a3, a0, poly_reduce_rv32im_loop
     ret
 
 # void ntt_8l_rv32im_draft(int32_t in[256], const int32_t zetas[64*2]);
@@ -486,81 +731,81 @@ poly_basemul_acc_8l_rv32im_looper:
 # t0-t6, tp: zetas & zetasqinv
 # gp, a7, ra: tmp
 # 4*15(sp): loop
-.globl ntt_8l_rv32im_draft
-.align 2
-ntt_8l_rv32im_draft:
-    addi sp, sp, -4*16
-    save_regs
-    li a6, q
-    # loop control
-    addi gp, a0, 16*4
-    sw gp, 4*15(sp)
-    # load zetas & zetasqinv
-    lw t0, 0*4(a1); lw t1, 1*4(a1)
-    lw t2, 2*4(a1); lw t3, 3*4(a1)
-    lw t4, 4*4(a1); lw t5, 5*4(a1)
-# layer 1+2+3+4
-ntt_8l_rv32im_loop1:
-    load_coeffs a0, 16, 4
-    # layer 1
-    ct_bfu s0, s8,  t0, t1, a6, gp, a7
-    ct_bfu s1, s9,  t0, t1, a6, gp, a7
-    ct_bfu s2, s10, t0, t1, a6, gp, a7
-    ct_bfu s3, s11, t0, t1, a6, gp, a7
-    ct_bfu s4, a2,  t0, t1, a6, gp, a7
-    ct_bfu s5, a3,  t0, t1, a6, gp, a7
-    ct_bfu s6, a4,  t0, t1, a6, gp, a7
-    ct_bfu s7, a5,  t0, t1, a6, gp, a7
-    # layer 2
-    ct_bfu s0,  s4, t2, t3, a6, gp, a7
-    ct_bfu s1,  s5, t2, t3, a6, gp, a7
-    ct_bfu s2,  s6, t2, t3, a6, gp, a7
-    ct_bfu s3,  s7, t2, t3, a6, gp, a7
-    ct_bfu s8,  a2, t4, t5, a6, gp, a7
-    ct_bfu s9,  a3, t4, t5, a6, gp, a7
-    ct_bfu s10, a4, t4, t5, a6, gp, a7
-    ct_bfu s11, a5, t4, t5, a6, gp, a7
-    # layer 3
-    lw t6, 6*4(a1); lw tp, 7*4(a1)
-    ct_bfu s0, s2,  t6, tp, a6, gp, a7
-    ct_bfu s1, s3,  t6, tp, a6, gp, a7
-    lw t6, 8*4(a1); lw tp, 9*4(a1)
-    ct_bfu s4, s6,  t6, tp, a6, gp, a7
-    ct_bfu s5, s7,  t6, tp, a6, gp, a7
-    lw t6, 10*4(a1); lw tp, 11*4(a1)
-    ct_bfu s8, s10, t6, tp, a6, gp, a7
-    ct_bfu s9, s11, t6, tp, a6, gp, a7
-    lw t6, 12*4(a1); lw tp, 13*4(a1)
-    ct_bfu a2, a4,  t6, tp, a6, gp, a7
-    ct_bfu a3, a5,  t6, tp, a6, gp, a7
-    # layer 4
-    lw t6, 14*4(a1); lw tp, 15*4(a1)
-    ct_bfu s0,  s1,  t6, tp, a6, gp, a7
-    lw t6, 16*4(a1); lw tp, 17*4(a1)
-    ct_bfu s2,  s3,  t6, tp, a6, gp, a7
-    lw t6, 18*4(a1); lw tp, 19*4(a1)
-    ct_bfu s4,  s5,  t6, tp, a6, gp, a7
-    lw t6, 20*4(a1); lw tp, 21*4(a1)
-    ct_bfu s6,  s7,  t6, tp, a6, gp, a7
-    lw t6, 22*4(a1); lw tp, 23*4(a1)
-    ct_bfu s8,  s9,  t6, tp, a6, gp, a7
-    lw t6, 24*4(a1); lw tp, 25*4(a1)
-    ct_bfu s10, s11, t6, tp, a6, gp, a7
-    lw t6, 26*4(a1); lw tp, 27*4(a1)
-    ct_bfu a2,  a3,  t6, tp, a6, gp, a7
-    lw t6, 28*4(a1); lw tp, 29*4(a1)
-    ct_bfu a4,  a5,  t6, tp, a6, gp, a7
-    store_coeffs a0, 16, 4
-    addi a0, a0, 4
-    lw gp, 4*15(sp)
-    bne gp, a0, ntt_8l_rv32im_loop1
-    # restore a0 & update a1
-    addi a0, a0, -16*4
-    addi a1, a1, 15*4*2
-# layer 5+6+7+8
-ntt_8l_rv32im_loop2:
+# .globl ntt_8l_rv32im_draft
+# .align 2
+# ntt_8l_rv32im_draft:
+#     addi sp, sp, -4*16
+#     save_regs
+#     li a6, q
+#     # loop control
+#     addi gp, a0, 16*4
+#     sw gp, 4*15(sp)
+#     # load zetas & zetasqinv
+#     lw t0, 0*4(a1); lw t1, 1*4(a1)
+#     lw t2, 2*4(a1); lw t3, 3*4(a1)
+#     lw t4, 4*4(a1); lw t5, 5*4(a1)
+# # layer 1+2+3+4
+# ntt_8l_rv32im_loop1:
+#     load_coeffs a0, 16, 4
+#     # layer 1
+#     ct_bfu s0, s8,  t0, t1, a6, gp, a7
+#     ct_bfu s1, s9,  t0, t1, a6, gp, a7
+#     ct_bfu s2, s10, t0, t1, a6, gp, a7
+#     ct_bfu s3, s11, t0, t1, a6, gp, a7
+#     ct_bfu s4, a2,  t0, t1, a6, gp, a7
+#     ct_bfu s5, a3,  t0, t1, a6, gp, a7
+#     ct_bfu s6, a4,  t0, t1, a6, gp, a7
+#     ct_bfu s7, a5,  t0, t1, a6, gp, a7
+#     # layer 2
+#     ct_bfu s0,  s4, t2, t3, a6, gp, a7
+#     ct_bfu s1,  s5, t2, t3, a6, gp, a7
+#     ct_bfu s2,  s6, t2, t3, a6, gp, a7
+#     ct_bfu s3,  s7, t2, t3, a6, gp, a7
+#     ct_bfu s8,  a2, t4, t5, a6, gp, a7
+#     ct_bfu s9,  a3, t4, t5, a6, gp, a7
+#     ct_bfu s10, a4, t4, t5, a6, gp, a7
+#     ct_bfu s11, a5, t4, t5, a6, gp, a7
+#     # layer 3
+#     lw t6, 6*4(a1); lw tp, 7*4(a1)
+#     ct_bfu s0, s2,  t6, tp, a6, gp, a7
+#     ct_bfu s1, s3,  t6, tp, a6, gp, a7
+#     lw t6, 8*4(a1); lw tp, 9*4(a1)
+#     ct_bfu s4, s6,  t6, tp, a6, gp, a7
+#     ct_bfu s5, s7,  t6, tp, a6, gp, a7
+#     lw t6, 10*4(a1); lw tp, 11*4(a1)
+#     ct_bfu s8, s10, t6, tp, a6, gp, a7
+#     ct_bfu s9, s11, t6, tp, a6, gp, a7
+#     lw t6, 12*4(a1); lw tp, 13*4(a1)
+#     ct_bfu a2, a4,  t6, tp, a6, gp, a7
+#     ct_bfu a3, a5,  t6, tp, a6, gp, a7
+#     # layer 4
+#     lw t6, 14*4(a1); lw tp, 15*4(a1)
+#     ct_bfu s0,  s1,  t6, tp, a6, gp, a7
+#     lw t6, 16*4(a1); lw tp, 17*4(a1)
+#     ct_bfu s2,  s3,  t6, tp, a6, gp, a7
+#     lw t6, 18*4(a1); lw tp, 19*4(a1)
+#     ct_bfu s4,  s5,  t6, tp, a6, gp, a7
+#     lw t6, 20*4(a1); lw tp, 21*4(a1)
+#     ct_bfu s6,  s7,  t6, tp, a6, gp, a7
+#     lw t6, 22*4(a1); lw tp, 23*4(a1)
+#     ct_bfu s8,  s9,  t6, tp, a6, gp, a7
+#     lw t6, 24*4(a1); lw tp, 25*4(a1)
+#     ct_bfu s10, s11, t6, tp, a6, gp, a7
+#     lw t6, 26*4(a1); lw tp, 27*4(a1)
+#     ct_bfu a2,  a3,  t6, tp, a6, gp, a7
+#     lw t6, 28*4(a1); lw tp, 29*4(a1)
+#     ct_bfu a4,  a5,  t6, tp, a6, gp, a7
+#     store_coeffs a0, 16, 4
+#     addi a0, a0, 4
+#     lw gp, 4*15(sp)
+#     bne gp, a0, ntt_8l_rv32im_loop1
+#     # restore a0 & update a1
+#     addi a0, a0, -16*4
+#     addi a1, a1, 15*4*2
+# # layer 5+6+7+8
+# ntt_8l_rv32im_loop2:
 
-    bne x, x, ntt_8l_rv32im_loop2
-    restore_regs
-    addi sp, sp, 4*16
-ret
+#     # bne x, x, ntt_8l_rv32im_loop2
+#     restore_regs
+#     addi sp, sp, 4*16
+# ret

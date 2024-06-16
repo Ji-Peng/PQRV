@@ -1,5 +1,5 @@
-#ifndef NTT_RV32_H
-#define NTT_RV32_H
+#ifndef KYBER_NTT_RV32_H
+#define KYBER_NTT_RV32_H
 
 #include <stdint.h>
 

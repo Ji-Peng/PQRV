@@ -74,6 +74,24 @@ int main(void)
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
+        polyveck_pointwise_poly(&veck, a, &veck);
+    }
+    print_results("polyveck_pointwise_poly:", t, NTESTS);
+
+    // for (i = 0; i < NTESTS; ++i) {
+    //     t[i] = cpucycles();
+    //     polyvecl_pointwise_poly(&mat[0], a, &mat[0]);
+    // }
+    // print_results("polyvecl_pointwise_poly:", t, NTESTS);
+
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        polyveck_reduce(&veck);
+    }
+    print_results("polyveck_reduce:", t, NTESTS);
+
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
         poly_challenge(c, seed);
     }
     print_results("poly_challenge:", t, NTESTS);

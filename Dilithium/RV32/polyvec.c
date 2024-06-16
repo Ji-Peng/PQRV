@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "fips202x.h"
+#include "ntt.h"
 #include "params.h"
 #include "poly.h"
 
@@ -1450,7 +1451,39 @@ void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES],
         polyw1_pack(&r[i * POLYW1_PACKEDBYTES], &w1->vec[i]);
 }
 
+void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
+                              const polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
+}
+
 #if defined(RV32)
+
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v)
+{
+    polyvec_basemul_poly_8l_rv32im(r->vec[0].coeffs, a->coeffs,
+                                   v->vec[0].coeffs, L);
+}
+
+void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v)
+{
+    polyvec_basemul_poly_8l_rv32im(r->vec[0].coeffs, a->coeffs,
+                                   v->vec[0].coeffs, K);
+}
+
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
+{
+    unsigned int i;
+    poly_double w_double;
+
+    poly_basemul_init(&w_double, &u->vec[0], &v->vec[0]);
+    for (i = 1; i < L - 1; ++i)
+        poly_basemul_acc(&w_double, &u->vec[i], &v->vec[i]);
+    poly_basemul_acc_end(w, &u->vec[i], &v->vec[i], &w_double);
+}
 
 void polyvecl_ntt_6l(polyvecl *v)
 {
@@ -1484,88 +1517,26 @@ void polyveck_invntt_6l(polyveck *v)
         poly_invntt_6l(&v->vec[i]);
 }
 
-void polyvecl_pointwise_poly_6l(polyvecl *r, const poly *a,
-                                const polyvecl *v)
+void polyvecl_pointwise_poly_6l_cache_init(polyvecl *r, const poly *a,
+                                           poly_cache *a_cache,
+                                           const polyvecl *v)
 {
     unsigned int i;
-    poly_cache a_cache;
-    poly_basemul_6l_cache_init_end(&r->vec[0], &v->vec[0], a, &a_cache);
+    poly_basemul_6l_cache_init(&r->vec[0], &v->vec[0], a, a_cache);
     for (i = 1; i < L; i++)
-        poly_basemul_6l_cache_end(&r->vec[i], &v->vec[i], a, &a_cache);
+        poly_basemul_6l_cached(&r->vec[i], &v->vec[i], a, a_cache);
 }
 
-void polyveck_pointwise_poly_6l(polyveck *r, const poly *a,
-                                const polyveck *v)
+void polyveck_pointwise_poly_6l_cached(polyveck *r, const poly *a,
+                                       poly_cache *a_cache,
+                                       const polyveck *v)
 {
     unsigned int i;
-    poly_cache a_cache;
-    poly_basemul_6l_cache_init_end(&r->vec[0], &v->vec[0], a, &a_cache);
-    for (i = 1; i < K; i++)
-        poly_basemul_6l_cache_end(&r->vec[i], &v->vec[i], a, &a_cache);
+    for (i = 0; i < K; i++)
+        poly_basemul_6l_cached(&r->vec[i], &v->vec[i], a, a_cache);
 }
-
-// void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl
-// *v)
-// {
-//     unsigned int i;
-//     poly_double w_double;
-
-//     poly_basemul_init(&w_double, &u->vec[0], &v->vec[0]);
-//     for (i = 1; i < L - 1; i++)
-//         poly_basemul_acc(&w_double, &u->vec[i], &v->vec[i]);
-//     poly_basemul_acc_end(w, &u->vec[i], &v->vec[i], &w_double);
-// }
-
-// void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
-//                               const polyvecl *v)
-// {
-//     unsigned int i, j;
-//     polyvecl_cache v_cache;
-//     poly_double t_double;
-
-//     poly_basemul_cache_init(&t_double, &mat[0].vec[0], &v->vec[0],
-//                             &v_cache.vec[0]);
-//     for (j = 1; j < L - 1; j++)
-//         poly_basemul_acc_cache_init(&t_double, &mat[0].vec[j],
-//         &v->vec[j],
-//                                     &v_cache.vec[j]);
-//     poly_basemul_acc_cache_init_end(&t->vec[0], &mat[0].vec[j],
-//     &v->vec[j],
-//                                     &v_cache.vec[j], &t_double);
-//     for (i = 1; i < K; i++) {
-//         j = 0;
-//         poly_basemul_cached(&t_double, &mat[i].vec[j], &v->vec[j],
-//                             &v_cache.vec[j]);
-//         for (j = 1; j < L - 1; j++) {
-//             poly_basemul_acc_cached(&t_double, &mat[i].vec[j],
-//             &v->vec[j],
-//                                     &v_cache.vec[j]);
-//         }
-//         poly_basemul_acc_cache_end(&t->vec[i], &mat[i].vec[j],
-//         &v->vec[j],
-//                                    &v_cache.vec[j], &t_double);
-//     }
-// }
 
 #else
-
-#endif
-
-void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < L; ++i)
-        poly_pointwise(&r->vec[i], a, &v->vec[i]);
-}
-
-void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        poly_pointwise(&r->vec[i], a, &v->vec[i]);
-}
 
 void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
 {
@@ -1579,11 +1550,4 @@ void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
     }
 }
 
-void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
-                              const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
-}
+#endif

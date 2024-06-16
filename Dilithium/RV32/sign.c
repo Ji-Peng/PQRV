@@ -47,7 +47,6 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
     s1hat = s1;
     polyvecl_ntt(&s1hat);
     polyvec_matrix_pointwise(&t1, mat, &s1hat);
-    polyveck_reduce(&t1);
     polyveck_invntt(&t1);
 
     /* Add error vector s2 */
@@ -89,6 +88,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
     polyvecl mat[K], s1, y, z;
     polyveck t0, s2, w1, w0, h;
     poly cp;
+    poly_cache cp_cache;
     keccak_state state;
 
     rho = seedbuf;
@@ -125,7 +125,6 @@ rej:
     z = y;
     polyvecl_ntt(&z);
     polyvec_matrix_pointwise(&w1, mat, &z);
-    polyveck_reduce(&w1);
     polyveck_invntt(&w1);
 
     /* Decompose w and call the random oracle */
@@ -142,7 +141,7 @@ rej:
     poly_ntt_6l(&cp);
 
     /* Compute z, reject if it reveals secret */
-    polyvecl_pointwise_poly_6l(&z, &cp, &s1);
+    polyvecl_pointwise_poly_6l_cache_init(&z, &cp, &cp_cache, &s1);
     polyvecl_invntt_6l(&z);
     polyvecl_add(&z, &z, &y);
     polyvecl_reduce(&z);
@@ -151,7 +150,7 @@ rej:
 
     /* Check that subtracting cs2 does not change high bits of w and low
      * bits do not reveal secret information */
-    polyveck_pointwise_poly_6l(&h, &cp, &s2);
+    polyveck_pointwise_poly_6l_cached(&h, &cp, &cp_cache, &s2);
     polyveck_invntt_6l(&h);
     polyveck_sub(&w0, &w0, &h);
     polyveck_reduce(&w0);
@@ -159,7 +158,7 @@ rej:
         goto rej;
 
     /* Compute hints for w1 */
-    polyveck_pointwise_poly_6l(&h, &cp, &t0);
+    polyveck_pointwise_poly_6l_cached(&h, &cp, &cp_cache, &t0);
     polyveck_invntt_6l(&h);
     polyveck_reduce(&h);
     if (polyveck_chknorm(&h, GAMMA2))

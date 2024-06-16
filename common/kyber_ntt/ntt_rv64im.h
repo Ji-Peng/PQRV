@@ -1,5 +1,5 @@
-#ifndef NTT_RV64_H
-#define NTT_RV64_H
+#ifndef KYBER_NTT_RV64_H
+#define KYBER_NTT_RV64_H
 
 #include <stdint.h>
 

@@ -270,8 +270,6 @@ void intt(int32_t a[N])
 
 #else
 
-#endif
-
 static const int32_t zetas[N] = {
     0,        25847,    -2608894, -518909,  237124,   -777960,  -876248,
     466468,   1826347,  2353451,  -359251,  -2091905, 3119733,  -2884855,
@@ -371,3 +369,5 @@ void intt(int32_t a[N])
         a[j] = montgomery_reduce((int64_t)f * a[j]);
     }
 }
+
+#endif

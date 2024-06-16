@@ -25,7 +25,7 @@ speed: \
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
 
-out/test_dilithium_ntt: $(COMMONDIR)/dilithium_ntt/ntt_rv32im.S test_dilithium_ntt.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_dilithium_ntt: $(COMMONDIR)/dilithium_ntt/ntt_6l_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_rv32im.S test_dilithium_ntt.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/

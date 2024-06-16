@@ -63,10 +63,12 @@ void polyvecl_ntt_6l(polyvecl *v);
 void polyvecl_invntt_6l(polyvecl *v);
 void polyveck_ntt_6l(polyveck *v);
 void polyveck_invntt_6l(polyveck *v);
-void polyvecl_pointwise_poly_6l(polyvecl *r, const poly *a,
-                                const polyvecl *v);
-void polyveck_pointwise_poly_6l(polyveck *r, const poly *a,
-                                const polyveck *v);
+void polyvecl_pointwise_poly_6l_cache_init(polyvecl *r, const poly *a,
+                                           poly_cache *a_cache,
+                                           const polyvecl *v);
+void polyveck_pointwise_poly_6l_cached(polyveck *r, const poly *a,
+                                       poly_cache *a_cache,
+                                       const polyveck *v);
 
 #else
 

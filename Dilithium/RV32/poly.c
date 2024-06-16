@@ -21,25 +21,6 @@ extern uint64_t *tred, *tadd, *tmul, *tround, *tsample, *tpack;
 #endif
 
 /*************************************************
- * Name:        poly_reduce
- *
- * Description: Inplace reduction of all coefficients of polynomial to
- *              representative in [-6283009,6283007].
- *
- * Arguments:   - poly *a: pointer to input/output polynomial
- **************************************************/
-void poly_reduce(poly *a)
-{
-    unsigned int i;
-    DBENCH_START();
-
-    for (i = 0; i < N; ++i)
-        a->coeffs[i] = reduce32(a->coeffs[i]);
-
-    DBENCH_STOP(*tred);
-}
-
-/*************************************************
  * Name:        poly_caddq
  *
  * Description: For all coefficients of in/out polynomial add Q if
@@ -115,64 +96,6 @@ void poly_shiftl(poly *a)
 
     for (i = 0; i < N; ++i)
         a->coeffs[i] <<= D;
-
-    DBENCH_STOP(*tmul);
-}
-
-/*************************************************
- * Name:        poly_ntt
- *
- * Description: Inplace forward NTT. Coefficients can grow by
- *              8*Q in absolute value.
- *
- * Arguments:   - poly *a: pointer to input/output polynomial
- **************************************************/
-void poly_ntt(poly *a)
-{
-    DBENCH_START();
-
-    ntt(a->coeffs);
-
-    DBENCH_STOP(*tmul);
-}
-
-/*************************************************
- * Name:        poly_invntt
- *
- * Description: Inplace inverse NTT and multiplication by 2^{32}.
- *              Input coefficients need to be less than Q in absolute
- *              value and output coefficients are again bounded by Q.
- *
- * Arguments:   - poly *a: pointer to input/output polynomial
- **************************************************/
-void poly_invntt(poly *a)
-{
-    DBENCH_START();
-
-    intt(a->coeffs);
-
-    DBENCH_STOP(*tmul);
-}
-
-/*************************************************
- * Name:        poly_pointwise
- *
- * Description: Pointwise multiplication of polynomials in NTT domain
- *              representation and multiplication of resulting polynomial
- *              by 2^{-32}.
- *
- * Arguments:   - poly *c: pointer to output polynomial
- *              - const poly *a: pointer to first input polynomial
- *              - const poly *b: pointer to second input polynomial
- **************************************************/
-void poly_pointwise(poly *c, const poly *a, const poly *b)
-{
-    unsigned int i;
-    DBENCH_START();
-
-    for (i = 0; i < N; ++i)
-        c->coeffs[i] =
-            montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
 
     DBENCH_STOP(*tmul);
 }
@@ -504,9 +427,7 @@ void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES],
     memcpy(buf, seed, CRHBYTES);
     buf[CRHBYTES] = nonce;
     buf[CRHBYTES + 1] = nonce >> 8;
-    shake256_init(&state);
-    shake256_absorb(&state, buf, CRHBYTES + 2);
-    shake256_finalize(&state);
+    shake256_absorb_once(&state, buf, CRHBYTES + 2);
     shake256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
     polyz_unpack(a, buf);
 }
@@ -529,9 +450,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES])
     uint8_t buf[SHAKE256_RATE];
     keccak_state state;
 
-    shake256_init(&state);
-    shake256_absorb(&state, seed, SEEDBYTES);
-    shake256_finalize(&state);
+    shake256_absorb_once(&state, seed, SEEDBYTES);
     shake256_squeezeblocks(buf, 1, &state);
 
     signs = 0;
@@ -964,7 +883,73 @@ void polyw1_pack(uint8_t *r, const poly *a)
     DBENCH_STOP(*tpack);
 }
 
+/*************************************************
+ * Name:        poly_ntt
+ *
+ * Description: Inplace forward NTT. Coefficients can grow by
+ *              8*Q in absolute value.
+ *
+ * Arguments:   - poly *a: pointer to input/output polynomial
+ **************************************************/
+void poly_ntt(poly *a)
+{
+    DBENCH_START();
+
+    ntt(a->coeffs);
+
+    DBENCH_STOP(*tmul);
+}
+
+/*************************************************
+ * Name:        poly_invntt
+ *
+ * Description: Inplace inverse NTT and multiplication by 2^{32}.
+ *              Input coefficients need to be less than Q in absolute
+ *              value and output coefficients are again bounded by Q.
+ *
+ * Arguments:   - poly *a: pointer to input/output polynomial
+ **************************************************/
+void poly_invntt(poly *a)
+{
+    DBENCH_START();
+
+    intt(a->coeffs);
+
+    DBENCH_STOP(*tmul);
+}
+
 #if defined(RV32)
+
+void poly_reduce(poly *a)
+{
+    DBENCH_START();
+    poly_reduce_rv32im(a->coeffs);
+    DBENCH_STOP(*tred);
+}
+
+void poly_basemul_init(poly_double *r, const poly *a, const poly *b)
+{
+    poly_basemul_8l_init_rv32im(r->coeffs, a->coeffs, b->coeffs);
+}
+
+void poly_basemul_acc(poly_double *r, const poly *a, const poly *b)
+{
+    poly_basemul_8l_acc_rv32im(r->coeffs, a->coeffs, b->coeffs);
+}
+
+void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
+                          poly_double *r_double)
+{
+    poly_basemul_8l_acc_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+                                   r_double->coeffs);
+}
+
+void poly_pointwise(poly *c, const poly *a, const poly *b)
+{
+    DBENCH_START();
+    poly_basemul_8l_rv32im(c->coeffs, a->coeffs, b->coeffs);
+    DBENCH_STOP(*tmul);
+}
 
 extern int32_t zetas_basemul_6l_rv32im[32 * 2];
 
@@ -978,89 +963,63 @@ void poly_invntt_6l(poly *a)
     intt_6l(a->coeffs);
 }
 
-void poly_basemul_6l_init(poly_double *r, const poly *a, const poly *b)
-{
-    poly_basemul_6l_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                zetas_basemul_6l_rv32im);
-}
-
-void poly_basemul_6l_acc(poly_double *r, const poly *a, const poly *b)
-{
-    poly_basemul_6l_acc_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                               zetas_basemul_6l_rv32im);
-}
-
-void poly_basemul_6l_acc_end(poly *r, const poly *a, const poly *b,
-                             poly_double *r_double)
-{
-    poly_basemul_6l_acc_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                   zetas_basemul_6l_rv32im,
-                                   r_double->coeffs);
-}
-
-void poly_basemul_6l_cache_init(poly_double *r, const poly *a,
-                                const poly *b, poly_cache *b_cache)
-{
-    poly_basemul_6l_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                      b_cache->coeffs,
-                                      zetas_basemul_6l_rv32im);
-}
-
-void poly_basemul_6l_acc_cache_init(poly_double *r, const poly *a,
-                                    const poly *b, poly_cache *b_cache)
-{
-    poly_basemul_6l_acc_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                          b_cache->coeffs,
-                                          zetas_basemul_6l_rv32im);
-}
-
-void poly_basemul_6l_acc_cache_init_end(poly *r, const poly *a,
-                                        const poly *b, poly_cache *b_cache,
-                                        poly_double *r_double)
-{
-    poly_basemul_6l_acc_cache_init_end_rv32im(
-        r->coeffs, a->coeffs, b->coeffs, b_cache->coeffs,
-        zetas_basemul_6l_rv32im, r_double->coeffs);
-}
-
-void poly_basemul_6l_cache_init_end(poly *r, const poly *a, const poly *b,
+void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
                                     poly_cache *b_cache)
 {
-    poly_basemul_6l_cache_init_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+    poly_basemul_6l_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
                                           b_cache->coeffs,
                                           zetas_basemul_6l_rv32im);
 }
 
-void poly_basemul_6l_cached(poly_double *r, const poly *a, const poly *b,
-                            poly_cache *b_cache)
-{
-    poly_basemul_6l_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                  b_cache->coeffs);
-}
-
-void poly_basemul_6l_acc_cached(poly_double *r, const poly *a,
-                                const poly *b, poly_cache *b_cache)
-{
-    poly_basemul_6l_acc_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                      b_cache->coeffs);
-}
-
-void poly_basemul_6l_acc_cache_end(poly *r, const poly *a, const poly *b,
-                                   poly_cache *b_cache,
-                                   poly_double *r_double)
-{
-    poly_basemul_6l_acc_cache_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                         b_cache->coeffs,
-                                         r_double->coeffs);
-}
-
-void poly_basemul_6l_cache_end(poly *r, const poly *a, const poly *b,
+void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
                                poly_cache *b_cache)
 {
-    poly_basemul_6l_cache_end_rv32im(r->coeffs, a->coeffs, b->coeffs,
+    poly_basemul_6l_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
                                      b_cache->coeffs);
 }
 
 #else
+
+/*************************************************
+ * Name:        poly_reduce
+ *
+ * Description: Inplace reduction of all coefficients of polynomial to
+ *              representative in [-6283009,6283007].
+ *
+ * Arguments:   - poly *a: pointer to input/output polynomial
+ **************************************************/
+void poly_reduce(poly *a)
+{
+    unsigned int i;
+    DBENCH_START();
+
+    for (i = 0; i < N; ++i)
+        a->coeffs[i] = reduce32(a->coeffs[i]);
+
+    DBENCH_STOP(*tred);
+}
+
+/*************************************************
+ * Name:        poly_pointwise
+ *
+ * Description: Pointwise multiplication of polynomials in NTT domain
+ *              representation and multiplication of resulting polynomial
+ *              by 2^{-32}.
+ *
+ * Arguments:   - poly *c: pointer to output polynomial
+ *              - const poly *a: pointer to first input polynomial
+ *              - const poly *b: pointer to second input polynomial
+ **************************************************/
+void poly_pointwise(poly *c, const poly *a, const poly *b)
+{
+    unsigned int i;
+    DBENCH_START();
+
+    for (i = 0; i < N; ++i)
+        c->coeffs[i] =
+            montgomery_reduce((int64_t)a->coeffs[i] * b->coeffs[i]);
+
+    DBENCH_STOP(*tmul);
+}
 
 #endif

@@ -527,9 +527,7 @@ void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES])
     uint8_t buf[SHAKE256_RATE];
     keccak_state state;
 
-    shake256_init(&state);
-    shake256_absorb(&state, seed, SEEDBYTES);
-    shake256_finalize(&state);
+    shake256_absorb_once(&state, seed, SEEDBYTES);
     shake256_squeezeblocks(buf, 1, &state);
 
     signs = 0;

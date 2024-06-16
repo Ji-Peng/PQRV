@@ -51,30 +51,19 @@ typedef struct {
     int64_t coeffs[N];
 } poly_double;
 
+// 8-layer NTT
+void poly_basemul_init(poly_double *r, const poly *a, const poly *b);
+void poly_basemul_acc(poly_double *r, const poly *a, const poly *b);
+void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
+                          poly_double *r_double);
+
+// 6-layer NTT
 void poly_ntt_6l(poly *a);
 void poly_invntt_6l(poly *a);
-void poly_basemul_6l_init(poly_double *r, const poly *a, const poly *b);
-void poly_basemul_6l_acc(poly_double *r, const poly *a, const poly *b);
-void poly_basemul_6l_acc_end(poly *r, const poly *a, const poly *b,
-                             poly_double *r_double);
-void poly_basemul_6l_cache_init(poly_double *r, const poly *a,
-                                const poly *b, poly_cache *b_cache);
-void poly_basemul_6l_acc_cache_init(poly_double *r, const poly *a,
-                                    const poly *b, poly_cache *b_cache);
-void poly_basemul_6l_acc_cache_init_end(poly *r, const poly *a,
-                                        const poly *b, poly_cache *b_cache,
-                                        poly_double *r_double);
-void poly_basemul_6l_cache_init_end(poly *r, const poly *a, const poly *b,
-                                    poly_cache *b_cache);
-void poly_basemul_6l_cached(poly_double *r, const poly *a, const poly *b,
+void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
+                                poly_cache *b_cache);
+void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
                             poly_cache *b_cache);
-void poly_basemul_6l_acc_cached(poly_double *r, const poly *a,
-                                const poly *b, poly_cache *b_cache);
-void poly_basemul_6l_acc_cache_end(poly *r, const poly *a, const poly *b,
-                                   poly_cache *b_cache,
-                                   poly_double *r_double);
-void poly_basemul_6l_cache_end(poly *r, const poly *a, const poly *b,
-                               poly_cache *b_cache);
 
 #else
 
