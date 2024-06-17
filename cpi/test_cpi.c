@@ -34,12 +34,22 @@ extern void cpi_addxor_forward();
 extern void cpi_mul_mulh();
 extern void cpi_mul();
 extern void cpi_mulh();
+extern void cpi_mulw();
 extern void cpi_muladd();
 extern void cpi_mulx1addx2();
 extern void cpi_mulx2addx4();
 extern void cpi_mulx1addx3();
 extern void cpi_mulx1addx4();
 extern void cpi_shiftxor();
+extern void cpi_lh(int8_t *);
+extern void cpi_lw(int8_t *);
+extern void cpi_ld(int8_t *);
+extern void cpi_plantmul();
+extern void cpi_plantmulx2();
+extern void cpi_plantmulx4();
+extern void cpi_plantmul_rv64();
+extern void cpi_plantmul_rv64x2();
+extern void cpi_plantmul_rv64x4();
 extern void cpi_plant_ct_bfu_x1();
 extern void cpi_plant_ct_bfu_x2();
 extern void cpi_plant_ct_bfu_x4();
@@ -54,22 +64,39 @@ extern void cpi_fake_plant_gs_bfu_x1();
 
 int main(void)
 {
-    // PERF(cpi_add(), cpi_add);
-    // PERF(cpi_addi(), cpi_addi);
-    // PERF(cpi_addi_forward(), cpi_addi_forward);
-    // PERF(cpi_xor(), cpi_xor);
-    // PERF(cpi_xori(), cpi_xori);
-    // PERF(cpi_addxor(), cpi_addxor);
-    // PERF(cpi_addxor_forward(), cpi_addxor_forward);
-    // PERF(cpi_mul_mulh(), cpi_mul_mulh);
-    // PERF(cpi_mul(), cpi_mul);
-    // PERF(cpi_mulh(), cpi_mulh);
-    // PERF(cpi_muladd(), cpi_muladd);
-    // PERF(cpi_mulx1addx2(), cpi_mulx1addx2);
-    // PERF(cpi_mulx2addx4(), cpi_mulx2addx4);
-    // PERF(cpi_mulx1addx3(), cpi_mulx1addx3);
-    // PERF(cpi_mulx1addx4(), cpi_mulx1addx4);
-    // PERF(cpi_shiftxor(), cpi_shiftxor);
+    int8_t buf[128];
+    PERF(cpi_add(), cpi_add);
+    PERF(cpi_addi(), cpi_addi);
+    PERF(cpi_addi_forward(), cpi_addi_forward);
+    PERF(cpi_xor(), cpi_xor);
+    PERF(cpi_xori(), cpi_xori);
+    PERF(cpi_addxor(), cpi_addxor);
+    PERF(cpi_addxor_forward(), cpi_addxor_forward);
+    PERF(cpi_mul_mulh(), cpi_mul_mulh);
+    PERF(cpi_mul(), cpi_mul);
+    PERF(cpi_mulh(), cpi_mulh);
+#ifdef RV64
+    PERF(cpi_mulw(), cpi_mulw);
+#endif
+    PERF(cpi_muladd(), cpi_muladd);
+    PERF(cpi_mulx1addx2(), cpi_mulx1addx2);
+    PERF(cpi_mulx2addx4(), cpi_mulx2addx4);
+    PERF(cpi_mulx1addx3(), cpi_mulx1addx3);
+    PERF(cpi_mulx1addx4(), cpi_mulx1addx4);
+    PERF(cpi_shiftxor(), cpi_shiftxor);
+    PERF(cpi_lh(buf), cpi_lh);
+    PERF(cpi_lw(buf), cpi_lw);
+#ifdef RV64
+    PERF(cpi_ld(buf), cpi_ld);
+#endif
+    PERF(cpi_plantmul(), cpi_plantmul);
+    PERF(cpi_plantmulx2(), cpi_plantmulx2);
+    PERF(cpi_plantmulx4(), cpi_plantmulx4);
+#ifdef RV64
+    PERF(cpi_plantmul_rv64(), cpi_plantmul_rv64);
+    PERF(cpi_plantmul_rv64x2(), cpi_plantmul_rv64x2);
+    PERF(cpi_plantmul_rv64x4(), cpi_plantmul_rv64x4);
+#endif
     PERF(cpi_plant_ct_bfu_x1(), cpi_plant_ct_bfu_x1);
     PERF(cpi_plant_ct_bfu_x2(), cpi_plant_ct_bfu_x2);
     PERF(cpi_plant_ct_bfu_x4(), cpi_plant_ct_bfu_x4);

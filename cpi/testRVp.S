@@ -216,6 +216,30 @@ cpi_mulh:
     .endr
     ret
 
+#ifdef RV64
+.globl cpi_mulw
+.align 2
+cpi_mulw:
+    .rep 10
+        mulw a0, a0, a0
+        mulw a1, a1, a1
+        mulw a2, a2, a2
+        mulw a3, a3, a3
+        mulw a4, a4, a4
+        mulw a5, a5, a5
+        mulw a6, a6, a6
+        mulw a7, a7, a7
+        mulw t0, t0, t0
+        mulw t1, t1, t1
+        mulw t2, t2, t2
+        mulw t3, t3, t3
+        mulw t4, t4, t4
+        mulw t5, t5, t5
+        mulw t6, t6, t6
+    .endr
+    ret
+#endif
+
 .globl cpi_muladd
 .align 2
 cpi_muladd:
@@ -337,6 +361,62 @@ cpi_shiftxor:
         xori t3, t3, 10
     .endr
     ret
+
+.globl cpi_lh
+.align 2
+cpi_lh:
+    .rep 10
+        lh a1, 2*0(a0)
+        lh a2, 2*1(a0)
+        lh a3, 2*2(a0)
+        lh a4, 2*3(a0)
+        lh a5, 2*4(a0)
+        lh a6, 2*5(a0)
+        lh a7, 2*6(a0)
+        lh t0, 2*7(a0)
+        lh t1, 2*8(a0)
+        lh t2, 2*9(a0)
+        lh t3, 2*10(a0)
+    .endr
+    ret
+
+.globl cpi_lw
+.align 2
+cpi_lw:
+    .rep 10
+        lw a1, 4*0(a0)
+        lw a2, 4*1(a0)
+        lw a3, 4*2(a0)
+        lw a4, 4*3(a0)
+        lw a5, 4*4(a0)
+        lw a6, 4*5(a0)
+        lw a7, 4*6(a0)
+        lw t0, 4*7(a0)
+        lw t1, 4*8(a0)
+        lw t2, 4*9(a0)
+        lw t3, 4*10(a0)
+    .endr
+    ret
+
+#ifdef RV64
+.globl cpi_ld
+.align 2
+cpi_ld:
+    .rep 10
+        ld a1, 4*0(a0)
+        ld a2, 4*1(a0)
+        ld a3, 4*2(a0)
+        ld a4, 4*3(a0)
+        ld a5, 4*4(a0)
+        ld a6, 4*5(a0)
+        ld a7, 4*6(a0)
+        ld t0, 4*7(a0)
+        ld t1, 4*8(a0)
+        ld t2, 4*9(a0)
+        ld t3, 4*10(a0)
+    .endr
+    ret
+#endif
 
 .macro plant_ct_bfu_x1 a_0, a_1, zeta, q16, tmp
     mul \tmp, \a_1, \zeta
@@ -718,3 +798,156 @@ cpi_plant_gs_bfu_x8:
             t2, t3, t4, t5
     .endr
     ret
+
+.macro plant_mul_const q16, zeta, a, r
+  mul \r, \a, \zeta
+  srai \r, \r, 16
+  addi \r, \r, 8
+  mulh \r, \r, \q16
+.endm
+
+.macro plant_mul_const_x2 q16, zeta_0, zeta_1, a_0, a_1, r_0, r_1
+  mul \r_0, \a_0, \zeta_0
+  mul \r_1, \a_1, \zeta_1
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
+  addi \r_0, \r_0, 8
+  addi \r_1, \r_1, 8
+  mulh \r_0, \r_0, \q16
+  mulh \r_1, \r_1, \q16
+.endm
+
+.macro plant_mul_const_x4   \
+        q16, zeta_0, zeta_1,\
+        zeta_2, zeta_3,     \
+        a_0, a_1, a_2, a_3, \
+        r_0, r_1, r_2, r_3
+  mul \r_0, \a_0, \zeta_0
+  mul \r_1, \a_1, \zeta_1
+  mul \r_2, \a_2, \zeta_2
+  mul \r_3, \a_3, \zeta_3
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
+  srai \r_2, \r_2, 16
+  srai \r_3, \r_3, 16
+  addi \r_0, \r_0, 8
+  addi \r_1, \r_1, 8
+  addi \r_2, \r_2, 8
+  addi \r_3, \r_3, 8
+  mulh \r_0, \r_0, \q16
+  mulh \r_1, \r_1, \q16
+  mulh \r_2, \r_2, \q16
+  mulh \r_3, \r_3, \q16
+.endm
+
+.globl cpi_plantmul
+.align 2
+cpi_plantmul:
+    .rep 20
+        plant_mul_const a0, a1, a2, a3
+        plant_mul_const a4, a5, a6, a7
+        plant_mul_const t0, t1, t2, t3
+    .endr
+    ret
+
+.globl cpi_plantmulx2
+.align 2
+cpi_plantmulx2:
+    .rep 20
+        plant_mul_const_x2 a0, a1, a2, a3, a4, a5, a6
+        plant_mul_const_x2 a7, t0, t1, t2, t3, t4, t5
+    .endr
+    ret
+
+.globl cpi_plantmulx4
+.align 2
+cpi_plantmulx4:
+    .rep 20
+        plant_mul_const_x4 a0, \
+            a1, a1, a1, a1, \
+            a2, a3, a4, a5, \
+            a6, a7, t0, t1
+    .endr
+    ret
+
+#ifdef RV64
+
+.macro plant_mul_const_rv64 q16, zeta_0, a_0, r_0
+  mulw \r_0, \a_0, \zeta_0
+  srai \r_0, \r_0, 16
+  addi \r_0, \r_0, 8
+  mul  \r_0, \r_0, \q16
+  srai \r_0, \r_0, 32
+.endm
+
+.macro plant_mul_const_rv64x2 q16, \
+    zeta_0, zeta_1, a_0, a_1, r_0, r_1
+  mulw \r_0, \a_0, \zeta_0
+  mulw \r_1, \a_1, \zeta_1
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
+  addi \r_0, \r_0, 8
+  addi \r_1, \r_1, 8
+  mul  \r_0, \r_0, \q16
+  mul  \r_1, \r_1, \q16
+  srai \r_0, \r_0, 32
+  srai \r_1, \r_1, 32
+.endm
+
+.macro plant_mul_const_rv64x4 q16,  \
+    zeta_0, zeta_1, zeta_2, zeta_3, \
+    a_0, a_1, a_2, a_3,             \
+    r_0, r_1, r_2, r_3
+  mulw \r_0, \a_0, \zeta_0
+  mulw \r_1, \a_1, \zeta_1
+  mulw \r_2, \a_2, \zeta_2
+  mulw \r_3, \a_3, \zeta_3
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
+  srai \r_2, \r_2, 16
+  srai \r_3, \r_3, 16
+  addi \r_0, \r_0, 8
+  addi \r_1, \r_1, 8
+  addi \r_2, \r_2, 8
+  addi \r_3, \r_3, 8
+  mul  \r_0, \r_0, \q16
+  mul  \r_1, \r_1, \q16
+  mul  \r_2, \r_2, \q16
+  mul  \r_3, \r_3, \q16
+  srai \r_0, \r_0, 32
+  srai \r_1, \r_1, 32
+  srai \r_2, \r_2, 32
+  srai \r_3, \r_3, 32
+.endm
+
+.globl cpi_plantmul_rv64
+.align 2
+cpi_plantmul_rv64:
+    .rep 20
+        plant_mul_const_rv64 a0, a1, a2, a3
+        plant_mul_const_rv64 a4, a5, a6, a7
+        plant_mul_const_rv64 t0, t1, t2, t3
+    .endr
+    ret
+
+.globl cpi_plantmul_rv64x2
+.align 2
+cpi_plantmul_rv64x2:
+    .rep 20
+        plant_mul_const_rv64x2 a0, a1, a1, a2, a3, a4, a5
+        plant_mul_const_rv64x2 a6, a7, a7, t0, t1, t2, t3
+    .endr
+    ret
+
+.globl cpi_plantmul_rv64x4
+.align 2
+cpi_plantmul_rv64x4:
+    .rep 20
+        plant_mul_const_rv64x4 a0,  \
+            a1, a1, a1, a1,         \
+            a2, a3, a4, a5,         \
+            a6, a7, t0, t1
+    .endr
+    ret
+
+#endif

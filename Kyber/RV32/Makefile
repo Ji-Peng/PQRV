@@ -29,8 +29,8 @@ SOURCES_RAND 	= $(COMMONDIR)/randombytes.c
 HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202_rv32.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
-SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(COMMONDIR)/kyber_ntt/ntt_dualissue_rv32im_opt.S
-SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(COMMONDIR)/kyber_ntt/ntt_dualissue_rv32im_opt.S
+SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(COMMONDIR)/kyber_ntt/ntt_dualissue_rv32im.S
+SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(COMMONDIR)/kyber_ntt/ntt_dualissue_rv32im.S
 SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/kyber_ntt/ntt_rvv.S $(COMMONDIR)/kyber_ntt/consts.c
 SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(COMMONDIR)/kyber_ntt/ntt_rvv.S $(COMMONDIR)/kyber_ntt/consts.c
 

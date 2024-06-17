@@ -357,7 +357,7 @@ void poly_reduce(poly *r)
 
 #elif defined(RV64)
 
-extern uint64_t zetas_basemul_rv64im[64];
+extern uint32_t zetas_basemul_rv64im[64];
 
 void poly_basemul_cache_init(poly_double *r, const poly *a, const poly *b,
                              poly_half *b_cache)

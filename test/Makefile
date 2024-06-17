@@ -59,22 +59,22 @@ out/test_hybrid: $(COMMONDIR)/kyber_ntt/test_hybrid.S test_hybrid.c $(COMMONDIR)
 	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_plantard: $(COMMONDIR)/kyber_ntt/ntt_rv32im.S test_plantard.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_plantard: $(COMMONDIR)/kyber_ntt/ntt_singleissue_rv32im.S test_plantard.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_plantard_rv64: $(COMMONDIR)/kyber_ntt/ntt_rv64im.S test_plantard_rv64.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_plantard_rv64: $(COMMONDIR)/kyber_ntt/ntt_singleissue_rv64im.S test_plantard_rv64.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_ntt_rv32im: $(COMMONDIR)/kyber_ntt/ntt_rv32im.S test_ntt_rv32im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_ntt_rv32im: $(COMMONDIR)/kyber_ntt/ntt_singleissue_rv32im.S test_ntt_rv32im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_ntt_rv64im: $(COMMONDIR)/kyber_ntt/ntt_rv64im.S test_ntt_rv64im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_ntt_rv64im: $(COMMONDIR)/kyber_ntt/ntt_singleissue_rv64im.S test_ntt_rv64im.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/

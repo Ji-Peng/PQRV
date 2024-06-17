@@ -31,33 +31,35 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 .PHONY: speed clean
 
 speed: \
-	out/speed_oneissue_kyber_plantard_ntt_rv32	\
-	out/speed_dualissue_kyber_plantard_ntt_rv32	\
-	out/speed_oneissue_kyber_plantard_ntt_rv64	\
-	out/speed_dualissue_kyber_plantard_ntt_rv64	\
-	out/speed_oneissue_dilithium_mont_ntt_rv32	\
-	out/speed_oneissue_kyber_mont_ntt_rvv	\
+	out/speed_singleissue_kyber_plantard_ntt_rv32	\
+	out/speed_dualissue_kyber_plantard_ntt_rv32		\
+	out/speed_singleissue_kyber_plantard_ntt_rv64	\
+	out/speed_dualissue_kyber_plantard_ntt_rv64		\
+	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
+	out/speed_singleissue_dilithium_mont_ntt_rv32	\
+	out/speed_singleissue_kyber_mont_ntt_rvv		\
 	out/scp_speed
 
 out/scp_speed:	\
-	out/speed_oneissue_kyber_plantard_ntt_rv32	\
-	out/speed_dualissue_kyber_plantard_ntt_rv32	\
-	out/speed_oneissue_kyber_plantard_ntt_rv64	\
-	out/speed_dualissue_kyber_plantard_ntt_rv64	\
-	out/speed_oneissue_dilithium_mont_ntt_rv32	\
-	out/speed_oneissue_kyber_mont_ntt_rvv
+	out/speed_singleissue_kyber_plantard_ntt_rv32	\
+	out/speed_dualissue_kyber_plantard_ntt_rv32		\
+	out/speed_singleissue_kyber_plantard_ntt_rv64	\
+	out/speed_dualissue_kyber_plantard_ntt_rv64		\
+	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
+	out/speed_singleissue_dilithium_mont_ntt_rv32	\
+	out/speed_singleissue_kyber_mont_ntt_rvv
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
 
-out/speed_oneissue_kyber_plantard_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rv32im.S speed_ntt.c
+out/speed_singleissue_kyber_plantard_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_singleissue_rv32im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_dualissue_kyber_plantard_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_dualissue_rv32im_opt.S speed_ntt.c
+out/speed_dualissue_kyber_plantard_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_dualissue_rv32im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_oneissue_kyber_plantard_ntt_rv64: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rv64im.S speed_ntt.c
+out/speed_singleissue_kyber_plantard_ntt_rv64: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_singleissue_rv64im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
@@ -65,11 +67,15 @@ out/speed_dualissue_kyber_plantard_ntt_rv64: $(SOURCES_COMMON) $(HEADERS_COMMON)
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_oneissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_rv32im.S speed_ntt.c
+out/speed_dualissue_kyber_plantard_l32_ntt_rv64: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_dualissue_l32_rv64im.S speed_ntt.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_singleissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_rv32im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_oneissue_kyber_mont_ntt_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rvv.S speed_ntt.c
+out/speed_singleissue_kyber_mont_ntt_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rvv.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) -I$(KYBERNTTDIR) -DRVV $(filter %.c, $^) $(filter %.S, $^) -o $@
 

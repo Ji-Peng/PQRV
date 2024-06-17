@@ -1,3 +1,5 @@
+# Plantard based NTT implementation with l=16
+
 .macro load_coeffs poly, len, wordLen
   lh s0,  \len*\wordLen*0(\poly)
   lh s1,  \len*\wordLen*1(\poly)
@@ -72,110 +74,118 @@
   ld ra,  14*8(sp)
 .endm
 
-// a <- a*b*(-2^{-64}) mod+- q
-// q32: q<<32; bqinv: b*qinv
-.macro plant_mul_const_inplace q32, bqinv, a
-  mul  \a, \a, \bqinv
-  srai \a, \a, 32
+// a <- a*b*(-2^{-32}) mod+- q
+// q48: q<<48; bqinv: b*qinv
+.macro plant_mul_const_inplace q48, zeta, a
+  mulw \a, \a, \zeta
+  srai \a, \a, 16
   addi \a, \a, 8
-  mulh \a, \a, \q32
+  mulh \a, \a, \q48
 .endm
 
-.macro plant_mul_const_inplace_x2 q32, zeta, a_0, a_1
-  mul \a_0, \a_0, \zeta
-  mul \a_1, \a_1, \zeta
-  srai \a_0, \a_0, 32
-  srai \a_1, \a_1, 32
+.macro plant_mul_const_inplace_x2 q48, zeta, a_0, a_1
+  mulw \a_0, \a_0, \zeta
+  mulw \a_1, \a_1, \zeta
+  srai \a_0, \a_0, 16
+  srai \a_1, \a_1, 16
   addi \a_0, \a_0, 8
   addi \a_1, \a_1, 8
-  mulh \a_0, \a_0, \q32
-  mulh \a_1, \a_1, \q32
+  mulh \a_0, \a_0, \q48
+  mulh \a_1, \a_1, \q48
 .endm
 
-.macro plant_mul_const_inplace_x4 q32,  \
+.macro plant_mul_const_inplace_x4 q48,  \
       zeta_0, zeta_1, zeta_2, zeta_3,   \
       a_0, a_1, a_2, a_3
-  mul \a_0, \a_0, \zeta_0
-  mul \a_1, \a_1, \zeta_1
-  mul \a_2, \a_2, \zeta_2
-  mul \a_3, \a_3, \zeta_3
-  srai \a_0, \a_0, 32
-  srai \a_1, \a_1, 32
-  srai \a_2, \a_2, 32
-  srai \a_3, \a_3, 32
+  mulw \a_0, \a_0, \zeta_0
+  mulw \a_1, \a_1, \zeta_1
+  mulw \a_2, \a_2, \zeta_2
+  mulw \a_3, \a_3, \zeta_3
+  srai \a_0, \a_0, 16
+  srai \a_1, \a_1, 16
+  srai \a_2, \a_2, 16
+  srai \a_3, \a_3, 16
   addi \a_0, \a_0, 8
   addi \a_1, \a_1, 8
   addi \a_2, \a_2, 8
   addi \a_3, \a_3, 8
-  mulh \a_0, \a_0, \q32
-  mulh \a_1, \a_1, \q32
-  mulh \a_2, \a_2, \q32
-  mulh \a_3, \a_3, \q32
+  mulh \a_0, \a_0, \q48
+  mulh \a_1, \a_1, \q48
+  mulh \a_2, \a_2, \q48
+  mulh \a_3, \a_3, \q48
 .endm
 
-// r <- a*b*(-2^{-64}) mod+- q
-// q32: q<<32; bqinv: b*qinv
-.macro plant_mul_const q32, bqinv, a, r
-    mul  \r, \a, \bqinv
-    srai \r, \r, 32
-    addi \r, \r, 8
-    mulh \r, \r, \q32
+// r <- a*b*(-2^{-32}) mod+- q
+// q48: q<<48; zeta: b*qinv
+.macro plant_mul_const q48, zeta, a, r
+  mulw \r, \a, \zeta
+  srai \r, \r, 16
+  addi \r, \r, 8
+  mulh \r, \r, \q48
 .endm
 
-.macro plant_mul_const_x2 q32, zeta_0, zeta_1, a_0, a_1, r_0, r_1
-  mul \r_0, \a_0, \zeta_0
-  mul \r_1, \a_1, \zeta_1
-  srai \r_0, \r_0, 32
-  srai \r_1, \r_1, 32
+.macro plant_mul_const_x2 q48, zeta_0, zeta_1, a_0, a_1, r_0, r_1
+  mulw \r_0, \a_0, \zeta_0
+  mulw \r_1, \a_1, \zeta_1
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
   addi \r_0, \r_0, 8
   addi \r_1, \r_1, 8
-  mulh \r_0, \r_0, \q32
-  mulh \r_1, \r_1, \q32
+  mulh \r_0, \r_0, \q48
+  mulh \r_1, \r_1, \q48
 .endm
 
 .macro plant_mul_const_x4   \
-        q32, zeta_0, zeta_1,\
+        q48, zeta_0, zeta_1,\
         zeta_2, zeta_3,     \
         a_0, a_1, a_2, a_3, \
         r_0, r_1, r_2, r_3
-  mul \r_0, \a_0, \zeta_0
-  mul \r_1, \a_1, \zeta_1
-  mul \r_2, \a_2, \zeta_2
-  mul \r_3, \a_3, \zeta_3
-  srai \r_0, \r_0, 32
-  srai \r_1, \r_1, 32
-  srai \r_2, \r_2, 32
-  srai \r_3, \r_3, 32
+  mulw \r_0, \a_0, \zeta_0
+  mulw \r_1, \a_1, \zeta_1
+  mulw \r_2, \a_2, \zeta_2
+  mulw \r_3, \a_3, \zeta_3
+  srai \r_0, \r_0, 16
+  srai \r_1, \r_1, 16
+  srai \r_2, \r_2, 16
+  srai \r_3, \r_3, 16
   addi \r_0, \r_0, 8
   addi \r_1, \r_1, 8
   addi \r_2, \r_2, 8
   addi \r_3, \r_3, 8
-  mulh \r_0, \r_0, \q32
-  mulh \r_1, \r_1, \q32
-  mulh \r_2, \r_2, \q32
-  mulh \r_3, \r_3, \q32
+  mulh \r_0, \r_0, \q48
+  mulh \r_1, \r_1, \q48
+  mulh \r_2, \r_2, \q48
+  mulh \r_3, \r_3, \q48
 .endm
 
-// each layer increases coefficients by 0.5q; In ct_butterfly, twiddle and tmp can be reused because each twiddle is only used once. The gs_butterfly cannot.
-.macro ct_butterfly coeff0, coeff1, twiddle, q, tmp
-  plant_mul_const \q, \twiddle, \coeff1, \tmp
-  sub \coeff1, \coeff0, \tmp
-  add \coeff0, \coeff0, \tmp
+// each layer increases coefficients by 0.5q; In ct_bfu, zeta and tmp can be reused because each zeta is only used once. The gs_bfu cannot.
+# .macro ct_bfu a_0, a_1, zeta, q48, tmp
+#   plant_mul_const \q48, \zeta, \a_1, \tmp
+#   sub \a_1, \a_0, \tmp
+#   add \a_0, \a_0, \tmp
+# .endm
+.macro ct_bfu a_0, a_1, zeta, q48, tmp
+  mulw \tmp, \a_1, \zeta
+  srai \tmp, \tmp, 16
+  addi \tmp, \tmp, 8
+  mulh \tmp, \tmp, \q48
+  sub \a_1, \a_0, \tmp
+  add \a_0, \a_0, \tmp
 .endm
 
 .macro ct_bfu_x2 \
         a_0_0, a_0_1, a_1_0, a_1_1, \
         zeta_0, zeta_1, \
-        q32, \
+        q48, \
         t_0, t_1
-  mul  \t_0, \a_0_1, \zeta_0
-  mul  \t_1, \a_1_1, \zeta_1
-  srai \t_0, \t_0, 32
-  srai \t_1, \t_1, 32
+  mulw  \t_0, \a_0_1, \zeta_0
+  mulw  \t_1, \a_1_1, \zeta_1
+  srai \t_0, \t_0, 16
+  srai \t_1, \t_1, 16
   addi \t_0, \t_0, 8
   addi \t_1, \t_1, 8
-  mulh \t_0, \t_0, \q32
-  mulh \t_1, \t_1, \q32
+  mulh \t_0, \t_0, \q48
+  mulh \t_1, \t_1, \q48
   sub  \a_0_1, \a_0_0, \t_0
   sub  \a_1_1, \a_1_0, \t_1
   add  \a_0_0, \a_0_0, \t_0
@@ -191,48 +201,48 @@
         zeta_2, zeta_3, \
         zeta_4, zeta_5, \
         zeta_6, zeta_7, \
-        q32, \
+        q48, \
         t_0, t_1, t_2, t_3
-  mul  \t_0, \a_0_1, \zeta_0
-  mul  \t_1, \a_1_1, \zeta_1
-  mul  \t_2, \a_2_1, \zeta_2
-  mul  \t_3, \a_3_1, \zeta_3
-  srai \t_0, \t_0, 32
-  srai \t_1, \t_1, 32
+  mulw \t_0, \a_0_1, \zeta_0
+  mulw \t_1, \a_1_1, \zeta_1
+  mulw \t_2, \a_2_1, \zeta_2
+  mulw \t_3, \a_3_1, \zeta_3
+  srai \t_0, \t_0, 16
+  srai \t_1, \t_1, 16
   addi \t_0, \t_0, 8
   addi \t_1, \t_1, 8
-  mulh \t_0, \t_0, \q32
-  mulh \t_1, \t_1, \q32
-  srai \t_2, \t_2, 32
-  srai \t_3, \t_3, 32
+  mulh \t_0, \t_0, \q48
+  mulh \t_1, \t_1, \q48
+  srai \t_2, \t_2, 16
+  srai \t_3, \t_3, 16
   addi \t_2, \t_2, 8
   addi \t_3, \t_3, 8
-  mulh \t_2, \t_2, \q32
-  mulh \t_3, \t_3, \q32
+  mulh \t_2, \t_2, \q48
+  mulh \t_3, \t_3, \q48
   sub  \a_0_1, \a_0_0, \t_0
   sub  \a_1_1, \a_1_0, \t_1
   add  \a_0_0, \a_0_0, \t_0
   add  \a_1_0, \a_1_0, \t_1
-  mul  \t_0, \a_4_1, \zeta_4
-  mul  \t_1, \a_5_1, \zeta_5
+  mulw \t_0, \a_4_1, \zeta_4
+  mulw \t_1, \a_5_1, \zeta_5
   sub  \a_2_1, \a_2_0, \t_2
   sub  \a_3_1, \a_3_0, \t_3
   add  \a_2_0, \a_2_0, \t_2
   add  \a_3_0, \a_3_0, \t_3
-  mul  \t_2, \a_6_1, \zeta_6
-  mul  \t_3, \a_7_1, \zeta_7
-  srai \t_0, \t_0, 32
-  srai \t_1, \t_1, 32
+  mulw \t_2, \a_6_1, \zeta_6
+  mulw \t_3, \a_7_1, \zeta_7
+  srai \t_0, \t_0, 16
+  srai \t_1, \t_1, 16
   addi \t_0, \t_0, 8
   addi \t_1, \t_1, 8
-  mulh \t_0, \t_0, \q32
-  mulh \t_1, \t_1, \q32
-  srai \t_2, \t_2, 32
-  srai \t_3, \t_3, 32
+  mulh \t_0, \t_0, \q48
+  mulh \t_1, \t_1, \q48
+  srai \t_2, \t_2, 16
+  srai \t_3, \t_3, 16
   addi \t_2, \t_2, 8
   addi \t_3, \t_3, 8
-  mulh \t_2, \t_2, \q32
-  mulh \t_3, \t_3, \q32
+  mulh \t_2, \t_2, \q48
+  mulh \t_3, \t_3, \q48
   sub  \a_4_1, \a_4_0, \t_0
   sub  \a_5_1, \a_5_0, \t_1
   add  \a_4_0, \a_4_0, \t_0
@@ -252,56 +262,56 @@
         zeta_2, zeta_3, \
         zeta_4, zeta_5, \
         zeta_6, zeta_7, \
-        q32, \
+        q48, \
         t_0, t_1, t_2, t_3
-  ld   \t_0, \zeta_0(a1)
-  ld   \t_1, \zeta_1(a1)
-  ld   \t_2, \zeta_2(a1)
-  ld   \t_3, \zeta_3(a1)
-  mul  \t_0, \a_0_1, \t_0
-  mul  \t_1, \a_1_1, \t_1
-  mul  \t_2, \a_2_1, \t_2
-  mul  \t_3, \a_3_1, \t_3
-  srai \t_0, \t_0, 32
-  srai \t_1, \t_1, 32
+  lw   \t_0, \zeta_0(a1)
+  lw   \t_1, \zeta_1(a1)
+  lw   \t_2, \zeta_2(a1)
+  lw   \t_3, \zeta_3(a1)
+  mulw \t_0, \a_0_1, \t_0
+  mulw \t_1, \a_1_1, \t_1
+  mulw \t_2, \a_2_1, \t_2
+  mulw \t_3, \a_3_1, \t_3
+  srai \t_0, \t_0, 16
+  srai \t_1, \t_1, 16
   addi \t_0, \t_0, 8
   addi \t_1, \t_1, 8
-  mulh \t_0, \t_0, \q32
-  mulh \t_1, \t_1, \q32
-  srai \t_2, \t_2, 32
-  srai \t_3, \t_3, 32
+  mulh \t_0, \t_0, \q48
+  mulh \t_1, \t_1, \q48
+  srai \t_2, \t_2, 16
+  srai \t_3, \t_3, 16
   addi \t_2, \t_2, 8
   addi \t_3, \t_3, 8
-  mulh \t_2, \t_2, \q32
-  mulh \t_3, \t_3, \q32
+  mulh \t_2, \t_2, \q48
+  mulh \t_3, \t_3, \q48
   sub  \a_0_1, \a_0_0, \t_0
   sub  \a_1_1, \a_1_0, \t_1
   add  \a_0_0, \a_0_0, \t_0
-  ld   \t_0, \zeta_4(a1)
+  lw   \t_0, \zeta_4(a1)
   add  \a_1_0, \a_1_0, \t_1
-  ld   \t_1, \zeta_5(a1)
-  mul  \t_0, \a_4_1, \t_0
-  mul  \t_1, \a_5_1, \t_1
+  lw   \t_1, \zeta_5(a1)
+  mulw \t_0, \a_4_1, \t_0
+  mulw \t_1, \a_5_1, \t_1
   sub  \a_2_1, \a_2_0, \t_2
   sub  \a_3_1, \a_3_0, \t_3
   add  \a_2_0, \a_2_0, \t_2
-  ld   \t_2, \zeta_6(a1)
+  lw   \t_2, \zeta_6(a1)
   add  \a_3_0, \a_3_0, \t_3
-  ld   \t_3, \zeta_7(a1)
-  mul  \t_2, \a_6_1, \t_2
-  mul  \t_3, \a_7_1, \t_3
-  srai \t_0, \t_0, 32
-  srai \t_1, \t_1, 32
+  lw   \t_3, \zeta_7(a1)
+  mulw \t_2, \a_6_1, \t_2
+  mulw \t_3, \a_7_1, \t_3
+  srai \t_0, \t_0, 16
+  srai \t_1, \t_1, 16
   addi \t_0, \t_0, 8
   addi \t_1, \t_1, 8
-  mulh \t_0, \t_0, \q32
-  mulh \t_1, \t_1, \q32
-  srai \t_2, \t_2, 32
-  srai \t_3, \t_3, 32
+  mulh \t_0, \t_0, \q48
+  mulh \t_1, \t_1, \q48
+  srai \t_2, \t_2, 16
+  srai \t_3, \t_3, 16
   addi \t_2, \t_2, 8
   addi \t_3, \t_3, 8
-  mulh \t_2, \t_2, \q32
-  mulh \t_3, \t_3, \q32
+  mulh \t_2, \t_2, \q48
+  mulh \t_3, \t_3, \q48
   sub  \a_4_1, \a_4_0, \t_0
   sub  \a_5_1, \a_5_0, \t_1
   add  \a_4_0, \a_4_0, \t_0
@@ -312,29 +322,29 @@
   add  \a_7_0, \a_7_0, \t_3
 .endm
 
-.macro gs_bfu a_0, a_1, zeta, q32, tmp
+.macro gs_bfu a_0, a_1, zeta, q48, tmp
   sub \tmp, \a_0, \a_1
   add \a_0, \a_0, \a_1
-  mul \a_1, \tmp, \zeta
-  srai \a_1, \a_1, 32
+  mulw \a_1, \tmp, \zeta
+  srai \a_1, \a_1, 16
   addi \a_1, \a_1, 8
-  mulh \a_1, \a_1, \q32
+  mulh \a_1, \a_1, \q48
 .endm
 
 .macro gs_bfu_x2 a_0_0, a_0_1, a_1_0, a_1_1, \
-        zeta_0, zeta_1, q32, t_0, t_1
+        zeta_0, zeta_1, q48, t_0, t_1
   sub \t_0, \a_0_0, \a_0_1
   sub \t_1, \a_1_0, \a_1_1
   add \a_0_0, \a_0_0, \a_0_1
   add \a_1_0, \a_1_0, \a_1_1
-  mul \a_0_1, \t_0, \zeta_0
-  mul \a_1_1, \t_1, \zeta_1
-  srai \a_0_1, \a_0_1, 32
-  srai \a_1_1, \a_1_1, 32
+  mulw \a_0_1, \t_0, \zeta_0
+  mulw \a_1_1, \t_1, \zeta_1
+  srai \a_0_1, \a_0_1, 16
+  srai \a_1_1, \a_1_1, 16
   addi \a_0_1, \a_0_1, 8
   addi \a_1_1, \a_1_1, 8
-  mulh \a_0_1, \a_0_1, \q32
-  mulh \a_1_1, \a_1_1, \q32
+  mulh \a_0_1, \a_0_1, \q48
+  mulh \a_1_1, \a_1_1, \q48
 .endm
 
 .macro gs_bfu_x8 \
@@ -346,55 +356,55 @@
         zeta_2, zeta_3, \
         zeta_4, zeta_5, \
         zeta_6, zeta_7, \
-        q32, t_0, t_1, t_2, t_3
+        q48, t_0, t_1, t_2, t_3
   sub \t_0, \a_0_0, \a_0_1
   sub \t_1, \a_1_0, \a_1_1
   add \a_0_0, \a_0_0, \a_0_1
   add \a_1_0, \a_1_0, \a_1_1
-  mul \a_0_1, \t_0, \zeta_0
-  mul \a_1_1, \t_1, \zeta_1
+  mulw \a_0_1, \t_0, \zeta_0
+  mulw \a_1_1, \t_1, \zeta_1
   sub \t_2, \a_2_0, \a_2_1
   sub \t_3, \a_3_0, \a_3_1
   add \a_2_0, \a_2_0, \a_2_1
   add \a_3_0, \a_3_0, \a_3_1
-  mul \a_2_1, \t_2, \zeta_2
-  mul \a_3_1, \t_3, \zeta_3
-  srai \a_0_1, \a_0_1, 32
-  srai \a_1_1, \a_1_1, 32
+  mulw \a_2_1, \t_2, \zeta_2
+  mulw \a_3_1, \t_3, \zeta_3
+  srai \a_0_1, \a_0_1, 16
+  srai \a_1_1, \a_1_1, 16
   addi \a_0_1, \a_0_1, 8
   addi \a_1_1, \a_1_1, 8
-  mulh \a_0_1, \a_0_1, \q32
-  mulh \a_1_1, \a_1_1, \q32
-  srai \a_2_1, \a_2_1, 32
-  srai \a_3_1, \a_3_1, 32
+  mulh \a_0_1, \a_0_1, \q48
+  mulh \a_1_1, \a_1_1, \q48
+  srai \a_2_1, \a_2_1, 16
+  srai \a_3_1, \a_3_1, 16
   addi \a_2_1, \a_2_1, 8
   addi \a_3_1, \a_3_1, 8
-  mulh \a_2_1, \a_2_1, \q32
-  mulh \a_3_1, \a_3_1, \q32
+  mulh \a_2_1, \a_2_1, \q48
+  mulh \a_3_1, \a_3_1, \q48
   sub \t_0, \a_4_0, \a_4_1
   sub \t_1, \a_5_0, \a_5_1
   add \a_4_0, \a_4_0, \a_4_1
   add \a_5_0, \a_5_0, \a_5_1
-  mul \a_4_1, \t_0, \zeta_4
-  mul \a_5_1, \t_1, \zeta_5
+  mulw \a_4_1, \t_0, \zeta_4
+  mulw \a_5_1, \t_1, \zeta_5
   sub \t_2, \a_6_0, \a_6_1
   sub \t_3, \a_7_0, \a_7_1
   add \a_6_0, \a_6_0, \a_6_1
   add \a_7_0, \a_7_0, \a_7_1
-  mul \a_6_1, \t_2, \zeta_6
-  mul \a_7_1, \t_3, \zeta_7
-  srai \a_4_1, \a_4_1, 32
-  srai \a_5_1, \a_5_1, 32
+  mulw \a_6_1, \t_2, \zeta_6
+  mulw \a_7_1, \t_3, \zeta_7
+  srai \a_4_1, \a_4_1, 16
+  srai \a_5_1, \a_5_1, 16
   addi \a_4_1, \a_4_1, 8
   addi \a_5_1, \a_5_1, 8
-  mulh \a_4_1, \a_4_1, \q32
-  mulh \a_5_1, \a_5_1, \q32
-  srai \a_6_1, \a_6_1, 32
-  srai \a_7_1, \a_7_1, 32
+  mulh \a_4_1, \a_4_1, \q48
+  mulh \a_5_1, \a_5_1, \q48
+  srai \a_6_1, \a_6_1, 16
+  srai \a_7_1, \a_7_1, 16
   addi \a_6_1, \a_6_1, 8
   addi \a_7_1, \a_7_1, 8
-  mulh \a_6_1, \a_6_1, \q32
-  mulh \a_7_1, \a_7_1, \q32
+  mulh \a_6_1, \a_6_1, \q48
+  mulh \a_7_1, \a_7_1, \q48
 .endm
 
 .macro gs_bfu_x8_load_4zetas \
@@ -404,59 +414,59 @@
         a_6_0, a_6_1, a_7_0, a_7_1, \
         zeta_0, zeta_1, \
         zeta_2, zeta_3, \
-        q32, t_0, t_1, t_2, t_3
-  ld  \t_2, \zeta_0(a1)
+        q48, t_0, t_1, t_2, t_3
+  lw  \t_2, \zeta_0(a1)
   sub \t_0, \a_0_0, \a_0_1
   sub \t_1, \a_1_0, \a_1_1
   add \a_0_0, \a_0_0, \a_0_1
   add \a_1_0, \a_1_0, \a_1_1
-  mul \a_0_1, \t_0, \t_2
-  mul \a_1_1, \t_1, \t_2
+  mulw \a_0_1, \t_0, \t_2
+  mulw \a_1_1, \t_1, \t_2
   sub \t_0, \a_2_0, \a_2_1
   sub \t_3, \a_3_0, \a_3_1
-  ld  \t_2, \zeta_1(a1)
+  lw  \t_2, \zeta_1(a1)
   add \a_2_0, \a_2_0, \a_2_1
   add \a_3_0, \a_3_0, \a_3_1
-  mul \a_2_1, \t_0, \t_2
-  mul \a_3_1, \t_3, \t_2
-  srai \a_0_1, \a_0_1, 32
-  srai \a_1_1, \a_1_1, 32
+  mulw \a_2_1, \t_0, \t_2
+  mulw \a_3_1, \t_3, \t_2
+  srai \a_0_1, \a_0_1, 16
+  srai \a_1_1, \a_1_1, 16
   addi \a_0_1, \a_0_1, 8
   addi \a_1_1, \a_1_1, 8
-  mulh \a_0_1, \a_0_1, \q32
-  mulh \a_1_1, \a_1_1, \q32
-  srai \a_2_1, \a_2_1, 32
-  srai \a_3_1, \a_3_1, 32
+  mulh \a_0_1, \a_0_1, \q48
+  mulh \a_1_1, \a_1_1, \q48
+  srai \a_2_1, \a_2_1, 16
+  srai \a_3_1, \a_3_1, 16
   addi \a_2_1, \a_2_1, 8
   addi \a_3_1, \a_3_1, 8
-  mulh \a_2_1, \a_2_1, \q32
-  mulh \a_3_1, \a_3_1, \q32
+  mulh \a_2_1, \a_2_1, \q48
+  mulh \a_3_1, \a_3_1, \q48
   sub \t_0, \a_4_0, \a_4_1
   sub \t_1, \a_5_0, \a_5_1
-  ld  \t_2, \zeta_2(a1)
+  lw  \t_2, \zeta_2(a1)
   add \a_4_0, \a_4_0, \a_4_1
   add \a_5_0, \a_5_0, \a_5_1
-  mul \a_4_1, \t_0, \t_2
-  mul \a_5_1, \t_1, \t_2
+  mulw \a_4_1, \t_0, \t_2
+  mulw \a_5_1, \t_1, \t_2
   sub \t_0, \a_6_0, \a_6_1
   sub \t_3, \a_7_0, \a_7_1
-  ld  \t_2, \zeta_3(a1)
+  lw  \t_2, \zeta_3(a1)
   add \a_6_0, \a_6_0, \a_6_1
   add \a_7_0, \a_7_0, \a_7_1
-  mul \a_6_1, \t_0, \t_2
-  mul \a_7_1, \t_3, \t_2
-  srai \a_4_1, \a_4_1, 32
-  srai \a_5_1, \a_5_1, 32
+  mulw \a_6_1, \t_0, \t_2
+  mulw \a_7_1, \t_3, \t_2
+  srai \a_4_1, \a_4_1, 16
+  srai \a_5_1, \a_5_1, 16
   addi \a_4_1, \a_4_1, 8
   addi \a_5_1, \a_5_1, 8
-  mulh \a_4_1, \a_4_1, \q32
-  mulh \a_5_1, \a_5_1, \q32
-  srai \a_6_1, \a_6_1, 32
-  srai \a_7_1, \a_7_1, 32
+  mulh \a_4_1, \a_4_1, \q48
+  mulh \a_5_1, \a_5_1, \q48
+  srai \a_6_1, \a_6_1, 16
+  srai \a_7_1, \a_7_1, 16
   addi \a_6_1, \a_6_1, 8
   addi \a_7_1, \a_7_1, 8
-  mulh \a_6_1, \a_6_1, \q32
-  mulh \a_7_1, \a_7_1, \q32
+  mulh \a_6_1, \a_6_1, \q48
+  mulh \a_7_1, \a_7_1, \q48
 .endm
 
 .macro gs_bfu_x8_load_2zetas \
@@ -465,137 +475,137 @@
         a_4_0, a_4_1, a_5_0, a_5_1, \
         a_6_0, a_6_1, a_7_0, a_7_1, \
         zeta_0, zeta_1, \
-        q32, t_0, t_1, t_2, t_3
-  ld  \t_2, \zeta_0(a1)
+        q48, t_0, t_1, t_2, t_3
+  lw  \t_2, \zeta_0(a1)
   sub \t_0, \a_0_0, \a_0_1
   sub \t_1, \a_1_0, \a_1_1
   add \a_0_0, \a_0_0, \a_0_1
   add \a_1_0, \a_1_0, \a_1_1
-  mul \a_0_1, \t_0, \t_2
-  mul \a_1_1, \t_1, \t_2
+  mulw \a_0_1, \t_0, \t_2
+  mulw \a_1_1, \t_1, \t_2
   sub \t_0, \a_2_0, \a_2_1
   sub \t_3, \a_3_0, \a_3_1
   add \a_2_0, \a_2_0, \a_2_1
   add \a_3_0, \a_3_0, \a_3_1
-  mul \a_2_1, \t_0, \t_2
-  mul \a_3_1, \t_3, \t_2
-  srai \a_0_1, \a_0_1, 32
-  srai \a_1_1, \a_1_1, 32
+  mulw \a_2_1, \t_0, \t_2
+  mulw \a_3_1, \t_3, \t_2
+  srai \a_0_1, \a_0_1, 16
+  srai \a_1_1, \a_1_1, 16
   addi \a_0_1, \a_0_1, 8
   addi \a_1_1, \a_1_1, 8
-  mulh \a_0_1, \a_0_1, \q32
-  mulh \a_1_1, \a_1_1, \q32
-  srai \a_2_1, \a_2_1, 32
-  srai \a_3_1, \a_3_1, 32
+  mulh \a_0_1, \a_0_1, \q48
+  mulh \a_1_1, \a_1_1, \q48
+  srai \a_2_1, \a_2_1, 16
+  srai \a_3_1, \a_3_1, 16
   addi \a_2_1, \a_2_1, 8
   addi \a_3_1, \a_3_1, 8
-  mulh \a_2_1, \a_2_1, \q32
-  mulh \a_3_1, \a_3_1, \q32
-  ld  \t_2, \zeta_1(a1)
+  mulh \a_2_1, \a_2_1, \q48
+  mulh \a_3_1, \a_3_1, \q48
+  lw  \t_2, \zeta_1(a1)
   sub \t_0, \a_4_0, \a_4_1
   sub \t_1, \a_5_0, \a_5_1
   add \a_4_0, \a_4_0, \a_4_1
   add \a_5_0, \a_5_0, \a_5_1
-  mul \a_4_1, \t_0, \t_2
-  mul \a_5_1, \t_1, \t_2
+  mulw \a_4_1, \t_0, \t_2
+  mulw \a_5_1, \t_1, \t_2
   sub \t_0, \a_6_0, \a_6_1
   sub \t_3, \a_7_0, \a_7_1
   add \a_6_0, \a_6_0, \a_6_1
   add \a_7_0, \a_7_0, \a_7_1
-  mul \a_6_1, \t_0, \t_2
-  mul \a_7_1, \t_3, \t_2
-  srai \a_4_1, \a_4_1, 32
-  srai \a_5_1, \a_5_1, 32
+  mulw \a_6_1, \t_0, \t_2
+  mulw \a_7_1, \t_3, \t_2
+  srai \a_4_1, \a_4_1, 16
+  srai \a_5_1, \a_5_1, 16
   addi \a_4_1, \a_4_1, 8
   addi \a_5_1, \a_5_1, 8
-  mulh \a_4_1, \a_4_1, \q32
-  mulh \a_5_1, \a_5_1, \q32
-  srai \a_6_1, \a_6_1, 32
-  srai \a_7_1, \a_7_1, 32
+  mulh \a_4_1, \a_4_1, \q48
+  mulh \a_5_1, \a_5_1, \q48
+  srai \a_6_1, \a_6_1, 16
+  srai \a_7_1, \a_7_1, 16
   addi \a_6_1, \a_6_1, 8
   addi \a_7_1, \a_7_1, 8
-  mulh \a_6_1, \a_6_1, \q32
-  mulh \a_7_1, \a_7_1, \q32
+  mulh \a_6_1, \a_6_1, \q48
+  mulh \a_7_1, \a_7_1, \q48
 .endm
 
 .macro plant_mul_const_inplace_x8 \
-        q32, zeta, \
+        q48, zeta, \
         a_0, a_1, a_2, a_3, \
         a_4, a_5, a_6, a_7
-  mul \a_0, \a_0, \zeta
-  mul \a_1, \a_1, \zeta
-  mul \a_2, \a_2, \zeta
-  mul \a_3, \a_3, \zeta
-  srai \a_0, \a_0, 32
-  srai \a_1, \a_1, 32
+  mulw \a_0, \a_0, \zeta
+  mulw \a_1, \a_1, \zeta
+  mulw \a_2, \a_2, \zeta
+  mulw \a_3, \a_3, \zeta
+  srai \a_0, \a_0, 16
+  srai \a_1, \a_1, 16
   addi \a_0, \a_0, 8
   addi \a_1, \a_1, 8
-  mulh \a_0, \a_0, \q32
-  mulh \a_1, \a_1, \q32
-  srai \a_2, \a_2, 32
-  srai \a_3, \a_3, 32
-  mul \a_4, \a_4, \zeta
-  mul \a_5, \a_5, \zeta
+  mulh \a_0, \a_0, \q48
+  mulh \a_1, \a_1, \q48
+  srai \a_2, \a_2, 16
+  srai \a_3, \a_3, 16
+  mulw \a_4, \a_4, \zeta
+  mulw \a_5, \a_5, \zeta
   addi \a_2, \a_2, 8
   addi \a_3, \a_3, 8
-  mulh \a_2, \a_2, \q32
-  mulh \a_3, \a_3, \q32
-  srai \a_4, \a_4, 32
-  srai \a_5, \a_5, 32
-  mul \a_6, \a_6, \zeta
-  mul \a_7, \a_7, \zeta
+  mulh \a_2, \a_2, \q48
+  mulh \a_3, \a_3, \q48
+  srai \a_4, \a_4, 16
+  srai \a_5, \a_5, 16
+  mulw \a_6, \a_6, \zeta
+  mulw \a_7, \a_7, \zeta
   addi \a_4, \a_4, 8
   addi \a_5, \a_5, 8
-  mulh \a_4, \a_4, \q32
-  mulh \a_5, \a_5, \q32
-  srai \a_6, \a_6, 32
+  mulh \a_4, \a_4, \q48
+  mulh \a_5, \a_5, \q48
+  srai \a_6, \a_6, 16
   addi \a_6, \a_6, 8
-  mulh \a_6, \a_6, \q32
-  srai \a_7, \a_7, 32
+  mulh \a_6, \a_6, \q48
+  srai \a_7, \a_7, 16
   addi \a_7, \a_7, 8
-  mulh \a_7, \a_7, \q32
+  mulh \a_7, \a_7, \q48
 .endm
 
-// in-place plantard reduction
-// output \in (-0.5q, 0.5q); q32: q<<32
-.macro plant_red q32, qinv, a
-  mul  \a, \a, \qinv
-  srai \a, \a, 32
+// in-place plantard reduction to a
+// output \in (-0.5q, 0.5q); q48: q<<48
+.macro plant_red q48, qinv, a
+  mulw \a, \a, \qinv
+  srai \a, \a, 16
   addi \a, \a, 8
-  mulh \a, \a, \q32
+  mulh \a, \a, \q48
 .endm
 
 .macro plant_red_x4 \
-        q32, qinv,  \
+        q48, qinv,  \
         a_0, a_1, a_2, a_3
-  mul  \a_0, \a_0, \qinv
-  mul  \a_1, \a_1, \qinv
-  mul  \a_2, \a_2, \qinv
-  mul  \a_3, \a_3, \qinv
-  srai \a_0, \a_0, 32
-  srai \a_1, \a_1, 32
-  srai \a_2, \a_2, 32
-  srai \a_3, \a_3, 32
+  mulw \a_0, \a_0, \qinv
+  mulw \a_1, \a_1, \qinv
+  mulw \a_2, \a_2, \qinv
+  mulw \a_3, \a_3, \qinv
+  srai \a_0, \a_0, 16
+  srai \a_1, \a_1, 16
+  srai \a_2, \a_2, 16
+  srai \a_3, \a_3, 16
   addi \a_0, \a_0, 8
   addi \a_1, \a_1, 8
   addi \a_2, \a_2, 8
   addi \a_3, \a_3, 8
-  mulh \a_0, \a_0, \q32
-  mulh \a_1, \a_1, \q32
-  mulh \a_2, \a_2, \q32
-  mulh \a_3, \a_3, \q32
+  mulh \a_0, \a_0, \q48
+  mulh \a_1, \a_1, \q48
+  mulh \a_2, \a_2, \q48
+  mulh \a_3, \a_3, \q48
 .endm
 
-.equ q,    3329
-.equ q32,  0xd0100000000                // q << 32
-.equ qinv, 0x3c0f12886ba8f301           // q^-1 mod 2^64
-.equ plantconst, 0x13afb7680bb055       // (((-2**64) % q) * qinv) % (2**64)
-.equ plantconst2, 0x1a390f4d9791e139    // (((-2**64) % q) * ((-2**64) % q) * qinv) % (2**64)
+.equ q, 3329
+.equ q48, 0xd01000000000000     // q<<48
+.equ qinv, 0x6ba8f301           // q^-1 mod+- 2^32
+.equ plantconst, 0x13afb8       // (-2^{32} mod q)*qinv mod 2^32
+.equ plantconst2, 0x97f44fac    // (2^{64} mod q)*qinv mod 2^32
 
 // |input| < 0.5q; |output| < 3.5q
-// a0: poly, a1: 64-bit twiddle ptr; a6: q<<32;
+// a0: poly, a1: 32-bit twiddle ptr; a6: q<<48; 
 // a7/gp/tp/ra: tmp; 
-// 4*15(sp): loop;
+// 8*15(sp): loop;
 // s0-s11, a2-a5: 16 coeffs; 
 // 7 twiddle factors: t0-t6
 .global ntt_rv64im
@@ -603,18 +613,18 @@
 ntt_rv64im:
   addi sp, sp, -8*16
   save_regs
-  li a6, q32        // q<<32
+  li a6, q48        // q<<48
   addi a0, a0, 32   // poly[16]
   addi gp, x0, 15   // loop
   sd gp, 8*15(sp)
   // load twiddle factors
-  ld t0, 0*8(a1)
-  ld t1, 1*8(a1)
-  ld t2, 2*8(a1)
-  ld t3, 3*8(a1)
-  ld t4, 4*8(a1)
-  ld t5, 5*8(a1)
-  ld t6, 6*8(a1)
+  lw t0, 0*4(a1)
+  lw t1, 1*4(a1)
+  lw t2, 2*4(a1)
+  lw t3, 3*4(a1)
+  lw t4, 4*4(a1)
+  lw t5, 5*4(a1)
+  lw t6, 6*4(a1)
   ### LAYER 1+2+3+4
   ntt_rv64im_loop1:
     addi a0, a0, -2
@@ -655,8 +665,8 @@ ntt_rv64im:
       s4,  s5, s6,  s7, \
       s8,  s9, s10, s11,\
       a2,  a3, a4,  a5, \
-      7*8, 8*8, 9*8, 10*8, \
-      11*8,12*8,13*8,14*8, \
+      7*4, 8*4, 9*4, 10*4, \
+      11*4,12*4,13*4,14*4, \
       a6, a7, gp, tp, ra
     // store 16 coeffs
     store_coeffs a0, 16, 2
@@ -664,7 +674,7 @@ ntt_rv64im:
   addi gp, gp, -1
   sd gp, 8*15(sp)
   bge gp, zero, ntt_rv64im_loop1 # 16 loops
-  addi a1, a1, 15*8
+  addi a1, a1, 15*4
   ### LAYER 5-6-7
   addi gp, x0, 16
   sd gp, 8*15(sp)
@@ -672,13 +682,13 @@ ntt_rv64im:
     // load coefficients
     load_coeffs a0, 1, 2
     // load twiddle factors
-    ld t0, 0*8(a1)
-    ld t1, 1*8(a1)
-    ld t2, 2*8(a1)
-    ld t3, 3*8(a1)
-    ld t4, 4*8(a1)
-    ld t5, 5*8(a1)
-    ld t6, 6*8(a1)
+    lw t0, 0*4(a1)
+    lw t1, 1*4(a1)
+    lw t2, 2*4(a1)
+    lw t3, 3*4(a1)
+    lw t4, 4*4(a1)
+    lw t5, 5*4(a1)
+    lw t6, 6*4(a1)
     // layer 5
     ct_bfu_x8 \
       s0, s8, s1, s9,   \
@@ -708,7 +718,7 @@ ntt_rv64im:
       a6, a7, gp, tp, ra
     store_coeffs a0, 1, 2
     addi a0, a0, 32 // poly+=16
-    addi a1, a1, 7*8 // zeta
+    addi a1, a1, 7*4 // zeta
   ld gp, 8*15(sp)
   addi gp, gp, -1 // loop
   sd gp, 8*15(sp)
@@ -718,9 +728,9 @@ ntt_rv64im:
   ret
 
 // |input| < kq; |output| < 0.5q
-// a0: poly, a1: 64-bit twiddle ptr; a6: q<<32;
+// a0: poly, a1: 32-bit twiddle ptr; a6: q<<48;
 // a7/gp/tp/ra: tmp;
-// 4*15(sp): loop;
+// 8*15(sp): loop;
 // s0-s11, a2-a5: 16 coeffs; 
 // 7 twiddle factors: t0-t6
 .global invntt_rv64im
@@ -728,7 +738,7 @@ ntt_rv64im:
 invntt_rv64im:
   addi sp, sp, -8*16
   save_regs
-  li a6, q32 // q<<32
+  li a6, q48 // q<<48
   ### LAYER 7+6+5
   addi gp, x0, 16
   sd gp, 8*15(sp)
@@ -736,13 +746,13 @@ invntt_rv64im:
     // load coefficients
     load_coeffs a0, 1, 2
     // load twiddle factors
-    ld t0, 0*8(a1)
-    ld t1, 1*8(a1)
-    ld t2, 2*8(a1)
-    ld t3, 3*8(a1)
-    ld t4, 4*8(a1)
-    ld t5, 5*8(a1)
-    ld t6, 6*8(a1)
+    lw t0, 0*4(a1)
+    lw t1, 1*4(a1)
+    lw t2, 2*4(a1)
+    lw t3, 3*4(a1)
+    lw t4, 4*4(a1)
+    lw t5, 5*4(a1)
+    lw t6, 6*4(a1)
     // layer 7
     gs_bfu_x8 \
       s0, s2, s1, s3, \
@@ -772,20 +782,20 @@ invntt_rv64im:
       a6, a7, gp, tp, ra
     store_coeffs a0, 1, 2
     addi a0, a0, 32
-    addi a1, a1, 8*7
+    addi a1, a1, 4*7
   ld gp, 8*15(sp)
   addi gp, gp, -1
   sd gp, 8*15(sp)
   bne gp, zero, invntt_rv64im_loop1
   addi a0, a0, -512
   ### LAYER 4+3+2+1
-  ld t0, 0*8(a1)
-  ld t1, 1*8(a1)
-  ld t2, 2*8(a1)
-  ld t3, 3*8(a1)
-  ld t4, 4*8(a1)
-  ld t5, 5*8(a1)
-  ld t6, 6*8(a1)
+  lw t0, 0*4(a1)
+  lw t1, 1*4(a1)
+  lw t2, 2*4(a1)
+  lw t3, 3*4(a1)
+  lw t4, 4*4(a1)
+  lw t5, 5*4(a1)
+  lw t6, 6*4(a1)
   addi a0, a0, 32
   addi gp, x0, 15
   sd gp, 8*15(sp)
@@ -793,7 +803,7 @@ invntt_rv64im:
     addi a0, a0, -2
     load_coeffs a0, 16, 2
     // layer 4
-    ld tp, 7*8(a1)
+    lw tp, 7*4(a1)
     gs_bfu_x8 \
       s0,  s1, s2,  s3, \
       s4,  s5, s6,  s7, \
@@ -809,7 +819,7 @@ invntt_rv64im:
       s4, s6, s5, s7,   \
       s8, s10, s9, s11, \
       a2, a4, a3, a5,   \
-      8*8, 9*8, 10*8, 11*8, \
+      8*4, 9*4, 10*4, 11*4, \
       a6, a7, gp, tp, ra
     // layer 2
     gs_bfu_x8_load_2zetas \
@@ -817,10 +827,10 @@ invntt_rv64im:
       s2,  s6, s3,  s7, \
       s8,  a2, s9,  a3, \
       s10, a4, s11, a5, \
-      12*8, 13*8,  \
+      12*4, 13*4,  \
       a6, a7, gp, tp, ra
     // layer 1
-    ld ra, 14*8(a1)
+    lw ra, 14*4(a1)
     gs_bfu_x8 \
       s0, s8, s1, s9,   \
       s2, s10, s3, s11, \
@@ -829,7 +839,7 @@ invntt_rv64im:
       ra, ra, ra, ra,   \
       ra, ra, ra, ra,   \
       a6, a7, gp, a7, tp
-    ld ra, 15*8(a1)
+    lw ra, 15*4(a1)
     plant_mul_const_inplace_x8  \
       a6, ra, \
       s0, s1, s2, s3, s4, s5, s6, s7
@@ -842,16 +852,16 @@ invntt_rv64im:
   addi sp, sp, 8*16
   ret
 
-// void poly_basemul_acc_rv64im(int32_t *r, const int16_t *a, const int16_t *b, uint64_t *zetas)
+// void poly_basemul_acc_rv64im(int32_t *r, const int16_t *a, const int16_t *b, uint32_t *zetas)
 // compute basemul and accumulate the 32-bit results into r
-// a0: r, a1: a, a2: b, a3: zetas
-// a5: q<<32, a6: loop control
+// a0: r; a1: a; a2: b; a3: zetas
+// a5: q<<48, a6: loop control
 .global poly_basemul_acc_rv64im
 .align 2
 poly_basemul_acc_rv64im:
     addi sp, sp, -8*15
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, 32
 poly_basemul_acc_rv64im_loop:
     # b[0,1,3,5,7]
@@ -861,8 +871,8 @@ poly_basemul_acc_rv64im_loop:
     lh s5, 2*5(a2)
     lh s7, 2*7(a2)
     # 4 zetas: a7, gp, tp, ra
-    ld  a7, 8*0(a3)
-    ld  tp, 8*1(a3)
+    lw  a7, 4*0(a3)
+    lw  tp, 4*1(a3)
     # a[0,1]
     lh  t0, 2*0(a1)
     lh  t1, 2*1(a1)
@@ -968,14 +978,14 @@ poly_basemul_acc_rv64im_loop:
     addi a0, a0, 4*8
     addi a1, a1, 2*8
     addi a2, a2, 2*8
-    addi a3, a3, 8*2
+    addi a3, a3, 4*2
     addi a6, a6, -1
     bne a6, zero, poly_basemul_acc_rv64im_loop
     restore_regs
     addi sp, sp, 8*15
 ret
 
-// void poly_basemul_acc_end_rv64im(int16_t *r, const int16_t *a, const int16_t *b, uint64_t *zetas, int32_t *r_double)
+// void poly_basemul_acc_end_rv64im(int16_t *r, const int16_t *a, const int16_t *b, uint32_t *zetas, int32_t *r_double)
 // compute basemul, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: zetas, a4: r_double
 .global poly_basemul_acc_end_rv64im
@@ -983,7 +993,7 @@ ret
 poly_basemul_acc_end_rv64im:
     addi sp, sp, -8*16
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, qinv
     li a7, 32
     sd a7, 8*15(sp)
@@ -995,8 +1005,8 @@ poly_basemul_acc_end_rv64im_loop:
     lh s5, 2*5(a2)
     lh s7, 2*7(a2)
     # 4 zetas: a7, gp, tp, ra
-    ld  a7, 8*0(a3)
-    ld  tp, 8*1(a3)
+    lw  a7, 4*0(a3)
+    lw  tp, 4*1(a3)
     # a[0,1]
     lh  t0, 2*0(a1)
     lh  t1, 2*1(a1)
@@ -1108,7 +1118,7 @@ poly_basemul_acc_end_rv64im_loop:
     addi a1, a1, 2*8
     ld   a7, 8*15(sp)
     addi a2, a2, 2*8
-    addi a3, a3, 8*2
+    addi a3, a3, 4*2
     addi a4, a4, 4*8
     addi a7, a7, -1
     sd   a7, 8*15(sp)
@@ -1117,16 +1127,16 @@ poly_basemul_acc_end_rv64im_loop:
     addi sp, sp, 8*16
 ret
 
-// void poly_basemul_cache_init_rv64im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint64_t *zetas)
+// void poly_basemul_cache_init_rv64im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas)
 // compute basemul, cache bzeta into b_cache, and store the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas
-// a5: q<<32, a6: loop control
+// a5: q<<48, a6: loop control
 .global poly_basemul_cache_init_rv64im
 .align 2
 poly_basemul_cache_init_rv64im:
     addi sp, sp, -8*15
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, 32
 poly_basemul_cache_init_rv64im_loop:
     # b[0,1,3,5,7]
@@ -1136,8 +1146,8 @@ poly_basemul_cache_init_rv64im_loop:
     lh s5, 2*5(a2)
     lh s7, 2*7(a2)
     # 4 zetas: a7, gp, tp, ra
-    ld  a7, 8*0(a4)
-    ld  tp, 8*1(a4)
+    lw  a7, 4*0(a4)
+    lw  tp, 4*1(a4)
     # a[0,1]
     lh  t0, 2*0(a1)
     lh  t1, 2*1(a1)
@@ -1230,23 +1240,23 @@ poly_basemul_cache_init_rv64im_loop:
     addi a1, a1, 2*8
     addi a2, a2, 2*8
     addi a3, a3, 2*4
-    addi a4, a4, 8*2
+    addi a4, a4, 4*2
     addi a6, a6, -1
     bne a6, zero, poly_basemul_cache_init_rv64im_loop
     restore_regs
     addi sp, sp, 8*15
 ret
 
-// void poly_basemul_acc_cache_init_rv64im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint64_t *zetas)
+// void poly_basemul_acc_cache_init_rv64im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas)
 // compute basemul, cache bzeta into b_cache, and accumulate the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas
-// a5: q<<32, a6: loop control, a7: accumulated value
+// a5: q<<48, a6: loop control
 .global poly_basemul_acc_cache_init_rv64im
 .align 2
 poly_basemul_acc_cache_init_rv64im:
     addi sp, sp, -8*15
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, 32
 poly_basemul_acc_cache_init_rv64im_loop:
     # b[0,1,3,5,7]
@@ -1256,8 +1266,8 @@ poly_basemul_acc_cache_init_rv64im_loop:
     lh s5, 2*5(a2)
     lh s7, 2*7(a2)
     # 4 zetas: a7, gp, tp, ra
-    ld  a7, 8*0(a4)
-    ld  tp, 8*1(a4)
+    lw  a7, 4*0(a4)
+    lw  tp, 4*1(a4)
     # a[0,1]
     lh  t0, 2*0(a1)
     lh  t1, 2*1(a1)
@@ -1368,14 +1378,14 @@ poly_basemul_acc_cache_init_rv64im_loop:
     addi a1, a1, 2*8
     addi a2, a2, 2*8
     addi a3, a3, 2*4
-    addi a4, a4, 8*2
+    addi a4, a4, 4*2
     addi a6, a6, -1
     bne a6, zero, poly_basemul_acc_cache_init_rv64im_loop
     restore_regs
     addi sp, sp, 8*15
 ret
 
-// void poly_basemul_acc_cache_init_end_rv64im(int16_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint64_t *zetas, int32_t *r_double)
+// void poly_basemul_acc_cache_init_end_rv64im(int16_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, uint32_t *zetas, int32_t *r_double)
 // compute basemul, cache bzeta into b_cache, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: zetas, a5: r_double
 // a6: loop control
@@ -1395,8 +1405,8 @@ poly_basemul_acc_cache_init_end_rv64im_loop:
     lh s5, 2*5(a2)
     lh s7, 2*7(a2)
     # 4 zetas: a7, gp, tp, ra
-    ld  a7, 8*0(a4)
-    ld  tp, 8*1(a4)
+    lw  a7, 4*0(a4)
+    lw  tp, 4*1(a4)
     neg gp, a7
     neg ra, tp
     # a[0,1]
@@ -1404,7 +1414,7 @@ poly_basemul_acc_cache_init_end_rv64im_loop:
     lh  t1, 2*1(a1)
     # available regs: s2, s4, s6, t2-t6
     # t2,t3,t4,t5 <- b[1,3,5,7]zeta
-    li  t6, q32
+    li  t6, q48
     plant_mul_const_x4    \
       t6, a7, gp, tp, ra, \
       s1, s3, s5, s7,     \
@@ -1455,7 +1465,7 @@ poly_basemul_acc_cache_init_end_rv64im_loop:
     # r[3]+=a[2]b[3]+a[3]b[2]
     add s11, s11, a7
     add s11, s11, t6
-    li s0, q32
+    li s0, q48
     plant_red_x4 \
       s0, a6,    \
       s8, s9, s10, s11
@@ -1501,7 +1511,7 @@ poly_basemul_acc_cache_init_end_rv64im_loop:
     # r[7]+=a[6]b[7]+a[7]b[6]
     add s11, s11, t0
     add s11, s11, t1
-    li  s0, q32
+    li  s0, q48
     plant_red_x4 \
       s0, a6,    \
       s8, s9, s10, s11
@@ -1516,7 +1526,7 @@ poly_basemul_acc_cache_init_end_rv64im_loop:
     ld   a7, 8*15(sp)
     addi a2, a2, 2*8
     addi a3, a3, 2*4
-    addi a4, a4, 8*2
+    addi a4, a4, 4*2
     addi a5, a5, 4*8
     addi a7, a7, -1
     sd   a7, 8*15(sp)
@@ -1528,13 +1538,13 @@ ret
 // void poly_basemul_acc_cached_rv64im(int32_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache)
 // compute basemul using cached b_cache and accumulate the 32-bit results into r
 // a0: r, a1: a, a2: b, a3: b_cache
-// a5: q<<32, a6: loop control
+// a5: q<<48, a6: loop control
 .global poly_basemul_acc_cached_rv64im
 .align 2
 poly_basemul_acc_cached_rv64im:
     addi sp, sp, -8*15
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, 32
 poly_basemul_acc_cached_rv64im_loop:
     # b[0,1,3,5,7]
@@ -1655,13 +1665,13 @@ ret
 // void poly_basemul_acc_cache_end_rv64im(int16_t *r, const int16_t *a, const int16_t *b, int16_t *b_cache, int32_t *r_double)
 // compute basemul using cached b_cache, accumulate the 32-bit results into r_double, and reduce r_double to r
 // a0: r, a1: a, a2: b, a3: b_cache, a4: r_double
-// a5: q<<32, a6: loop control
+// a5: q<<48, a6: loop control
 .global poly_basemul_acc_cache_end_rv64im
 .align 2
 poly_basemul_acc_cache_end_rv64im:
     addi sp, sp, -8*16
     save_regs
-    li a5, q32
+    li a5, q48
     li a6, qinv
     li a7, 32
     sd a7, 8*15(sp)
@@ -1790,14 +1800,14 @@ poly_basemul_acc_cached_end_rv64im_loop:
     addi sp, sp, 8*16
 ret
 
-// each coeff is multiplied by plantconst2 using plantard multiplication
+// plantard reduction to a poly
 .global poly_plantard_rdc_rv64im
 .align 2
 poly_plantard_rdc_rv64im:
   addi sp, sp, -8*1
   sd   s0, 0(sp)
   li t6, plantconst
-  li t5, q32
+  li t5, q48
   addi t4, x0, 16
   poly_plantard_rdc_rv64im_loop:
     lh a1,  2*0(a0)
@@ -1851,14 +1861,14 @@ poly_plantard_rdc_rv64im:
   addi sp, sp, 8*1
   ret
 
-// plantard reduction to a poly
+// each coeff is multiplied by plantconst2 using plantard multiplication
 .global poly_toplant_rv64im
 .align 2
 poly_toplant_rv64im:
   addi sp, sp, -8*1
   sd   s0, 0(sp)
   li t6, plantconst2
-  li t5, q32
+  li t5, q48
   addi t4, x0, 16
   poly_toplant_rv64im_loop:
     lh a1,  2*0(a0)
