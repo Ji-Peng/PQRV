@@ -154,8 +154,6 @@
 # q * qinv = 1 mod 2^32, used for Montgomery arithmetic
 .equ q, 8380417
 .equ qinv, 58728449
-# v = ??? (((int64_t)1 << 48) + M / 2) / M is used for barrett reduce
-# .equ V, ???
 # inv256 = 2^64 * (1/256) mod q is used for reverting standard domain
 .equ inv256, 41978
 # inv256qinv <- low(inv256*qinv)

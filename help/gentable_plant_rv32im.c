@@ -218,15 +218,6 @@ void expmod_int32(void *des, void *src, size_t e, void *mod)
     memcpy(des, &tmp_v, sizeof(int32_t));
 }
 
-// int16_t Pow(int16_t root, int32_t n)
-// {
-//     int16_t t = 1;
-//     for (int i = 0; i < n; i++) {
-//         t = t * root % Q;
-//     }
-//     return t;
-// }
-
 void GenTables_7layer(void)
 {
     int32_t t, j;
