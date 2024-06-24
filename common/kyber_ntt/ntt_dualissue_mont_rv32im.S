@@ -232,7 +232,7 @@
     add  \a_3_0, \a_3_0, \t_3_0
 .endm
 
-.macro ct_bfu_x4_load1zeta \
+.macro ct_bfu_x4_load2zeta \
     a_0_0, a_0_1, a_1_0, a_1_1, \
     a_2_0, a_2_1, a_3_0, a_3_1, \
     zeta_0, zetaqinv_0, \
@@ -242,16 +242,18 @@
     q, \
     t_0_0, t_0_1, t_1_0, t_1_1, \
     t_2_0, t_2_1, t_3_0, t_3_1
-    lw   a1, 4*17(sp)
-    lw   \t_3_0, \zetaqinv_3(a1)
-    lw   \t_3_1, \zeta_3(a1)
+    lw   \t_3_1, 4*17(sp)
+    lw   \t_2_0, \zetaqinv_2(\t_3_1)
+    lw   \t_3_0, \zetaqinv_3(\t_3_1)
+    lw   \t_2_1, \zeta_2(\t_3_1)
+    lw   \t_3_1, \zeta_3(\t_3_1)
     mul  \t_0_0, \a_0_1, \zetaqinv_0
     mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
+    mul  \t_2_0, \a_2_1, \t_2_0
     mul  \t_3_0, \a_3_1, \t_3_0
     mulh \t_0_1, \a_0_1, \zeta_0
     mulh \t_1_1, \a_1_1, \zeta_1
-    mulh \t_2_1, \a_2_1, \zeta_2
+    mulh \t_2_1, \a_2_1, \t_2_1
     mulh \t_3_1, \a_3_1, \t_3_1
     mulh \t_0_0, \t_0_0, \q
     mulh \t_1_0, \t_1_0, \q
@@ -342,29 +344,67 @@
     sub  \a_3_1, \t_3_1, \a_3_1
 .endm
 
-.macro gs_bfu_x4_load1zeta \
+# 2l: 2th layer
+.macro gs_bfu_x4_2l_load1zeta \
+    a_0_0, a_0_1, a_1_0, a_1_1, \
+    a_2_0, a_2_1, a_3_0, a_3_1, \
+    zeta_0, zetaqinv_0, \
+    zeta_2, zetaqinv_2, \
+    q, \
+    t_0_0, t_0_1, t_1_0, t_1_1, \
+    t_2_0, t_2_1, t_3_0, t_3_1
+    lw   \t_3_1, 4*17(sp)
+    sub  \t_0_0, \a_0_0, \a_0_1
+    sub  \t_1_0, \a_1_0, \a_1_1
+    sub  \t_2_0, \a_2_0, \a_2_1
+    sub  \t_3_0, \a_3_0, \a_3_1
+    lw   \t_2_1, \zetaqinv_2(\t_3_1)
+    lw   \t_3_1, \zeta_2(\t_3_1)
+    add  \a_0_0, \a_0_0, \a_0_1
+    add  \a_1_0, \a_1_0, \a_1_1
+    add  \a_2_0, \a_2_0, \a_2_1
+    add  \a_3_0, \a_3_0, \a_3_1
+    mul  \a_0_1, \t_0_0, \zetaqinv_0
+    mul  \a_1_1, \t_1_0, \zetaqinv_0
+    mul  \a_2_1, \t_2_0, \t_2_1
+    mul  \a_3_1, \t_3_0, \t_2_1
+    mulh \t_0_1, \t_0_0, \zeta_0
+    mulh \t_1_1, \t_1_0, \zeta_0
+    mulh \t_2_1, \t_2_0, \t_3_1
+    mulh \t_3_1, \t_3_0, \t_3_1
+    mulh \a_0_1, \a_0_1, \q
+    mulh \a_1_1, \a_1_1, \q
+    mulh \a_2_1, \a_2_1, \q
+    mulh \a_3_1, \a_3_1, \q
+    sub  \a_0_1, \t_0_1, \a_0_1
+    sub  \a_1_1, \t_1_1, \a_1_1
+    sub  \a_2_1, \t_2_1, \a_2_1
+    sub  \a_3_1, \t_3_1, \a_3_1
+.endm
+
+# 3l: 3th layer
+.macro gs_bfu_x4_3l_load1zeta \
     a_0_0, a_0_1, a_1_0, a_1_1, \
     a_2_0, a_2_1, a_3_0, a_3_1, \
     zeta_0, zetaqinv_0, \
     q, \
     t_0_0, t_0_1, t_1_0, t_1_1, \
     t_2_0, t_2_1, t_3_0, t_3_1
-    lw   a1, 4*17(sp)
+    lw   \t_2_1, 4*17(sp)
     sub  \t_0_0, \a_0_0, \a_0_1
     sub  \t_1_0, \a_1_0, \a_1_1
     sub  \t_2_0, \a_2_0, \a_2_1
     sub  \t_3_0, \a_3_0, \a_3_1
-    lw   \q, \zetaqinv_0(a1)
-    lw   \t_3_1, \zeta_0(a1)
+    lw   \t_3_1, \zeta_0(\t_2_1)
+    lw   \t_2_1, \zetaqinv_0(\t_2_1)
     add  \a_0_0, \a_0_0, \a_0_1
     add  \a_1_0, \a_1_0, \a_1_1
     add  \a_2_0, \a_2_0, \a_2_1
     add  \a_3_0, \a_3_0, \a_3_1
-    mul  \a_0_1, \t_0_0, \q
-    mul  \a_1_1, \t_1_0, \q
-    mul  \a_2_1, \t_2_0, \q
-    mul  \a_3_1, \t_3_0, \q
-    li   \q, q
+    mul  \a_0_1, \t_0_0, \t_2_1
+    mul  \a_1_1, \t_1_0, \t_2_1
+    mul  \a_2_1, \t_2_0, \t_2_1
+    mul  \a_3_1, \t_3_0, \t_2_1
     mulh \t_0_1, \t_0_0, \t_3_1
     mulh \t_1_1, \t_1_0, \t_3_1
     mulh \t_2_1, \t_2_0, \t_3_1
@@ -387,7 +427,7 @@
 # inv256qinv <- low(inv256*qinv)
 .equ inv256qinv, 2435836064
 
-# void ntt_rv32im(int16_t in[256], const int32_t zetas[256*2]);
+# void ntt_rv32im(int16_t in[256], const int32_t zetas[128*2]);
 # register usage:
 # a0-a1: in/out, zetas; a6: q; a1/a2/a3/a4/a5/a7/gp/ra: tmp
 # 4*15(sp), 4*16(sp) for outer/inner loop control
@@ -403,7 +443,7 @@ ntt_rv32im:
     li a6, q
     # load 1 zeta & zeta*qinv
     lh s0, 0*4(a1);     lw s1, 1*4(a1)
-    sw   a1, 4*17(sp)
+    sw a1, 4*17(sp)
     # loop control, a0+32*2=a[32], 32: loop numbers, 2: wordLen
     addi s2, a0, 32*2
 ntt_rv32im_looper_1:
@@ -419,7 +459,7 @@ ntt_rv32im_looper_1:
     store_coeffs 32, a0
     addi a0, a0, 2
     bne  s2, a0, ntt_rv32im_looper_1
-    # reset a0
+    # reset a0 & update a1
     lw   a1, 4*17(sp)
     addi a0, a0, -32*2
     addi a1, a1, 4*2
@@ -428,7 +468,6 @@ ntt_rv32im_looper_1:
     sw   a1, 4*17(sp)
     sw   a5, 4*15(sp)
 ntt_rv32im_outer_234:
-    lw   a1, 4*17(sp)
     load_5_zetas_zetasqinv
     # inner loop control
     addi a4, a0, 16*2
@@ -451,24 +490,196 @@ ntt_rv32im_outer_234:
             a6, \
             a1, a2, a3, a4, \
             a5, a7, gp, ra
-        # todo
         ct_bfu_x4_load2zeta   \
             t0, t1, t2, t3, \
             t4, t5, t6, tp, \
             s6, s7, s8, s9, \
-            s10,s11, 12*4, 13*4, \
+            10*4, 11*4, 12*4, 13*4, \
             a6, \
             a1, a2, a3, a4, \
             a5, a7, gp, ra
+        store_coeffs 16, a0
+        lw  a4, 4*16(sp)
+        addi a0, a0, 2
+        bne a4, a0, ntt_rv32im_inner_234
+    addi a0, a0, 128*2-16*2
+    lw   a1, 4*17(sp)
+    lw   a5, 4*15(sp)
+    addi a1, a1, 4*7*2
+    sw   a1, 4*17(sp)
+    bne  a5, a1, ntt_rv32im_outer_234
+    # reset a0
+    addi a0, a0, -2*128*2
+    # outer loop control
+    addi a5, a1, 16*4*7*2
+    sw   a5, 4*15(sp)
+ntt_rv32im_outer_567:
+    load_5_zetas_zetasqinv
+    # inner loop control
+    addi a4, a0, 2*2
+    sw   a4, 4*16(sp)
+    ntt_rv32im_inner_567:
+        load_coeffs 2, a0
+        ct_bfu_x4   \
+            t0, t4, t1, t5, \
+            t2, t6, t3, tp, \
+            s0, s1, s0, s1, \
+            s0, s1, s0, s1, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        ct_bfu_x4   \
+            t0, t2, t1, t3, \
+            t4, t6, t5, tp, \
+            s2, s3, s2, s3, \
+            s4, s5, s4, s5, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        ct_bfu_x4_load2zeta   \
+            t0, t1, t2, t3, \
+            t4, t5, t6, tp, \
+            s6, s7, s8, s9, \
+            10*4, 11*4, 12*4, 13*4, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        store_coeffs 2, a0
+        lw   a4, 4*16(sp)
+        addi a0, a0, 2
+        bne  a4, a0, ntt_rv32im_inner_567
+    addi a0, a0, 16*2-2*2
+    lw   a1, 4*17(sp)
+    lw   a5, 4*15(sp)
+    addi a1, a1, 4*7*2
+    sw   a1, 4*17(sp)
+    bne  a5, a1, ntt_rv32im_outer_567
+    restore_regs
+    addi sp, sp, 4*18
+    ret
 
-    bne x, x, ntt_rv32im_inner_234
-    bne x, x, ntt_rv32im_outer_234
-
-ntt_rv32im_looper_567:
-
-    bne x, x, ntt_rv32im_looper_567
-
-
+# void intt_rv32im(int16_t in[256], const int32_t zetas[128*2]);
+# register usage: 
+# a0-a1: in/out, zetas; a6: q; a1/a2/a3/a4/a5/a7/gp/ra: tmp
+# 4*15(sp), 4*16(sp) for outer/inner loop control
+# 4*17(sp) for saving a1
+# t0-t6,tp: 8 coeffs; s0-s9: 5 zetas & zetas*qinv
+# s10,s11: for scalar-vector hybrid programming
+# strategy: 3+3+1 layers merging
+.globl intt_rv32im
+.align 2
+intt_rv32im:
+    addi sp, sp, -4*18
+    save_regs
+    li a6, q
+    # outer loop control
+    addi a5, a1, 16*4*7*2
+    sw   a5, 4*15(sp)
+    sw   a1, 4*17(sp)
+intt_rv32im_outer_123:
+    load_5_zetas_zetasqinv
+    # inner loop control
+    addi a4, a0, 2*2
+    sw   a4, 4*16(sp)
+    intt_rv32im_inner_123:
+        load_coeffs 2, a0
+        gs_bfu_x4   \
+            t0, t1, t2, t3, \
+            t4, t5, t6, tp, \
+            s0, s1, s2, s3, \
+            s4, s5, s6, s7, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_2l_load1zeta \
+            t0, t2, t1, t3, \
+            t4, t6, t5, tp, \
+            s8, s9,         \
+            10*4, 11*4,     \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_3l_load1zeta \
+            t0, t4, t1, t5, \
+            t2, t6, t3, tp, \
+            12*4, 13*4, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        store_coeffs 2, a0
+        lw   a4, 4*16(sp)
+        addi a0, a0, 2
+        bne a4, a0, intt_rv32im_inner_123
+    addi a0, a0, 16*2-2*2
+    lw   a1, 4*17(sp)
+    lw   a5, 4*15(sp)
+    addi a1, a1, 4*7*2
+    sw   a1, 4*17(sp)
+    bne  a5, a1, intt_rv32im_outer_123
+    # reset a0
+    addi a0, a0, -16*16*2
+    # outer loop control
+    addi a5, a1, 2*4*7*2
+    sw   a5, 4*15(sp)
+intt_rv32im_outer_456:
+    load_5_zetas_zetasqinv
+    # inner loop control
+    addi a4, a0, 16*2
+    sw   a4, 4*16(sp)
+    intt_rv32im_inner_456:
+        load_coeffs 16, a0
+        gs_bfu_x4   \
+            t0, t1, t2, t3, \
+            t4, t5, t6, tp, \
+            s0, s1, s2, s3, \
+            s4, s5, s6, s7, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_2l_load1zeta \
+            t0, t2, t1, t3, \
+            t4, t6, t5, tp, \
+            s8, s9,         \
+            10*4, 11*4,     \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_3l_load1zeta \
+            t0, t4, t1, t5, \
+            t2, t6, t3, tp, \
+            12*4, 13*4, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        store_coeffs 16, a0
+        lw   a4, 4*16(sp)
+        addi a0, a0, 2
+        bne  a4, a0, intt_rv32im_inner_456
+    addi a0, a0, 128*2-16*2
+    lw   a1, 4*17(sp)
+    lw   a5, 4*15(sp)
+    addi a1, a1, 4*7*2
+    sw   a1, 4*17(sp)
+    bne  a5, a1, intt_rv32im_outer_456
+    # reset a0
+    addi a0, a0, -2*128*2
+    # load 1 zeta & zeta*qinv
+    lh s0, 0*4(a1);     lw s1, 1*4(a1)
+    # loop control
+    addi s2, a0, 32*2
+intt_rv32im_looper_7:
+    load_coeffs 32, a0
+    gs_bfu_x4 \
+        t0, t4, t1, t5, \
+        t2, t6, t3, tp, \
+        s0, s1, s0, s1, \
+        s0, s1, s0, s1, \
+        a6, \
+        a1, a2, a3, a4, \
+        a5, a7, gp, ra
+    store_coeffs 32, a0
+    addi a0, a0, 2
+    bne  s2, a0, intt_rv32im_looper_7
     restore_regs
     addi sp, sp, 4*18
     ret

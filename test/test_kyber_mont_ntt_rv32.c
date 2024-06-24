@@ -286,22 +286,44 @@ int32_t montgomery_reduce_beta32(int64_t a)
     return t;
 }
 
+void ntt_rv32im(int16_t in[256], const int32_t zetas[128 * 2]);
+void intt_rv32im(int16_t in[256], const int32_t zetas[128 * 2]);
+
 int main()
 {
     int16_t a[KYBER_N], b[KYBER_N], c0[KYBER_N], c1[KYBER_N], i, j;
 
-    // for (i = 0; i < KYBER_N; i++)
-    //     a[i] = 1;
-    // for (i = 0; i < KYBER_N; i++)
-    //     b[i] = 1;
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = 1;
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = 1;
+    ntt_ref(a);
+    ntt_rv32im(b, ntt_zetas_133merging);
+    if (poly_equal(a, b, KYBER_N) != 1) {
+        print_poly(a, KYBER_N);
+        print_poly(b, KYBER_N);
+    }
+    invntt_ref(a);
+    intt_rv32im(b, intt_zetas_133merging);
+    if (poly_equal(a, b, KYBER_N) != 1) {
+        print_poly(a, KYBER_N);
+        print_poly(b, KYBER_N);
+    }
 
-    // ntt_ref(a);
-    // ntt_ref(b);
-    // poly_basemul_ref(c0, a, b);
-    // invntt_ref(c0);
-    // print_poly(c0, KYBER_N);
+    // printf("mont beta16: %d\n", montgomery_reduce_ref(zetas_ref[1]));
+    // printf("mont beta32: %d\n",
+    // montgomery_reduce_beta32(ntt_zetas_133merging[0]));
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        ntt_rv32im(b, ntt_zetas_133merging);
+    }
+    print_results("ntt_rv32im:", t, NTESTS);
 
-    printf("mont beta16: %d\n", montgomery_reduce_ref(zetas_ref[1]));
-    printf("mont beta32: %d\n", montgomery_reduce_beta32(ntt_zetas_133merging[0]));
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        intt_rv32im(b, intt_zetas_133merging);
+    }
+    print_results("intt_rv32im:", t, NTESTS);
+
     return 0;
 }

@@ -253,9 +253,9 @@
     q, \
     t_0_0, t_0_1, t_1_0, t_1_1, \
     t_2_0, t_2_1, t_3_0, t_3_1
-    lw   a1, 4*17(sp)
-    lw   \t_3_0, \zetaqinv_3(a1)
-    lw   \t_3_1, \zeta_3(a1)
+    lw   \t_3_1, 4*17(sp)
+    lw   \t_3_0, \zetaqinv_3(\t_3_1)
+    lw   \t_3_1, \zeta_3(\t_3_1)
     mul  \t_0_0, \a_0_1, \zetaqinv_0
     mul  \t_1_0, \a_1_1, \zetaqinv_1
     mul  \t_2_0, \a_2_1, \zetaqinv_2
@@ -360,22 +360,21 @@
     q, \
     t_0_0, t_0_1, t_1_0, t_1_1, \
     t_2_0, t_2_1, t_3_0, t_3_1
-    lw   a1, 4*17(sp)
+    lw   \t_3_1, 4*17(sp)
     sub  \t_0_0, \a_0_0, \a_0_1
     sub  \t_1_0, \a_1_0, \a_1_1
     sub  \t_2_0, \a_2_0, \a_2_1
     sub  \t_3_0, \a_3_0, \a_3_1
-    lw   \q, \zetaqinv_0(a1)
-    lw   \t_3_1, \zeta_0(a1)
+    lw   \t_2_1, \zetaqinv_0(\t_3_1)
+    lw   \t_3_1, \zeta_0(\t_3_1)
     add  \a_0_0, \a_0_0, \a_0_1
     add  \a_1_0, \a_1_0, \a_1_1
     add  \a_2_0, \a_2_0, \a_2_1
     add  \a_3_0, \a_3_0, \a_3_1
-    mul  \a_0_1, \t_0_0, \q
-    mul  \a_1_1, \t_1_0, \q
-    mul  \a_2_1, \t_2_0, \q
-    mul  \a_3_1, \t_3_0, \q
-    li   \q, q
+    mul  \a_0_1, \t_0_0, \t_2_1
+    mul  \a_1_1, \t_1_0, \t_2_1
+    mul  \a_2_1, \t_2_0, \t_2_1
+    mul  \a_3_1, \t_3_0, \t_2_1
     mulh \t_0_1, \t_0_0, \t_3_1
     mulh \t_1_1, \t_1_0, \t_3_1
     mulh \t_2_1, \t_2_0, \t_3_1
@@ -475,7 +474,7 @@ ntt_8l_rv32im_looper_123:
     addi a0, a0, 4
     bne a4, a0, ntt_8l_rv32im_looper_123
     lw   a1, 4*17(sp)
-    # reset a0
+    # reset a0 & update a1
     addi a0, a0, -32*4
     addi a1, a1, 4*7*2
     # 456 layers merging
@@ -484,7 +483,6 @@ ntt_8l_rv32im_looper_123:
     sw   a1, 4*17(sp)
     sw   a5, 4*15(sp)
 ntt_8l_rv32im_outer_456:
-    lw   a1, 4*17(sp)
     load_6_zetas_zetasqinv
     # inner loop control
     addi a4, a0, 4*4
@@ -536,7 +534,6 @@ ntt_8l_rv32im_outer_456:
     addi a4, a0, 32*8*4
     sw   a4, 4*15(sp)
 ntt_8l_rv32im_looper_78:
-    lw   a1, 4*17(sp)
     load_coeffs 1, a0
     load_6_zetas_zetasqinv
     # level 7 & 8
@@ -587,7 +584,6 @@ intt_8l_rv32im:
     sw   a1, 4*17(sp)
 intt_8l_rv32im_looper_12:
     load_coeffs 1, a0
-    lw   a1, 4*17(sp)
     load_6_zetas_zetasqinv
     gs_bfu_x4 \
         t0, t1, t2, t3, \
@@ -619,7 +615,6 @@ intt_8l_rv32im_looper_12:
     addi a5, a1, 8*4*7*2
     sw   a5, 4*15(sp)
 intt_8l_rv32im_outer_345:
-    lw   a1, 4*17(sp)
     load_6_zetas_zetasqinv
     addi a4, a0, 4*4
     sw   a4, 4*16(sp)
