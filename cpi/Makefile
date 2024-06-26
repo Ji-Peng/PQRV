@@ -86,11 +86,11 @@ out/speed_dualissue_kyber_plantard_l32_ntt_rv64: $(SOURCES_COMMON) $(HEADERS_COM
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -I$(KYBERNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_singleissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_rv32im.S speed_ntt.c
+out/speed_singleissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_singleissue_mont_rv32im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_dualissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_dualissue_rv32im.S speed_ntt.c
+out/speed_dualissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_dualissue_mont_rv32im.S speed_ntt.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 

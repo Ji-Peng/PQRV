@@ -8,6 +8,8 @@ CFLAGS_RV32IMBV = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv32imacv_zbb -mabi=ilp32 -DRV32=1 -I$(COMMONDIR) -I$(COMMONDIR)/kyber_ntt -I.
 CFLAGS_RV32IM 	= -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv32imac -mabi=ilp32 -DRV32=1 -I$(COMMONDIR) -I$(COMMONDIR)/dilithium_ntt -I.
+CFLAGS_RV64IM 	= -O3 -fomit-frame-pointer -static -flax-vector-conversions \
+		 -march=rv64imac -mabi=lp64 -DRV64=1 -I$(COMMONDIR) -I$(COMMONDIR)/dilithium_ntt -I.
 RM = /bin/rm
 
 SOURCES = add.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
@@ -18,20 +20,38 @@ TARGET_IP = 192.168.123.99
 .PHONY: all results clean
 
 all: \
-	out/test_kyber_mont_ntt_rv32
+	out/test_dilithium_singleissue_plant_ntt_rv64 \
+	out/test_dilithium_dualissue_plant_ntt_rv64
 
+# out/test_kyber_hybrid_ntt_rv32v
+# out/test_kyber_mont_ntt_rv32
 # out/test_add64 out/test_dilithium_ntt
 # out/test_add  out/test_mul out/test_ntt out/test_ntt_rv32 out/test_hybrido ut/test_plantard out/test_plantard_rv64 out/test_ntt_rv32im out/test_ntt_rv64im
 
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
 
-out/test_kyber_mont_ntt_rv32: test_kyber_mont_ntt_rv32.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_dilithium_singleissue_plant_ntt_rv64: test_dilithium_plant_ntt_rv64.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(COMMONDIR)/dilithium_ntt/ntt_8l_singleissue_plant_rv64im.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_dilithium_dualissue_plant_ntt_rv64: test_dilithium_plant_ntt_rv64.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_kyber_hybrid_ntt_rv32v: test_kyber_hybrid_ntt_rv32v.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(COMMONDIR)/kyber_ntt/ntt_hybrid_rvv.S $(COMMONDIR)/kyber_ntt/ntt_hybridx2_rv32imv.S $(COMMONDIR)/kyber_ntt/consts.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
+
+out/test_kyber_mont_ntt_rv32: test_kyber_mont_ntt_rv32.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(COMMONDIR)/kyber_ntt/ntt_dualissue_mont_rv32im.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_dilithium_ntt: $(COMMONDIR)/dilithium_ntt/ntt_6l_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_rv32im.S test_dilithium_ntt.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
+out/test_dilithium_ntt: $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S test_dilithium_ntt.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/

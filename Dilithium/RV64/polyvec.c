@@ -813,16 +813,6 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
 }
 #endif
 
-void polyvec_matrix_pointwise(polyveck *t,
-                                         const polyvecl mat[K],
-                                         const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
-}
-
 /**************************************************************/
 /************ Vectors of polynomials of length L **************/
 /**************************************************************/
@@ -884,39 +874,6 @@ void polyvecl_invntt(polyvecl *v)
 
     for (i = 0; i < L; ++i)
         poly_invntt(&v->vec[i]);
-}
-
-void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
-                                        const polyvecl *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < L; ++i)
-        poly_pointwise(&r->vec[i], a, &v->vec[i]);
-}
-
-/*************************************************
- * Name:        polyvecl_pointwise_acc
- *
- * Description: Pointwise multiply vectors of polynomials of length L,
- *multiply resulting vector by 2^{-32} and add (accumulate) polynomials in
- *it. Input/output vectors are in NTT domain representation.
- *
- * Arguments:   - poly *w: output polynomial
- *              - const polyvecl *u: pointer to first input vector
- *              - const polyvecl *v: pointer to second input vector
- **************************************************/
-void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
-                                       const polyvecl *v)
-{
-    unsigned int i;
-    poly t;
-
-    poly_pointwise(w, &u->vec[0], &v->vec[0]);
-    for (i = 1; i < L; ++i) {
-        poly_pointwise(&t, &u->vec[i], &v->vec[i]);
-        poly_add(w, w, &t);
-    }
 }
 
 /*************************************************
@@ -1073,15 +1030,6 @@ void polyveck_invntt(polyveck *v)
         poly_invntt(&v->vec[i]);
 }
 
-void polyveck_pointwise_poly(polyveck *r, const poly *a,
-                                        const polyveck *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        poly_pointwise(&r->vec[i], a, &v->vec[i]);
-}
-
 /*************************************************
  * Name:        polyveck_chknorm
  *
@@ -1196,4 +1144,45 @@ void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES],
 
     for (i = 0; i < K; ++i)
         polyw1_pack(&r[i * POLYW1_PACKEDBYTES], &w1->vec[i]);
+}
+
+
+void polyvec_matrix_pointwise(polyveck *t,
+                                         const polyvecl mat[K],
+                                         const polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
+}
+
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
+                                        const polyvecl *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < L; ++i)
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
+}
+
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
+                                       const polyvecl *v)
+{
+    unsigned int i;
+    poly_double w_double;
+
+    poly_basemul_init(&w_double, &u->vec[0], &v->vec[0]);
+    for (i = 1; i < L - 1; ++i)
+        poly_basemul_acc(&w_double, &u->vec[i], &v->vec[i]);
+    poly_basemul_acc_end(w, &u->vec[i], &v->vec[i], &w_double);
+}
+
+void polyveck_pointwise_poly(polyveck *r, const poly *a,
+                                        const polyveck *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }

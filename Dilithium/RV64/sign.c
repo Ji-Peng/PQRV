@@ -41,14 +41,12 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
     polyvec_matrix_expand(mat, rho);
 
     /* Sample short vectors s1 and s2 */
-    polyvecl_uniform_eta(&s1, rhoprime, 0);
-    polyveck_uniform_eta(&s2, rhoprime, L);
+    polyveclk_uniform_eta(&s1, &s2, rhoprime, 0, L);
 
     /* Matrix-vector multiplication */
     s1hat = s1;
     polyvecl_ntt(&s1hat);
     polyvec_matrix_pointwise(&t1, mat, &s1hat);
-    polyveck_reduce(&t1);
     polyveck_invntt(&t1);
 
     /* Add error vector s2 */
@@ -126,7 +124,6 @@ rej:
     z = y;
     polyvecl_ntt(&z);
     polyvec_matrix_pointwise(&w1, mat, &z);
-    polyveck_reduce(&w1);
     polyveck_invntt(&w1);
 
     /* Decompose w and call the random oracle */

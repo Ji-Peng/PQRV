@@ -29,10 +29,10 @@ HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202_rv64.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
 
-SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S
-SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S
-SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S
-SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S
+SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
+SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
+SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
+SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h

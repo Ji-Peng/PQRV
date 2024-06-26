@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "ntt_rv64im.h"
 #include "params.h"
 
 void ntt(int32_t a[N]);

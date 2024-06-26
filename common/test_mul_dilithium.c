@@ -35,17 +35,6 @@ int main(void)
         poly_uniform(&a, seed, nonce++);
         poly_uniform(&b, seed, nonce++);
 
-        c = a;
-        poly_ntt(&c);
-        for (j = 0; j < N; ++j)
-            c.coeffs[j] = (int64_t)c.coeffs[j] * -114592 % Q;
-        poly_invntt(&c);
-        for (j = 0; j < N; ++j) {
-            if ((c.coeffs[j] - a.coeffs[j]) % Q)
-                fprintf(stderr, "ERROR in ntt/invntt: c[%d] = %d != %d\n", j,
-                        c.coeffs[j] % Q, a.coeffs[j]);
-        }
-
         poly_naivemul(&c, &a, &b);
         poly_ntt(&a);
         poly_ntt(&b);

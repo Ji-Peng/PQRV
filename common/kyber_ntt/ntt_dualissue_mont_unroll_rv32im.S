@@ -4002,6 +4002,7 @@ ntt_rv32im_outer_567:
 # t0-t6,tp: 8 coeffs; s0-s9: 5 zetas & zetas*qinv
 # s10,s11: for scalar-vector hybrid programming
 # strategy: 3+3+1 layers merging
+# todo: note that this is not the newest version of ntt_dualissue_mont_rv32im.S
 .globl intt_rv32im
 .align 2
 intt_rv32im:

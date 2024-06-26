@@ -73,47 +73,47 @@ const int32_t ntt_zetas_133merging[128 * 2] = {
 const int32_t intt_zetas_133merging[128 * 2] = {
     -1487, -1515946703, 1035,  1141798155,  442,   -508325958,
     1452,  -1572714068, 500,   1174052340,  1040,  1583035408,
-    1073,  1059227441,  -715,  1327582261,  1176,  -1877193576,
+    1537,  1633351937,  -715,  1327582261,  1176,  -1877193576,
     1361,  1563682897,  434,   -2073299022, 26,    -282546662,
-    1652,  -1103093132, -964,  -1748176836, -318,  1143088322,
+    1652,  -1103093132, -931,  2022982493,  -318,  1143088322,
     537,   -714752743,  596,   -1521107372, 1506,  1474661346,
-    -1217, 836028479,   265,   1910737929,  -357,  -580575333,
+    -1217, 836028479,   265,   1910737929,  1558,  909568022,
     15,    1323711759,  697,   519937465,   600,   1408862808,
     1248,  -677337888,  1255,  -918599193,  613,   -879894171,
-    1388,  -1207596692, -916,  -948273044,  -840,  -1113414472,
+    -621,  -685078893,  -916,  -948273044,  -840,  -1113414472,
     -21,   723783915,   -310,  -1586905910, -802,  -1195985186,
-    -1535, 1979116801,  -1087, -576704831,  1111,  976656727,
+    -1535, 1979116801,  1592,  -2102972872, 1111,  976656727,
     -86,   -717333078,  1163,  411563403,   -111,  1371447953,
-    1210,  -594767174,  -1478, 1855260730,  -1462, 690239562,
+    1210,  -594767174,  -1478, 1855260730,  515,   -1797203197,
     1416,  2122325384,  -1449, -1598517417, 47,    -1006330577,
     -1367, 483812777,   980,   583155668,   41,    1041165097,
-    -203,  -1593356747, 1001,  -140628247,  351,   -1666896289,
+    429,   1780431021,  1001,  -140628247,  351,   -1666896289,
     92,    -1330162596, 724,   2043625172,  -748,  1851390228,
-    1640,  -1303069080, 1442,  1839778722,  1596,  826997308,
+    1640,  -1303069080, 626,   1126316146,  1596,  826997308,
     257,   345764865,   589,   -1279846067, 293,   945692709,
-    -1033, -1824296713, -1616, 1703020976,  769,   1719793153,
+    -1033, -1824296713, -1616, 1703020976,  -428,  25803348,
     1495,  -1214047529, -1551, -1150829327, -122,  -1317260922,
     1211,  1211467195,  -1372, 42575524,    -1389, -598637677,
-    -1330, -1404992306, -243,  -828287475,  693,   1884934581,
+    974,   -1664315954, -243,  -828287475,  693,   1884934581,
     267,   1228239371,  1088,  -1912028096, 457,   815385801,
-    -1180, -1052776604, 799,   72249375,    -334,  -1986857806,
+    -1180, -1052776604, -475,  1032133925,  -334,  -1986857806,
     1569,  -696690399,  -44,   2130066388,  -491,  -2097812203,
-    1635,  -1744306333, -594,  838608814,   64,    -365117376,
+    1635,  -1744306333, -594,  838608814,   -988,  2146838564,
     1310,  -359956706,  -1270, -405112566,  -864,  -1513366368,
     -865,  975366559,   -700,  -1643673276, -1456, -1357256112,
-    372,   1904287092,  1006,  300609006,   -1636, -61928036,
+    83,    -406402733,  1006,  300609006,   -1636, -61928036,
     292,   -860541660,  1140,  1817845876,  -1368, -1322421592,
-    -1647, 1544330385,  -691,  1727534157,  -237,  1419184147,
+    -1647, 1544330385,  -360,  -1704311144, -237,  1419184147,
     306,   -1343064270, 507,   932791035,   -1076, 2112004044,
-    1038,  -2029433330, -371,  -98052723,   1564,  -1137927652,
+    1038,  -2029433330, -371,  -98052723,   -9,    923759863,
     1236,  -877313836,  174,   752167598,   -495,  -732815087,
     302,   21932846,    1572,  427045412,   -1524, 372858380,
-    -1008, 381889552,   1252,  -2042335004, -858,  734105254,
+    -1084, 547030980,   1252,  -2042335004, -858,  734105254,
     145,   -89021551,   -1030, -700560902,  1161,  1094061961,
     18,    -1847519726, 856,   -51606696,   255,   1028263423,
     -1467, 249002309,   213,   -1819136043, 1242,  1370157786,
     -166,  812805466,   720,   -886345008,  1381,  -966335387,
-    731,   1802363867,
+    950,   -2064267850,
 };
 
 const int32_t basemul_zetas_133merging[128 * 2] = {
@@ -159,7 +159,7 @@ const int32_t basemul_zetas_133merging[128 * 2] = {
     1176,  -1877193576, 715,   -1327582261, -715,  1327582261,
     -1452, 1572714068,  1452,  -1572714068, -442,  508325958,
     442,   -508325958,  -1035, -1141798155, 1035,  1141798155,
-    1487,  1515946703,
+    1487,  1515946703,  -1487, -1515946703,
 };
 
 int16_t montgomery_reduce_ref(int32_t a)
@@ -169,6 +169,16 @@ int16_t montgomery_reduce_ref(int32_t a)
 
     t = (int16_t)a * qinv;
     t = (a - (int32_t)t * KYBER_Q) >> 16;
+    return t;
+}
+
+int32_t montgomery_reduce_beta32(int64_t a)
+{
+    int32_t t;
+    int32_t qinv = 1806234369;  // q^-1 mod 2^32
+
+    t = (int32_t)a * qinv;
+    t = (a - (int64_t)t * KYBER_Q) >> 32;
     return t;
 }
 
@@ -185,6 +195,11 @@ int16_t barrett_reduce_ref(int16_t a)
 static int16_t fqmul(int16_t a, int16_t b)
 {
     return montgomery_reduce_ref((int32_t)a * b);
+}
+
+static int16_t fqmul_beta32(int32_t a, int32_t b)
+{
+    return montgomery_reduce_beta32((int64_t)a * b);
 }
 
 void ntt_ref(int16_t r[256])
@@ -238,6 +253,16 @@ void basemul_ref(int16_t r[2], const int16_t a[2], const int16_t b[2],
     r[1] += fqmul(a[1], b[0]);
 }
 
+void basemul_beta32(int16_t r[2], const int16_t a[2], const int16_t b[2],
+                    int32_t zeta)
+{
+    r[0] = fqmul_beta32(a[1], b[1]);
+    r[0] = fqmul_beta32(r[0], zeta);
+    r[0] += fqmul_beta32(a[0], b[0]);
+    r[1] = fqmul_beta32(a[0], b[1]);
+    r[1] += fqmul_beta32(a[1], b[0]);
+}
+
 void poly_basemul_ref(int16_t *r, int16_t *a, int16_t *b)
 {
     unsigned int i;
@@ -246,6 +271,33 @@ void poly_basemul_ref(int16_t *r, int16_t *a, int16_t *b)
         basemul_ref(&r[4 * i + 2], &a[4 * i + 2], &b[4 * i + 2],
                     -zetas_ref[64 + i]);
     }
+}
+
+void poly_tomont_ref(int16_t *r)
+{
+    unsigned int i;
+    const int16_t f = (1ULL << 32) % KYBER_Q;
+    for (i = 0; i < KYBER_N; i++)
+        r[i] = montgomery_reduce_ref((int32_t)r[i] * f);
+}
+
+void poly_basemul_beta32(int16_t *r, int16_t *a, int16_t *b)
+{
+    unsigned int i;
+    for (i = 0; i < KYBER_N / 4; i++) {
+        basemul_beta32(&r[4 * i], &a[4 * i], &b[4 * i],
+                       basemul_zetas_133merging[4 * i]);
+        basemul_beta32(&r[4 * i + 2], &a[4 * i + 2], &b[4 * i + 2],
+                       basemul_zetas_133merging[4 * i + 2]);
+    }
+}
+
+void poly_tomont_beta32(int16_t *r)
+{
+    unsigned int i;
+    const int16_t f = 2988;
+    for (i = 0; i < KYBER_N; i++)
+        r[i] = montgomery_reduce_beta32((int32_t)r[i] * f);
 }
 
 void print_poly(int16_t *a, size_t n)
@@ -276,16 +328,6 @@ int poly_equal(int16_t *a, int16_t *b, size_t n)
 #define NTESTS 1000
 uint64_t t[NTESTS];
 
-int32_t montgomery_reduce_beta32(int64_t a)
-{
-    int32_t t;
-    int32_t qinv = 1806234369;  // q^-1 mod 2^32
-
-    t = (int32_t)a * qinv;
-    t = (a - (int64_t)t * KYBER_Q) >> 32;
-    return t;
-}
-
 void ntt_rv32im(int16_t in[256], const int32_t zetas[128 * 2]);
 void intt_rv32im(int16_t in[256], const int32_t zetas[128 * 2]);
 
@@ -303,6 +345,19 @@ int main()
         print_poly(a, KYBER_N);
         print_poly(b, KYBER_N);
     }
+
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = 1;
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = 1;
+    ntt_ref(a);
+    ntt_rv32im(b, ntt_zetas_133merging);
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = montgomery_reduce_ref(a[i]);
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = montgomery_reduce_beta32(b[i]);
+    // poly_basemul_ref(c0, a, b);
+    // poly_basemul_beta32(c1, a, b);
     invntt_ref(a);
     intt_rv32im(b, intt_zetas_133merging);
     if (poly_equal(a, b, KYBER_N) != 1) {
@@ -310,9 +365,36 @@ int main()
         print_poly(b, KYBER_N);
     }
 
-    // printf("mont beta16: %d\n", montgomery_reduce_ref(zetas_ref[1]));
-    // printf("mont beta32: %d\n",
-    // montgomery_reduce_beta32(ntt_zetas_133merging[0]));
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = KYBER_Q - 1;
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = KYBER_Q - 1;
+    invntt_ref(a);
+    intt_rv32im(b, intt_zetas_133merging);
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = montgomery_reduce_ref(a[i]);
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = montgomery_reduce_beta32(b[i]);
+    if (poly_equal(a, b, KYBER_N) != 1) {
+        print_poly(a, KYBER_N);
+        print_poly(b, KYBER_N);
+    }
+
+    for (i = 0; i < KYBER_N; i++)
+        a[i] = 1;
+    for (i = 0; i < KYBER_N; i++)
+        b[i] = 1;
+    ntt_ref(a);
+    ntt_rv32im(b, ntt_zetas_133merging);
+    poly_basemul_ref(c0, a, b);
+    poly_basemul_beta32(c1, a, b);
+    invntt_ref(c0);
+    intt_rv32im(c1, intt_zetas_133merging);
+    if (poly_equal(c0, c1, KYBER_N) != 1) {
+        print_poly(c0, KYBER_N);
+        print_poly(c1, KYBER_N);
+    }
+
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
         ntt_rv32im(b, ntt_zetas_133merging);

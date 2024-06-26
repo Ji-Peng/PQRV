@@ -151,7 +151,10 @@ void gen_table_133merging(void)
     memset(zetasqinv, 0, 128 * sizeof(int32_t));
     for (j = 0; j < 128 - 1; j++) {
         expmod_int32(&t0, &root, 256 - treeINTT133_7layer[j], &q);
-        if (j == 126) {
+        if (j == 6 || j == 13 || j == 20 || j == 27 || j == 34 ||
+            j == 41 || j == 48 || j == 55 || j == 62 || j == 69 ||
+            j == 76 || j == 83 || j == 90 || j == 97 || j == 104 ||
+            j == 111) {
             mulmod_int32(&t0, &t0, &mont, &q);
             mulmod_int32(&t0, &t0, &mont, &q);
             mulmod_int32(&zetas[j], &t0, &invN, &q);
@@ -172,14 +175,14 @@ void gen_table_133merging(void)
 
     memset(zetas, 0, 128 * sizeof(int32_t));
     memset(zetasqinv, 0, 128 * sizeof(int32_t));
-    for (j = 0; j < 128 - 1; j++) {
+    for (j = 0; j < 128; j++) {
         expmod_int32(&t0, &root, treeMul133_7layer[j], &q);
         mulmod_int32(&zetas[j], &t0, &mont, &q);
         t0 = zetas[j];
         mul_int32(&zetasqinv[j], &t0, &qinv);
     }
     printf("basemul:\n");
-    for (j = 0; j < 128 - 1; j++) {
+    for (j = 0; j < 128; j++) {
         printf("%d, ", zetas[j]);
         printf("%d, ", zetasqinv[j]);
     }

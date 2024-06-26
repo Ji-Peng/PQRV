@@ -423,9 +423,15 @@
 .equ q, 3329
 .equ qinv, 1806234369
 # inv128 = 2^64 * (1/128) mod q is used for reverting standard domain
-.equ inv256, 2208
-# inv256qinv <- low(inv256*qinv)
-.equ inv256qinv, 2435836064
+.equ inv128, 2208
+# inv128qinv <- low(inv128*qinv)
+.equ inv128qinv, 2435836064
+# for barrett rdc
+.equ v, 20159
+# 2^32 mod q
+.equ mont, 1353
+# low(mont*qinv)
+.equ montqinv, 4293677129
 
 # void ntt_rv32im(int16_t in[256], const int32_t zetas[128*2]);
 # register usage:
@@ -606,6 +612,12 @@ intt_rv32im_outer_123:
             a6, \
             a1, a2, a3, a4, \
             a5, a7, gp, ra
+        li  a4, inv128
+        li  a5, inv128qinv
+        montmul_inplace_x4  \
+            t0, t1, t2, t3, \
+            a4, a5, a6,     \
+            a7, gp, ra, a3
         store_coeffs 2, a0
         lw   a4, 4*16(sp)
         addi a0, a0, 2
@@ -618,15 +630,54 @@ intt_rv32im_outer_123:
     bne  a5, a1, intt_rv32im_outer_123
     # reset a0
     addi a0, a0, -16*16*2
-    # outer loop control
-    addi a5, a1, 2*4*7*2
-    sw   a5, 4*15(sp)
-intt_rv32im_outer_456:
+    # 456 merging - first outer loop
     load_5_zetas_zetasqinv
     # inner loop control
     addi a4, a0, 16*2
     sw   a4, 4*16(sp)
-    intt_rv32im_inner_456:
+    intt_rv32im_inner_456_0:
+        load_coeffs 16, a0
+        gs_bfu_x4   \
+            t0, t1, t2, t3, \
+            t4, t5, t6, tp, \
+            s0, s1, s2, s3, \
+            s4, s5, s6, s7, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_2l_load1zeta \
+            t0, t2, t1, t3, \
+            t4, t6, t5, tp, \
+            s8, s9,         \
+            10*4, 11*4,     \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        gs_bfu_x4_3l_load1zeta \
+            t0, t4, t1, t5, \
+            t2, t6, t3, tp, \
+            12*4, 13*4, \
+            a6, \
+            a1, a2, a3, a4, \
+            a5, a7, gp, ra
+        # we use montmul for reduction because montmul is more pipeline-friendly than barrett rdc
+        li  a4, mont
+        li  a5, montqinv
+        montmul_inplace t0, a4, a5, a6, gp
+        store_coeffs 16, a0
+        lw   a4, 4*16(sp)
+        addi a0, a0, 2
+        bne  a4, a0, intt_rv32im_inner_456_0
+    addi a0, a0, 128*2-16*2
+    lw   a1, 4*17(sp)
+    addi a1, a1, 4*7*2
+    sw   a1, 4*17(sp)
+    # 456 merging - second outer loop
+    load_5_zetas_zetasqinv
+    # inner loop control
+    addi a4, a0, 16*2
+    sw   a4, 4*16(sp)
+    intt_rv32im_inner_456_1:
         load_coeffs 16, a0
         gs_bfu_x4   \
             t0, t1, t2, t3, \
@@ -654,13 +705,11 @@ intt_rv32im_outer_456:
         store_coeffs 16, a0
         lw   a4, 4*16(sp)
         addi a0, a0, 2
-        bne  a4, a0, intt_rv32im_inner_456
+        bne  a4, a0, intt_rv32im_inner_456_1
     addi a0, a0, 128*2-16*2
     lw   a1, 4*17(sp)
-    lw   a5, 4*15(sp)
     addi a1, a1, 4*7*2
     sw   a1, 4*17(sp)
-    bne  a5, a1, intt_rv32im_outer_456
     # reset a0
     addi a0, a0, -2*128*2
     # load 1 zeta & zeta*qinv

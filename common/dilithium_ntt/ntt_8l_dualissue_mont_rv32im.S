@@ -253,16 +253,16 @@
     q, \
     t_0_0, t_0_1, t_1_0, t_1_1, \
     t_2_0, t_2_1, t_3_0, t_3_1
-    lw   \t_3_1, 4*17(sp)
-    lw   \t_3_0, \zetaqinv_3(\t_3_1)
-    lw   \t_3_1, \zeta_3(\t_3_1)
+    lw   \t_2_0, 4*17(sp)
     mul  \t_0_0, \a_0_1, \zetaqinv_0
     mul  \t_1_0, \a_1_1, \zetaqinv_1
+    lw   \t_3_1, \zeta_3(\t_2_0)
+    lw   \t_3_0, \zetaqinv_3(\t_2_0)
     mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \t_3_0
     mulh \t_0_1, \a_0_1, \zeta_0
     mulh \t_1_1, \a_1_1, \zeta_1
     mulh \t_2_1, \a_2_1, \zeta_2
+    mul  \t_3_0, \a_3_1, \t_3_0
     mulh \t_3_1, \a_3_1, \t_3_1
     mulh \t_0_0, \t_0_0, \q
     mulh \t_1_0, \t_1_0, \q
