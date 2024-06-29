@@ -5,7 +5,19 @@
 #include "params.h"
 #include "reduce.h"
 
-#if defined(RV32)
+#if defined(VECTOR128)
+
+void ntt(int32_t a[N])
+{
+    ntt_8l_rvv(a, qdata);
+}
+
+void intt(int32_t a[N])
+{
+    intt_8l_rvv(a, qdata);
+}
+
+#elif defined(RV32)
 // RV32IM assembly optimized implementation with Montgomery arithmetic
 
 // 6-layer NTT; 3+3 layers merging with CT butterfly

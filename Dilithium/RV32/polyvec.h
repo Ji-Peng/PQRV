@@ -54,7 +54,8 @@ void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v);
 void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
                               const polyvecl *v);
 
-#if defined(RV32)
+#if !defined(VECTOR128) && defined(RV32)
+
 typedef struct {
     poly_cache vec[L];
 } polyvecl_cache;
@@ -69,8 +70,6 @@ void polyvecl_pointwise_poly_6l_cache_init(polyvecl *r, const poly *a,
 void polyveck_pointwise_poly_6l_cached(polyveck *r, const poly *a,
                                        poly_cache *a_cache,
                                        const polyveck *v);
-
-#else
 
 #endif
 

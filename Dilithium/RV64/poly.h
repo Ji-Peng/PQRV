@@ -24,8 +24,10 @@ unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1);
 void poly_use_hint(poly *b, const poly *a, const poly *h);
 int poly_chknorm(const poly *a, int32_t B);
 void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce);
-void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce);
-void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES], uint16_t nonce);
+void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES],
+                      uint16_t nonce);
+void poly_uniform_gamma1(poly *a, const uint8_t seed[CRHBYTES],
+                         uint16_t nonce);
 void poly_challenge(poly *c, const uint8_t seed[SEEDBYTES]);
 void polyeta_pack(uint8_t *r, const poly *a);
 void polyeta_unpack(poly *r, const uint8_t *a);
@@ -39,6 +41,12 @@ void polyw1_pack(uint8_t *r, const poly *a);
 void poly_ntt(poly *a);
 void poly_invntt(poly *a);
 void poly_pointwise(poly *c, const poly *a, const poly *b);
+
+#if defined(VECTOR128)
+
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
+
+#elif defined(RV64)
 
 typedef struct {
     int32_t coeffs[(N >> 2) * 3];
@@ -62,5 +70,7 @@ void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
                                 poly_cache *b_cache);
 void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
                             poly_cache *b_cache);
+
+#endif
 
 #endif

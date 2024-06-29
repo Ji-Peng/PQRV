@@ -918,14 +918,29 @@ void poly_invntt(poly *a)
     DBENCH_STOP(*tmul);
 }
 
-/*************************************************
- * Name:        poly_reduce
- *
- * Description: Inplace reduction of all coefficients of polynomial to
- *              representative in [-6283009,6283007].
- *
- * Arguments:   - poly *a: pointer to input/output polynomial
- **************************************************/
+#if defined(VECTOR128)
+
+void poly_reduce(poly *a)
+{
+    DBENCH_START();
+    poly_reduce_rvv(a->coeffs);
+    DBENCH_STOP(*tred);
+}
+
+void poly_pointwise(poly *c, const poly *a, const poly *b)
+{
+    DBENCH_START();
+    poly_basemul_8l_rvv(c->coeffs, a->coeffs, b->coeffs);
+    DBENCH_STOP(*tmul);
+}
+
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b)
+{
+    poly_basemul_acc_8l_rvv(c->coeffs, a->coeffs, b->coeffs);
+}
+
+#elif defined(RV64)
+
 void poly_reduce(poly *a)
 {
     DBENCH_START();
@@ -956,3 +971,5 @@ void poly_pointwise(poly *c, const poly *a, const poly *b)
     poly_basemul_8l_rv64im(c->coeffs, a->coeffs, b->coeffs);
     DBENCH_STOP(*tmul);
 }
+
+#endif

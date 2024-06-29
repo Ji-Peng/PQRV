@@ -31,8 +31,8 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDI
 
 SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
 SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
-SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
-SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
+SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
+SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
@@ -83,10 +83,10 @@ results:
 	scp root@$(TARGET_IP):/sharefs/results_rv32imv.txt .
 	scp root@$(TARGET_IP):/sharefs/results_rv32imbv.txt .
 
-# ./test_vectors512_rv32im > vectors_kyber512_rv32im.txt; ./test_vectors768_rv32im > vectors_kyber768_rv32im.txt; ./test_vectors1024_rv32im > vectors_kyber1024_rv32im.txt
-# ./test_vectors512_rv32imb > vectors_kyber512_rv32imb.txt; ./test_vectors768_rv32imb > vectors_kyber768_rv32imb.txt; ./test_vectors1024_rv32imb > vectors_kyber1024_rv32imb.txt
-# ./test_vectors512_rv32imv > vectors_kyber512_rv32imv.txt; ./test_vectors768_rv32imv > vectors_kyber768_rv32imv.txt; ./test_vectors1024_rv32imv > vectors_kyber1024_rv32imv.txt
-# ./test_vectors512_rv32imbv > vectors_kyber512_rv32imbv.txt; ./test_vectors768_rv32imbv > vectors_kyber768_rv32imbv.txt; ./test_vectors1024_rv32imbv > vectors_kyber1024_rv32imbv.txt
+# ./test_vectors2_rv32im > vectors_dilithium2_rv32im.txt; ./test_vectors3_rv32im > vectors_dilithium3_rv32im.txt; ./test_vectors5_rv32im > vectors_dilithium5_rv32im.txt
+# ./test_vectors2_rv32imb > vectors_dilithium2_rv32imb.txt; ./test_vectors3_rv32imb > vectors_dilithium3_rv32imb.txt; ./test_vectors5_rv32imb > vectors_dilithium5_rv32imb.txt
+# ./test_vectors2_rv32imv > vectors_dilithium2_rv32imv.txt; ./test_vectors3_rv32imv > vectors_dilithium3_rv32imv.txt; ./test_vectors5_rv32imv > vectors_dilithium5_rv32imv.txt
+# ./test_vectors2_rv32imbv > vectors_dilithium2_rv32imbv.txt; ./test_vectors3_rv32imbv > vectors_dilithium3_rv32imbv.txt; ./test_vectors5_rv32imbv > vectors_dilithium5_rv32imbv.txt
 scp_vectors:
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv32im.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv32im.txt .

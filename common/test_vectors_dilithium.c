@@ -10,6 +10,9 @@
 #include "polyvec.h"
 #include "randombytes.h"
 #include "sign.h"
+#if defined(VECTOR128)
+#    include "ntt_rvv.h"
+#endif
 
 #define MLEN 32
 #define NVECTORS 200
@@ -79,6 +82,11 @@ int main(void)
         printf("\n");
 
         polyvec_matrix_expand(mat, seed);
+#if defined(VECTOR128)
+        for (k = 0; k < K; k++)
+            for (j = 0; j < L; j++)
+                ntt2normal_order_8l_rvv(mat[k].vec[j].coeffs, qdata);
+#endif
         printf("A = ([");
         for (j = 0; j < K; ++j) {
             for (k = 0; k < L; ++k) {
@@ -95,6 +103,11 @@ int main(void)
                 }
             }
         }
+#if defined(VECTOR128)
+        for (k = 0; k < K; k++)
+            for (j = 0; j < L; j++)
+                normal2ntt_order_8l_rvv(mat[k].vec[j].coeffs, qdata);
+#endif
 
         polyvecl_uniform_eta(&s, seed, 0);
 
@@ -209,7 +222,8 @@ int main(void)
         polyveck_power2round(&t1, &t0, &w);
 
         for (j = 0; j < N; ++j) {
-            tmp.coeffs[j] = (t1.vec[0].coeffs[j] << D) + t0.vec[0].coeffs[j];
+            tmp.coeffs[j] =
+                (t1.vec[0].coeffs[j] << D) + t0.vec[0].coeffs[j];
             if (tmp.coeffs[j] != w.vec[0].coeffs[j])
                 fprintf(stderr, "ERROR in poly_power2round!\n");
         }

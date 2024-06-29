@@ -42,7 +42,11 @@ void poly_ntt(poly *a);
 void poly_invntt(poly *a);
 void poly_pointwise(poly *c, const poly *a, const poly *b);
 
-#if defined(RV32)
+#if defined(VECTOR128)
+
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
+
+#elif defined(RV32)
 typedef struct {
     int32_t coeffs[(N >> 2) * 3];
 } poly_cache;
@@ -64,8 +68,6 @@ void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
                                 poly_cache *b_cache);
 void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
                             poly_cache *b_cache);
-
-#else
 
 #endif
 

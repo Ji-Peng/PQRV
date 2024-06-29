@@ -31,8 +31,8 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDI
 
 SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
 SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
-SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
-SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_plant_rv64im.S
+SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
+SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
@@ -83,10 +83,10 @@ results:
 	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
 	scp root@$(TARGET_IP):/sharefs/results_rv64imbv.txt .
 
-# ./test_vectors512_rv64im > vectors_kyber512_rv64im.txt; ./test_vectors768_rv64im > vectors_kyber768_rv64im.txt; ./test_vectors1024_rv64im > vectors_kyber1024_rv64im.txt
-# ./test_vectors512_rv64imb > vectors_kyber512_rv64imb.txt; ./test_vectors768_rv64imb > vectors_kyber768_rv64imb.txt; ./test_vectors1024_rv64imb > vectors_kyber1024_rv64imb.txt
-# ./test_vectors512_rv64imv > vectors_kyber512_rv64imv.txt; ./test_vectors768_rv64imv > vectors_kyber768_rv64imv.txt; ./test_vectors1024_rv64imv > vectors_kyber1024_rv64imv.txt
-# ./test_vectors512_rv64imbv > vectors_kyber512_rv64imbv.txt; ./test_vectors768_rv64imbv > vectors_kyber768_rv64imbv.txt; ./test_vectors1024_rv64imbv > vectors_kyber1024_rv64imbv.txt
+# ./test_vectors2_rv64im > vectors_dilithium2_rv64im.txt; ./test_vectors3_rv64im > vectors_dilithium3_rv64im.txt; ./test_vectors5_rv64im > vectors_dilithium5_rv64im.txt
+# ./test_vectors2_rv64imb > vectors_dilithium2_rv64imb.txt; ./test_vectors3_rv64imb > vectors_dilithium3_rv64imb.txt; ./test_vectors5_rv64imb > vectors_dilithium5_rv64imb.txt
+# ./test_vectors2_rv64imv > vectors_dilithium2_rv64imv.txt; ./test_vectors3_rv64imv > vectors_dilithium3_rv64imv.txt; ./test_vectors5_rv64imv > vectors_dilithium5_rv64imv.txt
+# ./test_vectors2_rv64imbv > vectors_dilithium2_rv64imbv.txt; ./test_vectors3_rv64imbv > vectors_dilithium3_rv64imbv.txt; ./test_vectors5_rv64imbv > vectors_dilithium5_rv64imbv.txt
 scp_vectors:
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64im.txt .
 	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64im.txt .

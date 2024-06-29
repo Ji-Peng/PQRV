@@ -918,7 +918,28 @@ void poly_invntt(poly *a)
     DBENCH_STOP(*tmul);
 }
 
-#if defined(RV32)
+#if defined(VECTOR128)
+
+void poly_reduce(poly *a)
+{
+    DBENCH_START();
+    poly_reduce_rvv(a->coeffs);
+    DBENCH_STOP(*tred);
+}
+
+void poly_pointwise(poly *c, const poly *a, const poly *b)
+{
+    DBENCH_START();
+    poly_basemul_8l_rvv(c->coeffs, a->coeffs, b->coeffs);
+    DBENCH_STOP(*tmul);
+}
+
+void poly_pointwise_acc(poly *c, const poly *a, const poly *b)
+{
+    poly_basemul_acc_8l_rvv(c->coeffs, a->coeffs, b->coeffs);
+}
+
+#elif defined(RV32)
 
 void poly_reduce(poly *a)
 {
@@ -964,18 +985,18 @@ void poly_invntt_6l(poly *a)
 }
 
 void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
-                                    poly_cache *b_cache)
+                                poly_cache *b_cache)
 {
     poly_basemul_6l_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                          b_cache->coeffs,
-                                          zetas_basemul_6l_rv32im);
+                                      b_cache->coeffs,
+                                      zetas_basemul_6l_rv32im);
 }
 
 void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
-                               poly_cache *b_cache)
+                            poly_cache *b_cache)
 {
     poly_basemul_6l_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                     b_cache->coeffs);
+                                  b_cache->coeffs);
 }
 
 #else

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "fips202x.h"
+#include "ntt.h"
 #include "params.h"
 #include "poly.h"
 
@@ -70,6 +71,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             }
         }
     }
+    for (i = 0; i < K; i++)
+        for (j = 0; j < L; j++)
+            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex8);
 }
 #    endif
@@ -128,6 +132,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             }
         }
     }
+    for (i = 0; i < K; i++)
+        for (j = 0; j < L; j++)
+            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex6);
 }
 #    elif defined(RV64IMBV)
@@ -182,6 +189,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             }
         }
     }
+    for (i = 0; i < K; i++)
+        for (j = 0; j < L; j++)
+            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex10);
 }
 #    endif
@@ -242,6 +252,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             }
         }
     }
+    for (i = 0; i < K; i++)
+        for (j = 0; j < L; j++)
+            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex8);
 }
 #    elif defined(RV64IMBV)
@@ -301,6 +314,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             }
         }
     }
+    for (i = 0; i < K; i++)
+        for (j = 0; j < L; j++)
+            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex14);
 }
 #    endif
@@ -1146,10 +1162,8 @@ void polyveck_pack_w1(uint8_t r[K * POLYW1_PACKEDBYTES],
         polyw1_pack(&r[i * POLYW1_PACKEDBYTES], &w1->vec[i]);
 }
 
-
-void polyvec_matrix_pointwise(polyveck *t,
-                                         const polyvecl mat[K],
-                                         const polyvecl *v)
+void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
+                              const polyvecl *v)
 {
     unsigned int i;
 
@@ -1157,8 +1171,7 @@ void polyvec_matrix_pointwise(polyveck *t,
         polyvecl_pointwise_acc(&t->vec[i], &mat[i], v);
 }
 
-void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
-                                        const polyvecl *v)
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a, const polyvecl *v)
 {
     unsigned int i;
 
@@ -1166,8 +1179,29 @@ void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
         poly_pointwise(&r->vec[i], a, &v->vec[i]);
 }
 
-void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
-                                       const polyvecl *v)
+void polyveck_pointwise_poly(polyveck *r, const poly *a, const polyveck *v)
+{
+    unsigned int i;
+
+    for (i = 0; i < K; ++i)
+        poly_pointwise(&r->vec[i], a, &v->vec[i]);
+}
+
+#if defined(VECTOR128)
+
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
+{
+    unsigned int i;
+
+    poly_pointwise(w, &u->vec[0], &v->vec[0]);
+    for (i = 1; i < L; ++i) {
+        poly_pointwise_acc(w, &u->vec[i], &v->vec[i]);
+    }
+}
+
+#elif defined(RV64)
+
+void polyvecl_pointwise_acc(poly *w, const polyvecl *u, const polyvecl *v)
 {
     unsigned int i;
     poly_double w_double;
@@ -1178,11 +1212,4 @@ void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
     poly_basemul_acc_end(w, &u->vec[i], &v->vec[i], &w_double);
 }
 
-void polyveck_pointwise_poly(polyveck *r, const poly *a,
-                                        const polyveck *v)
-{
-    unsigned int i;
-
-    for (i = 0; i < K; ++i)
-        poly_pointwise(&r->vec[i], a, &v->vec[i]);
-}
+#endif

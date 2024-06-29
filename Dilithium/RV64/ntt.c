@@ -5,7 +5,19 @@
 #include "params.h"
 #include "reduce.h"
 
-#if defined(RV64)
+#if defined(VECTOR128)
+
+void ntt(int32_t a[N])
+{
+    ntt_8l_rvv(a, qdata);
+}
+
+void intt(int32_t a[N])
+{
+    intt_8l_rvv(a, qdata);
+}
+
+#elif defined(RV64)
 
 // RV64IM assembly optimized implementation with Plantard arithmetic
 const int64_t zetas_ntt_8l_rv64im[N] = {
