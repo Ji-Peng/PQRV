@@ -6,7 +6,7 @@ SCP 	= scp
 # SCP		= @:
 
 COMMONDIR 		= ../../common
-KECCAKDIR		= ../../common/keccak
+KECCAKDIR		= ../../sha3
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -I$(COMMONDIR) -I$(KECCAKDIR) -I.

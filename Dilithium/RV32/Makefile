@@ -6,10 +6,12 @@ SCP 	= scp
 # SCP		= @:
 
 COMMONDIR 		= ../../common
-KECCAKDIR		= ../../common/keccak
+KECCAKDIR		= ../../sha3
+NTTDIR			= ../../ntt/dilithium
+
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -DRV32=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(COMMONDIR)/dilithium_ntt -I.
+				  -DRV32=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(NTTDIR) -I.
 
 CFLAGS_RV32IM 	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32 -DRV32IM
 CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DRV32IMB -DBIT_INTERLEAVING
@@ -29,10 +31,10 @@ HEADERS_RAND 	= $(COMMONDIR)/randombytes.h
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDIR)/fips202_rv32.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
 
-SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
-SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(COMMONDIR)/dilithium_ntt/ntt_6l_singleissue_mont_rv32im.S $(COMMONDIR)/dilithium_ntt/ntt_8l_dualissue_mont_rv32im.S
-SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
-SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(COMMONDIR)/dilithium_ntt/ntt_rvv.S $(COMMONDIR)/dilithium_ntt/consts.c
+SOURCES_RV32IM  = $(KECCAKDIR)/fips202_rv32im.S $(NTTDIR)/ntt_6l_singleissue_mont_rv32im.S $(NTTDIR)/ntt_8l_dualissue_mont_rv32im.S
+SOURCES_RV32IMB = $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(NTTDIR)/ntt_6l_singleissue_mont_rv32im.S $(NTTDIR)/ntt_8l_dualissue_mont_rv32im.S
+SOURCES_RV32IMV = $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32im.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imv_hybrid_x4.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
+SOURCES_RV32IMBV= $(KECCAKDIR)/fips202x_rv32.c $(KECCAKDIR)/fips202_rv32imb_bitinter.S $(KECCAKDIR)/fips202_rv32v.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv32imbv_hybrid_x5.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
