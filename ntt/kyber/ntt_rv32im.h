@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 extern void ntt_rv32im(int16_t *, uint32_t *);
-extern void invntt_rv32im(int16_t *, uint32_t *);
+extern void intt_rv32im(int16_t *, uint32_t *);
 extern void poly_plantard_rdc_rv32im(int16_t *r);
 extern void poly_toplant_rv32im(int16_t *r);
 

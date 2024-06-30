@@ -160,7 +160,7 @@ int main(void)
         polyvecl_ntt(&y);
         polyvec_matrix_pointwise(&w, mat, &y);
         polyveck_reduce(&w);
-        polyveck_invntt(&w);
+        polyveck_intt(&w);
         polyveck_caddq(&w);
         polyveck_decompose(&w1, &w0, &w);
 

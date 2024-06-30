@@ -162,18 +162,18 @@ void polyvec_ntt(polyvec *r)
 }
 
 /*************************************************
-* Name:        polyvec_invntt
+* Name:        polyvec_intt
 *
 * Description: Apply inverse NTT to all elements of a vector of polynomials
 *              and multiply by Montgomery factor 2^16
 *
 * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
 **************************************************/
-void polyvec_invntt(polyvec *r)
+void polyvec_intt(polyvec *r)
 {
   unsigned int i;
   for(i=0;i<KYBER_K;i++)
-    poly_invntt(&r->vec[i]);
+    poly_intt(&r->vec[i]);
 }
 
 /*************************************************

@@ -731,16 +731,16 @@ ntt_rv32im:
 // 4*15(sp): loop;
 // s0-s11, a2-a5: 16 coeffs; 
 // 7 twiddle factors: t0-t6
-.global invntt_rv32im
+.global intt_rv32im
 .align 2
-invntt_rv32im:
+intt_rv32im:
   addi sp, sp, -4*16
   save_regs
   li a6, q16 // q<<16
   ### LAYER 7+6+5
   addi gp, x0, 16
   sw gp, 4*15(sp)
-  invntt_rv32im_loop1:
+  intt_rv32im_loop1:
     // load coefficients
     load_coeffs a0, 1, 2
     // load twiddle factors
@@ -784,7 +784,7 @@ invntt_rv32im:
   lw gp, 4*15(sp)
   addi gp, gp, -1
   sw gp, 4*15(sp)
-  bne gp, zero, invntt_rv32im_loop1
+  bne gp, zero, intt_rv32im_loop1
   addi a0, a0, -512
   ### LAYER 4+3+2+1
   lw t0, 0*4(a1)
@@ -797,7 +797,7 @@ invntt_rv32im:
   addi a0, a0, 32
   addi gp, x0, 15
   sw gp, 4*15(sp)
-  invntt_rv32im_loop2:
+  intt_rv32im_loop2:
     addi a0, a0, -2
     load_coeffs a0, 16, 2
     // layer 4
@@ -845,7 +845,7 @@ invntt_rv32im:
   lw gp, 4*15(sp)
   addi gp, gp, -1
   sw gp, 4*15(sp)
-  bge gp, zero, invntt_rv32im_loop2
+  bge gp, zero, intt_rv32im_loop2
   restore_regs
   addi sp, sp, 4*16
   ret

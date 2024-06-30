@@ -18,7 +18,7 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
 void polyvecl_reduce(polyvecl *v);
 void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v);
 void polyvecl_ntt(polyvecl *v);
-void polyvecl_invntt(polyvecl *v);
+void polyvecl_intt(polyvecl *v);
 void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
                                         const polyvecl *v);
 void polyvecl_pointwise_acc(poly *w, const polyvecl *u,
@@ -38,7 +38,7 @@ void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v);
 void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v);
 void polyveck_shiftl(polyveck *v);
 void polyveck_ntt(polyveck *v);
-void polyveck_invntt(polyveck *v);
+void polyveck_intt(polyveck *v);
 void polyveck_pointwise_poly(polyveck *r, const poly *a,
                                         const polyveck *v);
 int polyveck_chknorm(const polyveck *v, int32_t B);

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "cpucycles.h"
 #include "params.h"
@@ -19,6 +20,7 @@ int main(void)
     uint8_t pk[CRYPTO_PUBLICKEYBYTES];
     uint8_t sk[CRYPTO_SECRETKEYBYTES];
     uint8_t sig[CRYPTO_BYTES];
+    uint8_t message[CRYPTO_BYTES];
     uint8_t seed[CRHBYTES];
     polyvecl mat[K];
     polyveck veck;
@@ -62,9 +64,9 @@ int main(void)
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        poly_invntt(a);
+        poly_intt(a);
     }
-    print_results("poly_invntt:", t, NTESTS);
+    print_results("poly_intt:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
@@ -102,11 +104,62 @@ int main(void)
     }
     print_results("Keypair:", t, NTESTS);
 
+    memset(message, 0xff, CRHBYTES);
+    // Find a key pair such that the 'goto rej' statement within the Sign
+    // function does not execute
+    do {
+        crypto_sign_keypair(pk, sk);
+        i = crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    } while (i != 0);
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
-        crypto_sign_signature(sig, &siglen, sig, CRHBYTES, sk);
+        crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
     }
-    print_results("Sign:", t, NTESTS);
+    print_results("Sign without rej:", t, NTESTS);
+
+    // Find a key pair such that the 'goto rej' statement within the Sign
+    // function executes exactly once
+    do {
+        crypto_sign_keypair(pk, sk);
+        i = crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    } while (i != 1);
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    }
+    print_results("Sign with 1 rej:", t, NTESTS);
+
+    // Find a key pair such that the 'goto rej' statement within the Sign
+    // function executes exactly twice
+    do {
+        crypto_sign_keypair(pk, sk);
+        i = crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    } while (i != 2);
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    }
+    print_results("Sign with 2 rej:", t, NTESTS);
+
+    do {
+        crypto_sign_keypair(pk, sk);
+        i = crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    } while (i != 3);
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    }
+    print_results("Sign with 3 rej:", t, NTESTS);
+
+    do {
+        crypto_sign_keypair(pk, sk);
+        i = crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    } while (i != 4);
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        crypto_sign_signature(sig, &siglen, message, CRHBYTES, sk);
+    }
+    print_results("Sign with 4 rej:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();

@@ -43,9 +43,9 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            uint16_t nonce_k);
 
 void polyvecl_ntt(polyvecl *v);
-void polyvecl_invntt(polyvecl *v);
+void polyvecl_intt(polyvecl *v);
 void polyveck_ntt(polyveck *v);
-void polyveck_invntt(polyveck *v);
+void polyveck_intt(polyveck *v);
 void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
                              const polyvecl *v);
 void polyveck_pointwise_poly(polyveck *r, const poly *a,

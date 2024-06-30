@@ -11,7 +11,7 @@ NTTDIR			= ../../ntt/dilithium
 
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(NTTDIR) -I.
+				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(NTTDIR) -I. -DDILITHIUM_COUNT_REJ_NUM
 
 CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64 -DRV64IM
 CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 -DRV64IMB

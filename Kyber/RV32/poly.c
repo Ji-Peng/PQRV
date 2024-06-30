@@ -292,7 +292,7 @@ void poly_ntt(poly *r)
 }
 
 /*************************************************
- * Name:        poly_invntt
+ * Name:        poly_intt
  *
  * Description: Computes inverse of negacyclic number-theoretic transform (NTT)
  *              of a polynomial in place;
@@ -301,9 +301,9 @@ void poly_ntt(poly *r)
  *
  * Arguments:   - uint16_t *a: pointer to in/output polynomial
  **************************************************/
-void poly_invntt(poly *r)
+void poly_intt(poly *r)
 {
-    invntt(r->coeffs);
+    intt(r->coeffs);
 }
 
 #if defined(VECTOR128)

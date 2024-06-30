@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void invntt_range()
+void intt_range()
 {
     float r[256], t;
     unsigned int start, len, i, j, k, level = 0;
@@ -38,6 +38,6 @@ void invntt_range()
 
 int main()
 {
-    invntt_range();
+    intt_range();
     return 0;
 }

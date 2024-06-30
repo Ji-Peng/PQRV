@@ -88,7 +88,7 @@ void ntt_ref(int16_t r[256])
     }
 }
 
-void invntt_ref(int16_t r[256])
+void intt_ref(int16_t r[256])
 {
     unsigned int start, len, j, k;
     int16_t t, zeta;
@@ -235,9 +235,9 @@ void ntt(poly *poly)
     ntt_rv32im(poly->coeffs, zetas_ntt_rv32im);
 }
 
-void invntt(poly *poly)
+void intt(poly *poly)
 {
-    invntt_rv32im(poly->coeffs, zetas_intt_rv32im);
+    intt_rv32im(poly->coeffs, zetas_intt_rv32im);
 }
 
 void poly_basemul_acc(poly_double *r, const poly *a, const poly *b)
@@ -378,7 +378,7 @@ void test_ntt()
     ntt(&b);
     poly_basemul_acc(&c_double, &a, &b);
     poly_basemul_acc_end(&c, &a, &b, &c_double);
-    invntt(&c);
+    intt(&c);
     // poly_toplant(a);
     print_poly(c.coeffs, 256);
 }
@@ -430,12 +430,12 @@ void test_basemul_cache()
     poly_basemul_acc_cache_init(&c_double[0], &a[1], &b[1], &b_half[1]);
     poly_basemul_acc_cache_init_end(&c[0], &a[2], &b[2], &b_half[2],
                                     &c_double[0]);
-    invntt(&c[0]);
+    intt(&c[0]);
     print_poly(c[0].coeffs, 256);
     poly_basemul_acc_cached(&c_double[1], &a[0], &b[0], &b_half[0]);
     poly_basemul_acc_cached(&c_double[1], &a[1], &b[1], &b_half[1]);
     poly_basemul_acc_cache_end(&c[1], &a[2], &b[2], &b_half[2], &c_double[1]);
-    invntt(&c[1]);
+    intt(&c[1]);
     print_poly(c[1].coeffs, 256);
 }
 

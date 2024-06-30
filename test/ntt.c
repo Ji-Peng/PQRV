@@ -67,7 +67,7 @@ void ntt(int16_t r[256])
     }
 }
 
-void invntt(int16_t r[256])
+void intt(int16_t r[256])
 {
     unsigned int start, len, j, k;
     int16_t t, zeta;
@@ -227,7 +227,7 @@ void test_intt()
     for (i = 0; i < KYBER_N; i++)
         a0[i] = b0[i] = a1[i] = b1[i] = i * 10 + i;
     ntt(a0);
-    invntt(a0);
+    intt(a0);
 
     ntt_rvv(a1, qdata);
     intt_rvv(a1, qdata);
@@ -300,9 +300,9 @@ int main()
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        invntt(a);
+        intt(a);
     }
-    print_results("invntt: ", t, NTESTS);
+    print_results("intt: ", t, NTESTS);
 
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();

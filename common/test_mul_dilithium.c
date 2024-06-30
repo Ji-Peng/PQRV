@@ -39,7 +39,7 @@ int main(void)
         poly_ntt(&a);
         poly_ntt(&b);
         poly_pointwise(&d, &a, &b);
-        poly_invntt(&d);
+        poly_intt(&d);
 
         for (j = 0; j < N; ++j) {
             if ((d.coeffs[j] - c.coeffs[j]) % Q)

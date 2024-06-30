@@ -901,7 +901,7 @@ void poly_ntt(poly *a)
 }
 
 /*************************************************
- * Name:        poly_invntt
+ * Name:        poly_intt
  *
  * Description: Inplace inverse NTT and multiplication by 2^{32}.
  *              Input coefficients need to be less than Q in absolute
@@ -909,7 +909,7 @@ void poly_ntt(poly *a)
  *
  * Arguments:   - poly *a: pointer to input/output polynomial
  **************************************************/
-void poly_invntt(poly *a)
+void poly_intt(poly *a)
 {
     DBENCH_START();
 
@@ -970,33 +970,6 @@ void poly_pointwise(poly *c, const poly *a, const poly *b)
     DBENCH_START();
     poly_basemul_8l_rv32im(c->coeffs, a->coeffs, b->coeffs);
     DBENCH_STOP(*tmul);
-}
-
-extern int32_t zetas_basemul_6l_rv32im[32 * 2];
-
-void poly_ntt_6l(poly *a)
-{
-    ntt_6l(a->coeffs);
-}
-
-void poly_invntt_6l(poly *a)
-{
-    intt_6l(a->coeffs);
-}
-
-void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
-                                poly_cache *b_cache)
-{
-    poly_basemul_6l_cache_init_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                      b_cache->coeffs,
-                                      zetas_basemul_6l_rv32im);
-}
-
-void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
-                            poly_cache *b_cache)
-{
-    poly_basemul_6l_cached_rv32im(r->coeffs, a->coeffs, b->coeffs,
-                                  b_cache->coeffs);
 }
 
 #else

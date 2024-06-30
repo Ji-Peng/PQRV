@@ -11,7 +11,7 @@ void ntt(int16_t r[KYBER_N])
     ntt_rvv(r, qdata);
 }
 
-void invntt(int16_t r[KYBER_N])
+void intt(int16_t r[KYBER_N])
 {
     intt_rvv(r, qdata);
 }
@@ -85,9 +85,9 @@ void ntt(int16_t *poly)
     ntt_rv32im(poly, zetas_ntt_rv32im);
 }
 
-void invntt(int16_t *poly)
+void intt(int16_t *poly)
 {
-    invntt_rv32im(poly, zetas_intt_rv32im);
+    intt_rv32im(poly, zetas_intt_rv32im);
 }
 #else
 const int16_t zetas[128] = {
@@ -127,7 +127,7 @@ void ntt(int16_t r[256])
     }
 }
 
-void invntt(int16_t r[256])
+void intt(int16_t r[256])
 {
     unsigned int start, len, j, k;
     int16_t t, zeta;

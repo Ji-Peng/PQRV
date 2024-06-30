@@ -6,7 +6,7 @@
 #include "params.h"
 
 void ntt(int16_t poly[256]);
-void invntt(int16_t poly[256]);
+void intt(int16_t poly[256]);
 void basemul(int16_t r[2], const int16_t a[2], const int16_t b[2],
              int16_t zeta);
 

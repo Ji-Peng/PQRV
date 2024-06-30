@@ -248,15 +248,15 @@ ntt_rv32im:
 // s0-s11, a2-a5: 16 coeffs; 
 // 16+2+1+1=20 regs; 
 // 8 twiddle factors: can be preloaded; t0-t6, tp; ra: tmp zeta.
-.global invntt_rv32im
+.global intt_rv32im
 .align 2
-invntt_rv32im:
+intt_rv32im:
   addi sp, sp, -4*15
   save_regs
   li a6, q16 // q<<16
   ### LAYER 7+6+5
   addi gp, x0, 16
-  invntt_rv32im_loop1:
+  intt_rv32im_loop1:
     // load coefficients
     load_coeffs a0, 1, 2
     // load twiddle factors
@@ -298,7 +298,7 @@ invntt_rv32im:
     addi a0, a0, 32
     addi a1, a1, 4*7
   addi gp, gp, -1
-  bne gp, zero, invntt_rv32im_loop1
+  bne gp, zero, intt_rv32im_loop1
   addi a0, a0, -512
   ### LAYER 4+3+2+1
   // load 8 zetas
@@ -312,7 +312,7 @@ invntt_rv32im:
   lw tp, 7*4(a1)
   addi a0, a0, 32
   addi gp, x0, 15
-  invntt_rv32im_loop2:
+  intt_rv32im_loop2:
     addi a0, a0, -2
     load_coeffs a0, 16, 2
     // layer 4
@@ -370,7 +370,7 @@ invntt_rv32im:
     plant_mul_const_inplace a6, ra, s7
     store_coeffs a0, 16, 2
   addi gp, gp, -1
-  bge gp, zero, invntt_rv32im_loop2
+  bge gp, zero, intt_rv32im_loop2
   restore_regs
   addi sp, sp, 4*15
   ret

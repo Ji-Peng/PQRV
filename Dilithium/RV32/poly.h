@@ -39,7 +39,7 @@ void polyz_pack(uint8_t *r, const poly *a);
 void polyz_unpack(poly *r, const uint8_t *a);
 void polyw1_pack(uint8_t *r, const poly *a);
 void poly_ntt(poly *a);
-void poly_invntt(poly *a);
+void poly_intt(poly *a);
 void poly_pointwise(poly *c, const poly *a, const poly *b);
 
 #if defined(VECTOR128)
@@ -47,10 +47,6 @@ void poly_pointwise(poly *c, const poly *a, const poly *b);
 void poly_pointwise_acc(poly *c, const poly *a, const poly *b);
 
 #elif defined(RV32)
-typedef struct {
-    int32_t coeffs[(N >> 2) * 3];
-} poly_cache;
-
 typedef struct {
     int64_t coeffs[N];
 } poly_double;
@@ -60,14 +56,6 @@ void poly_basemul_init(poly_double *r, const poly *a, const poly *b);
 void poly_basemul_acc(poly_double *r, const poly *a, const poly *b);
 void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
                           poly_double *r_double);
-
-// 6-layer NTT
-void poly_ntt_6l(poly *a);
-void poly_invntt_6l(poly *a);
-void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
-                                poly_cache *b_cache);
-void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,
-                            poly_cache *b_cache);
 
 #endif
 

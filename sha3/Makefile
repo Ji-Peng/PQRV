@@ -104,49 +104,49 @@ out/scp_test:	\
 
 # for RV32IM
 
-out/test_speed_sha3_rv32im_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32im_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMB
 
-out/test_speed_sha3_rv32imb_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imb_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMV
 
-out/test_speed_sha3_rv32imv_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imv_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMBV
 
-out/test_speed_sha3_rv32imbv_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imbv_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IM
 
-out/test_speed_sha3_rv64im_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64im_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMB
 
-out/test_speed_sha3_rv64imb_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imb_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMB_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMV
 
-out/test_speed_sha3_rv64imv_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imv_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMV_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMBV
 
-out/test_speed_sha3_rv64imbv_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imbv_ref: $(SOURCES_REF) $(HEADERS_REF) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMBV_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
@@ -154,49 +154,49 @@ out/test_speed_sha3_rv64imbv_ref: $(SOURCES_REF) $(HEADERS_REF) $(COMMONDIR)/tes
 
 # for RV32IM
 
-out/test_speed_sha3_rv32im: $(SOURCES_COMMON) $(SOURCES_RV32IM) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32im: $(SOURCES_COMMON) $(SOURCES_RV32IM) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMB
 
-out/test_speed_sha3_rv32imb: $(SOURCES_COMMON) $(SOURCES_RV32IMB) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imb: $(SOURCES_COMMON) $(SOURCES_RV32IMB) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMV
 
-out/test_speed_sha3_rv32imv: $(SOURCES_COMMON) $(SOURCES_RV32IMV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imv: $(SOURCES_COMMON) $(SOURCES_RV32IMV) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV32IMBV
 
-out/test_speed_sha3_rv32imbv: $(SOURCES_COMMON) $(SOURCES_RV32IMBV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv32imbv: $(SOURCES_COMMON) $(SOURCES_RV32IMBV) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IM
 
-out/test_speed_sha3_rv64im: $(SOURCES_COMMON) $(SOURCES_RV64IM) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64im: $(SOURCES_COMMON) $(SOURCES_RV64IM) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMB
 
-out/test_speed_sha3_rv64imb: $(SOURCES_COMMON) $(SOURCES_RV64IMB) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imb: $(SOURCES_COMMON) $(SOURCES_RV64IMB) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMV
 
-out/test_speed_sha3_rv64imv: $(SOURCES_COMMON) $(SOURCES_RV64IMV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imv: $(SOURCES_COMMON) $(SOURCES_RV64IMV) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # for RV64IMBV
 
-out/test_speed_sha3_rv64imbv: $(SOURCES_COMMON) $(SOURCES_RV64IMBV) $(HEADERS_COMMON) $(COMMONDIR)/test_sha3.c
+out/test_speed_sha3_rv64imbv: $(SOURCES_COMMON) $(SOURCES_RV64IMBV) $(HEADERS_COMMON) test_sha3.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 

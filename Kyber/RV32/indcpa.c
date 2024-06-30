@@ -674,8 +674,8 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
     polyvec_basemul_acc(&v, &pkpv, &sp);
 #endif
 
-    polyvec_invntt(&b);
-    poly_invntt(&v);
+    polyvec_intt(&b);
+    poly_intt(&v);
 
     polyvec_add(&b, &b, &ep);
     poly_add(&v, &v, &epp);
@@ -712,7 +712,7 @@ void indcpa_dec(uint8_t m[KYBER_INDCPA_MSGBYTES],
 
     polyvec_ntt(&b);
     polyvec_basemul_acc(&mp, &skpv, &b);
-    poly_invntt(&mp);
+    poly_intt(&mp);
 
     poly_sub(&mp, &v, &mp);
     poly_reduce(&mp);

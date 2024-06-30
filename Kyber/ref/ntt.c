@@ -103,7 +103,7 @@ void ntt(int16_t r[256]) {
 *
 * Arguments:   - int16_t r[256]: pointer to input/output vector of elements of Zq
 **************************************************/
-void invntt(int16_t r[256]) {
+void intt(int16_t r[256]) {
   unsigned int start, len, j, k;
   int16_t t, zeta;
   const int16_t f = 1441; // mont^2/128

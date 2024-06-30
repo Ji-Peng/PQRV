@@ -12,9 +12,6 @@ void intt(int32_t a[N]);
 #    include "ntt_rvv.h"
 #elif defined(RV32)
 #    include "ntt_rv32im.h"
-void ntt_6l(int32_t a[N]);
-void intt_6l(int32_t a[N]);
-
 #endif
 
 #endif

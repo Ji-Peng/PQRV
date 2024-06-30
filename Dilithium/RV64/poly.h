@@ -39,7 +39,7 @@ void polyz_pack(uint8_t *r, const poly *a);
 void polyz_unpack(poly *r, const uint8_t *a);
 void polyw1_pack(uint8_t *r, const poly *a);
 void poly_ntt(poly *a);
-void poly_invntt(poly *a);
+void poly_intt(poly *a);
 void poly_pointwise(poly *c, const poly *a, const poly *b);
 
 #if defined(VECTOR128)
@@ -65,7 +65,7 @@ void poly_basemul_acc_end(poly *r, const poly *a, const poly *b,
 // todo
 // 6-layer NTT
 void poly_ntt_6l(poly *a);
-void poly_invntt_6l(poly *a);
+void poly_intt_6l(poly *a);
 void poly_basemul_6l_cache_init(poly *r, const poly *a, const poly *b,
                                 poly_cache *b_cache);
 void poly_basemul_6l_cached(poly *r, const poly *a, const poly *b,

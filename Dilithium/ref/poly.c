@@ -136,7 +136,7 @@ void poly_ntt(poly *a)
 }
 
 /*************************************************
- * Name:        poly_invntt
+ * Name:        poly_intt
  *
  * Description: Inplace inverse NTT and multiplication by 2^{32}.
  *              Input coefficients need to be less than Q in absolute
@@ -144,7 +144,7 @@ void poly_ntt(poly *a)
  *
  * Arguments:   - poly *a: pointer to input/output polynomial
  **************************************************/
-void poly_invntt(poly *a)
+void poly_intt(poly *a)
 {
     DBENCH_START();
 

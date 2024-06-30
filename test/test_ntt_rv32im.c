@@ -125,7 +125,7 @@ void test_ntt()
         a.coeffs[i] = i;
 
     ntt_rv32im(a.coeffs, zetas_ntt_rv32im);
-    invntt_rv32im(a.coeffs, zetas_intt_rv32im);
+    intt_rv32im(a.coeffs, zetas_intt_rv32im);
     print_poly(a.coeffs, KYBER_N);
 }
 

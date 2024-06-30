@@ -1,39 +1,51 @@
 Test speed of Dilithium2
-polyvec_matrix_expand:         480363 cycles
-polyveclk_uniform_eta:         125319 cycles
-poly_ntt:                        3527 cycles
-poly_invntt:                     3641 cycles
+polyvec_matrix_expand:         478401 cycles
+polyveclk_uniform_eta:         125409 cycles
+poly_ntt:                        3490 cycles
+poly_intt:                       3648 cycles
 poly_pointwise:                   778 cycles
-polyveck_pointwise_poly:         3132 cycles
-polyveck_reduce:                 2537 cycles
-poly_challenge:                 10291 cycles
-Keypair:                       825864 cycles
-Sign:                         2348769 cycles
-Verify:                        845383 cycles
+polyveck_pointwise_poly:         3111 cycles
+polyveck_reduce:                 2539 cycles
+poly_challenge:                 10315 cycles
+Keypair:                       824233 cycles
+Sign without rej:             1059447 cycles
+Sign with 1 rej:              1432134 cycles
+Sign with 2 rej:              1805499 cycles
+Sign with 3 rej:              2215711 cycles
+Sign with 4 rej:              2630100 cycles
+Verify:                        846376 cycles
 
 Test speed of Dilithium3
-polyvec_matrix_expand:         873478 cycles
-polyveclk_uniform_eta:         168454 cycles
-poly_ntt:                        3502 cycles
-poly_invntt:                     3649 cycles
-poly_pointwise:                   777 cycles
-polyveck_pointwise_poly:         4659 cycles
-polyveck_reduce:                 3804 cycles
-poly_challenge:                 10470 cycles
-Keypair:                      1363110 cycles
-Sign:                         3627813 cycles
-Verify:                       1340529 cycles
+polyvec_matrix_expand:         872629 cycles
+polyveclk_uniform_eta:         171449 cycles
+poly_ntt:                        3499 cycles
+poly_intt:                       3686 cycles
+poly_pointwise:                   778 cycles
+polyveck_pointwise_poly:         4648 cycles
+polyveck_reduce:                 3810 cycles
+poly_challenge:                 10471 cycles
+Keypair:                      1367950 cycles
+Sign without rej:             1603473 cycles
+Sign with 1 rej:              2109790 cycles
+Sign with 2 rej:              2549410 cycles
+Sign with 3 rej:              2997035 cycles
+Sign with 4 rej:              3609170 cycles
+Verify:                       1337668 cycles
 
 Test speed of Dilithium5
-polyvec_matrix_expand:        1642977 cycles
-polyveclk_uniform_eta:         223798 cycles
-poly_ntt:                        3500 cycles
-poly_invntt:                     3634 cycles
+polyvec_matrix_expand:        1644342 cycles
+polyveclk_uniform_eta:         224454 cycles
+poly_ntt:                        3488 cycles
+poly_intt:                       3651 cycles
 poly_pointwise:                   777 cycles
-polyveck_pointwise_poly:         6230 cycles
-polyveck_reduce:                 5077 cycles
-poly_challenge:                 10674 cycles
-Keypair:                      2311111 cycles
-Sign:                         4385040 cycles
-Verify:                       2278076 cycles
+polyveck_pointwise_poly:         6204 cycles
+polyveck_reduce:                 5108 cycles
+poly_challenge:                 10663 cycles
+Keypair:                      2312474 cycles
+Sign without rej:             2645190 cycles
+Sign with 1 rej:              3333556 cycles
+Sign with 2 rej:              3866945 cycles
+Sign with 3 rej:              4554664 cycles
+Sign with 4 rej:              5162027 cycles
+Verify:                       2276497 cycles
 

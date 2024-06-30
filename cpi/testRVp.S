@@ -1412,6 +1412,78 @@ cpi_vmergevvm:
     add  \a_3_0, \a_3_0, \t_3_0
 .endm
 
+.macro ct_bfu_scalar_mont_x4_v2 \
+        a_0_0, a_0_1, a_1_0, a_1_1, \
+        a_2_0, a_2_1, a_3_0, a_3_1, \
+        zeta_0, zeta_1, \
+        zeta_2, zeta_3, \
+        zetaqinv_0, zetaqinv_1, \
+        zetaqinv_2, zetaqinv_3, \
+        q, \
+        t_0_0, t_0_1, t_1_0, t_2_0, \
+        t_3_0
+    mul  \t_0_0, \a_0_1, \zetaqinv_0
+    mul  \t_1_0, \a_1_1, \zetaqinv_1
+    mul  \t_2_0, \a_2_1, \zetaqinv_2
+    mul  \t_3_0, \a_3_1, \zetaqinv_3
+    mulh \t_0_1, \a_0_1, \zeta_0
+    mulh \t_0_0, \t_0_0, \q
+    mulh \t_1_0, \t_1_0, \q
+    mulh \t_2_0, \t_2_0, \q
+    mulh \t_3_0, \t_3_0, \q
+    sub  \t_0_0, \t_0_1, \t_0_0
+    mulh \t_0_1, \a_1_1, \zeta_1
+    sub  \a_0_1, \a_0_0, \t_0_0
+    add  \a_0_0, \a_0_0, \t_0_0
+    sub  \t_1_0, \t_0_1, \t_1_0
+    mulh \t_0_1, \a_2_1, \zeta_2
+    sub  \a_1_1, \a_1_0, \t_1_0
+    add  \a_1_0, \a_1_0, \t_1_0
+    sub  \t_2_0, \t_0_1, \t_2_0
+    mulh \t_0_1, \a_3_1, \zeta_3
+    sub  \a_2_1, \a_2_0, \t_2_0
+    add  \a_2_0, \a_2_0, \t_2_0
+    sub  \t_3_0, \t_0_1, \t_3_0
+    sub  \a_3_1, \a_3_0, \t_3_0
+    add  \a_3_0, \a_3_0, \t_3_0
+.endm
+
+.macro ct_bfu_scalar_mont_x4_v3 \
+        a_0_0, a_0_1, a_1_0, a_1_1, \
+        a_2_0, a_2_1, a_3_0, a_3_1, \
+        zeta_0, zeta_1, \
+        zeta_2, zeta_3, \
+        zetaqinv_0, zetaqinv_1, \
+        zetaqinv_2, zetaqinv_3, \
+        q, \
+        t_0_0, t_0_1, t_1_0, t_1_1, \
+        t_2_0, t_3_0
+    mul  \t_0_0, \a_0_1, \zetaqinv_0
+    mul  \t_1_0, \a_1_1, \zetaqinv_1
+    mul  \t_2_0, \a_2_1, \zetaqinv_2
+    mul  \t_3_0, \a_3_1, \zetaqinv_3
+    mulh \t_0_1, \a_0_1, \zeta_0
+    mulh \t_0_0, \t_0_0, \q
+    mulh \t_1_0, \t_1_0, \q
+    mulh \t_2_0, \t_2_0, \q
+    mulh \t_3_0, \t_3_0, \q
+    sub  \t_0_0, \t_0_1, \t_0_0
+    mulh \t_0_1, \a_1_1, \zeta_1
+    sub  \a_0_1, \a_0_0, \t_0_0
+    add  \a_0_0, \a_0_0, \t_0_0
+    mulh \t_1_1, \a_2_1, \zeta_2
+    sub  \t_1_0, \t_0_1, \t_1_0
+    sub  \a_1_1, \a_1_0, \t_1_0
+    add  \a_1_0, \a_1_0, \t_1_0
+    mulh \t_0_1, \a_3_1, \zeta_3
+    sub  \t_2_0, \t_1_1, \t_2_0
+    sub  \a_2_1, \a_2_0, \t_2_0
+    add  \a_2_0, \a_2_0, \t_2_0
+    sub  \t_3_0, \t_0_1, \t_3_0
+    sub  \a_3_1, \a_3_0, \t_3_0
+    add  \a_3_0, \a_3_0, \t_3_0
+.endm
+
 .macro ct_bfu_scalar_mont_x8 \
         a_0_0, a_0_1, a_1_0, a_1_1, \
         a_2_0, a_2_1, a_3_0, a_3_1, \
@@ -1627,6 +1699,36 @@ cpi_ct_bfu_scalar_mont_x4:
             t0, \
             a4, a5, a6, a7, \
             t1, t2, t3, t4
+    .endr
+    ret
+
+.globl cpi_ct_bfu_scalar_mont_x4_v2
+.align 2
+cpi_ct_bfu_scalar_mont_x4_v2:
+    .rep 20
+        ct_bfu_scalar_mont_x4_v2 \
+            a0, a0, a1, a1, \
+            a2, a2, a3, a3, \
+            t0, t0, t0, t0, \
+            t0, t0, t0, t0, \
+            t0, \
+            a4, a5, a6, a7, \
+            t1
+    .endr
+    ret
+
+.globl cpi_ct_bfu_scalar_mont_x4_v3
+.align 2
+cpi_ct_bfu_scalar_mont_x4_v3:
+    .rep 20
+        ct_bfu_scalar_mont_x4_v3 \
+            a0, a0, a1, a1, \
+            a2, a2, a3, a3, \
+            t0, t0, t0, t0, \
+            t0, t0, t0, t0, \
+            t0, \
+            a4, a5, a6, a7, \
+            t1, t2
     .endr
     ret
 

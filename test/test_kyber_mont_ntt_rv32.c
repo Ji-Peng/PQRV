@@ -220,7 +220,7 @@ void ntt_ref(int16_t r[256])
     }
 }
 
-void invntt_ref(int16_t r[256])
+void intt_ref(int16_t r[256])
 {
     unsigned int start, len, j, k;
     int16_t t, zeta;
@@ -358,7 +358,7 @@ int main()
         b[i] = montgomery_reduce_beta32(b[i]);
     // poly_basemul_ref(c0, a, b);
     // poly_basemul_beta32(c1, a, b);
-    invntt_ref(a);
+    intt_ref(a);
     intt_rv32im(b, intt_zetas_133merging);
     if (poly_equal(a, b, KYBER_N) != 1) {
         print_poly(a, KYBER_N);
@@ -369,7 +369,7 @@ int main()
         a[i] = KYBER_Q - 1;
     for (i = 0; i < KYBER_N; i++)
         b[i] = KYBER_Q - 1;
-    invntt_ref(a);
+    intt_ref(a);
     intt_rv32im(b, intt_zetas_133merging);
     for (i = 0; i < KYBER_N; i++)
         a[i] = montgomery_reduce_ref(a[i]);
@@ -388,7 +388,7 @@ int main()
     ntt_rv32im(b, ntt_zetas_133merging);
     poly_basemul_ref(c0, a, b);
     poly_basemul_beta32(c1, a, b);
-    invntt_ref(c0);
+    intt_ref(c0);
     intt_rv32im(c1, intt_zetas_133merging);
     if (poly_equal(c0, c1, KYBER_N) != 1) {
         print_poly(c0, KYBER_N);

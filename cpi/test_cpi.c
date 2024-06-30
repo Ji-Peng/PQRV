@@ -89,6 +89,8 @@ extern void cpi_vrgathervv();
 extern void cpi_vmergevvm();
 
 extern void cpi_ct_bfu_scalar_mont_x4();
+extern void cpi_ct_bfu_scalar_mont_x4_v2();
+extern void cpi_ct_bfu_scalar_mont_x4_v3();
 extern void cpi_ct_bfu_scalar_mont_x8();
 extern void cpi_ct_bfu_vector_mont_x1();
 extern void cpi_hybrid_ct_bfu_4s_mont_1v_mont();
@@ -118,6 +120,8 @@ int main(void)
     PERF(cpi_vrgathervv(), cpi_vrgathervv);
     PERF(cpi_vmergevvm(), cpi_vmergevvm);
     PERF(cpi_ct_bfu_scalar_mont_x4(), cpi_ct_bfu_scalar_mont_x4);
+    PERF(cpi_ct_bfu_scalar_mont_x4_v2(), cpi_ct_bfu_scalar_mont_x4_v2);
+    PERF(cpi_ct_bfu_scalar_mont_x4_v3(), cpi_ct_bfu_scalar_mont_x4_v3);
     PERF(cpi_ct_bfu_scalar_mont_x8(), cpi_ct_bfu_scalar_mont_x8);
     PERF(cpi_ct_bfu_vector_mont_x1(), cpi_ct_bfu_vector_mont_x1);
     PERF(cpi_hybrid_ct_bfu_4s_mont_1v_mont(), cpi_ct_bfu_4s_mont_1v_mont);

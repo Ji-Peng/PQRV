@@ -725,7 +725,7 @@ intt_8l_rv64im:
   ### LAYER 8+7+6+5
   addi gp, x0, 16
   sd gp, 8*15(sp)
-  invntt_8l_rv64im_loop1:
+  intt_8l_rv64im_loop1:
     load_coeffs a0, 1, 4
     ld t0, 0*8(a1)
     ld t1, 1*8(a1)
@@ -776,7 +776,7 @@ intt_8l_rv64im:
   ld gp, 8*15(sp)
   addi gp, gp, -1
   sd gp, 8*15(sp)
-  bne gp, zero, invntt_8l_rv64im_loop1
+  bne gp, zero, intt_8l_rv64im_loop1
   addi a0, a0, -256*4
   ### LAYER 4+3+2+1
   ld t0, 0*8(a1)
@@ -789,7 +789,7 @@ intt_8l_rv64im:
   addi a0, a0, 16*4
   addi gp, x0, 15
   sd gp, 8*15(sp)
-  invntt_8l_rv64im_loop2:
+  intt_8l_rv64im_loop2:
     addi a0, a0, -4
     load_coeffs a0, 16, 4
     // layer 4
@@ -836,7 +836,7 @@ intt_8l_rv64im:
   ld gp, 8*15(sp)
   addi gp, gp, -1
   sd gp, 8*15(sp)
-  bge gp, zero, invntt_8l_rv64im_loop2
+  bge gp, zero, intt_8l_rv64im_loop2
   restore_regs
   addi sp, sp, 8*16
   ret

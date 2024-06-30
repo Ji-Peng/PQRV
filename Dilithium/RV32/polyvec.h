@@ -43,9 +43,9 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            uint16_t nonce_k);
 
 void polyvecl_ntt(polyvecl *v);
-void polyvecl_invntt(polyvecl *v);
+void polyvecl_intt(polyvecl *v);
 void polyveck_ntt(polyveck *v);
-void polyveck_invntt(polyveck *v);
+void polyveck_intt(polyveck *v);
 void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
                              const polyvecl *v);
 void polyveck_pointwise_poly(polyveck *r, const poly *a,
@@ -55,21 +55,6 @@ void polyvec_matrix_pointwise(polyveck *t, const polyvecl mat[K],
                               const polyvecl *v);
 
 #if !defined(VECTOR128) && defined(RV32)
-
-typedef struct {
-    poly_cache vec[L];
-} polyvecl_cache;
-
-void polyvecl_ntt_6l(polyvecl *v);
-void polyvecl_invntt_6l(polyvecl *v);
-void polyveck_ntt_6l(polyveck *v);
-void polyveck_invntt_6l(polyveck *v);
-void polyvecl_pointwise_poly_6l_cache_init(polyvecl *r, const poly *a,
-                                           poly_cache *a_cache,
-                                           const polyvecl *v);
-void polyveck_pointwise_poly_6l_cached(polyveck *r, const poly *a,
-                                       poly_cache *a_cache,
-                                       const polyveck *v);
 
 #endif
 

@@ -21,7 +21,7 @@ void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], const poly *r);
 void poly_getnoise_eta1(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce);
 void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce);
 void poly_ntt(poly *r);
-void poly_invntt(poly *r);
+void poly_intt(poly *r);
 void poly_basemul(poly *r, const poly *a, const poly *b);
 void poly_tomont(poly *r);
 void poly_reduce(poly *r);

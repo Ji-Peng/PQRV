@@ -884,12 +884,12 @@ void polyvecl_ntt(polyvecl *v)
         poly_ntt(&v->vec[i]);
 }
 
-void polyvecl_invntt(polyvecl *v)
+void polyvecl_intt(polyvecl *v)
 {
     unsigned int i;
 
     for (i = 0; i < L; ++i)
-        poly_invntt(&v->vec[i]);
+        poly_intt(&v->vec[i]);
 }
 
 /*************************************************
@@ -1030,7 +1030,7 @@ void polyveck_ntt(polyveck *v)
 }
 
 /*************************************************
- * Name:        polyveck_invntt
+ * Name:        polyveck_intt
  *
  * Description: Inverse NTT and multiplication by 2^{32} of polynomials
  *              in vector of length K. Input coefficients need to be less
@@ -1038,12 +1038,12 @@ void polyveck_ntt(polyveck *v)
  *
  * Arguments:   - polyveck *v: pointer to input/output vector
  **************************************************/
-void polyveck_invntt(polyveck *v)
+void polyveck_intt(polyveck *v)
 {
     unsigned int i;
 
     for (i = 0; i < K; ++i)
-        poly_invntt(&v->vec[i]);
+        poly_intt(&v->vec[i]);
 }
 
 /*************************************************

@@ -47,7 +47,7 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
     s1hat = s1;
     polyvecl_ntt(&s1hat);
     polyvec_matrix_pointwise(&t1, mat, &s1hat);
-    polyveck_invntt(&t1);
+    polyveck_intt(&t1);
 
     /* Add error vector s2 */
     polyveck_add(&t1, &t1, &s2);
@@ -88,10 +88,10 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
     polyvecl mat[K], s1, y, z;
     polyveck t0, s2, w1, w0, h;
     poly cp;
-#if !defined(VECTOR128) && defined(RV32)
-    poly_cache cp_cache;
-#endif
     keccak_state state;
+#if defined(DILITHIUM_COUNT_REJ_NUM)
+    uint32_t rej_num = -1;
+#endif
 
     rho = seedbuf;
     tr = rho + SEEDBYTES;
@@ -115,17 +115,14 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m,
 
     /* Expand matrix and transform vectors */
     polyvec_matrix_expand(mat, rho);
-#if !defined(VECTOR128) && defined(RV32)
-    polyvecl_ntt_6l(&s1);
-    polyveck_ntt_6l(&s2);
-    polyveck_ntt_6l(&t0);
-#else
     polyvecl_ntt(&s1);
     polyveck_ntt(&s2);
     polyveck_ntt(&t0);
-#endif
 
 rej:
+#if defined(DILITHIUM_COUNT_REJ_NUM)
+    rej_num++;
+#endif
     /* Sample intermediate vector y */
     polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
 
@@ -133,7 +130,7 @@ rej:
     z = y;
     polyvecl_ntt(&z);
     polyvec_matrix_pointwise(&w1, mat, &z);
-    polyveck_invntt(&w1);
+    polyveck_intt(&w1);
 
     /* Decompose w and call the random oracle */
     polyveck_caddq(&w1);
@@ -146,47 +143,28 @@ rej:
     shake256_finalize(&state);
     shake256_squeeze(sig, SEEDBYTES, &state);
     poly_challenge(&cp, sig);
-#if !defined(VECTOR128) && defined(RV32)
-    poly_ntt_6l(&cp);
-#else
     poly_ntt(&cp);
-#endif
 
     /* Compute z, reject if it reveals secret */
-#if !defined(VECTOR128) && defined(RV32)
-    polyvecl_pointwise_poly_6l_cache_init(&z, &cp, &cp_cache, &s1);
-    polyvecl_invntt_6l(&z);
-#else
     polyvecl_pointwise_poly(&z, &cp, &s1);
-    polyvecl_invntt(&z);
-#endif
+    polyvecl_intt(&z);
     polyvecl_add(&z, &z, &y);
     polyvecl_reduce(&z);
     if (polyvecl_chknorm(&z, GAMMA1 - BETA))
         goto rej;
 
-        /* Check that subtracting cs2 does not change high bits of w and
-         * low bits do not reveal secret information */
-#if !defined(VECTOR128) && defined(RV32)
-    polyveck_pointwise_poly_6l_cached(&h, &cp, &cp_cache, &s2);
-    polyveck_invntt_6l(&h);
-#else
+    /* Check that subtracting cs2 does not change high bits of w and
+     * low bits do not reveal secret information */
     polyveck_pointwise_poly(&h, &cp, &s2);
-    polyveck_invntt(&h);
-#endif
+    polyveck_intt(&h);
     polyveck_sub(&w0, &w0, &h);
     polyveck_reduce(&w0);
     if (polyveck_chknorm(&w0, GAMMA2 - BETA))
         goto rej;
 
-        /* Compute hints for w1 */
-#if !defined(VECTOR128) && defined(RV32)
-    polyveck_pointwise_poly_6l_cached(&h, &cp, &cp_cache, &t0);
-    polyveck_invntt_6l(&h);
-#else
+    /* Compute hints for w1 */
     polyveck_pointwise_poly(&h, &cp, &t0);
-    polyveck_invntt(&h);
-#endif
+    polyveck_intt(&h);
     polyveck_reduce(&h);
     if (polyveck_chknorm(&h, GAMMA2))
         goto rej;
@@ -199,6 +177,9 @@ rej:
     /* Write signature */
     pack_sig(sig, sig, &z, &h);
     *siglen = CRYPTO_BYTES;
+#if defined(DILITHIUM_COUNT_REJ_NUM)
+    return rej_num;
+#endif
     return 0;
 }
 
@@ -288,7 +269,7 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m,
 
     polyveck_sub(&w1, &w1, &t1);
     polyveck_reduce(&w1);
-    polyveck_invntt(&w1);
+    polyveck_intt(&w1);
 
     /* Reconstruct w1 */
     polyveck_caddq(&w1);

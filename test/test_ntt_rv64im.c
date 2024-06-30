@@ -171,9 +171,9 @@ void ntt(poly *poly)
     ntt_rv64im(poly->coeffs, zetas_ntt_rv64im);
 }
 
-void invntt(poly *poly)
+void intt(poly *poly)
 {
-    invntt_rv64im(poly->coeffs, zetas_intt_rv64im);
+    intt_rv64im(poly->coeffs, zetas_intt_rv64im);
 }
 
 void poly_basemul_acc(poly_double *r, const poly *a, const poly *b)
@@ -221,7 +221,7 @@ void test_ntt()
         a.coeffs[i] = i;
 
     ntt_rv64im(a.coeffs, zetas_ntt_rv64im);
-    invntt_rv64im(a.coeffs, zetas_intt_rv64im);
+    intt_rv64im(a.coeffs, zetas_intt_rv64im);
     print_poly(a.coeffs, KYBER_N);
 }
 
@@ -238,7 +238,7 @@ void test_ntt2()
     ntt(&b);
     poly_basemul_acc(&c_double, &a, &b);
     poly_basemul_acc_end(&c, &a, &b, &c_double);
-    invntt(&c);
+    intt(&c);
     // poly_toplant(a);
     print_poly(c.coeffs, 256);
 }
