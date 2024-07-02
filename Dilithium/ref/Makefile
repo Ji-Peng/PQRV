@@ -9,7 +9,8 @@ COMMONDIR 		= ../../common
 KECCAKDIR		= ../../sha3
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -I$(COMMONDIR) -I$(KECCAKDIR) -I. -DDILITHIUM_COUNT_REJ_NUM
+				  -I$(COMMONDIR) -I$(KECCAKDIR) -I. -DDILITHIUM_COUNT_REJ_NUM \
+				  -DREF_IMPL
 
 CFLAGS_RV32IM 	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32 -DRV32=1
 CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DRV32=1

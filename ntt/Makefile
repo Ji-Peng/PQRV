@@ -38,8 +38,9 @@ all: \
 	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
 	out/speed_singleissue_dilithium_mont_ntt_rv32	\
 	out/speed_dualissue_dilithium_mont_ntt_rv32		\
-	out/speed_singleissue_kyber_mont_ntt_rvv		\
 	out/speed_dualissue_kyber_mont_ntt_rv32			\
+	out/speed_dualissue_kyber_mont_ntt_rvv			\
+	out/speed_dualissue_dilithium_mont_ntt_rvv		\
 	out/scp_speed
 
 out/scp_speed:	\
@@ -50,8 +51,9 @@ out/scp_speed:	\
 	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
 	out/speed_singleissue_dilithium_mont_ntt_rv32	\
 	out/speed_dualissue_dilithium_mont_ntt_rv32		\
-	out/speed_singleissue_kyber_mont_ntt_rvv		\
-	out/speed_dualissue_kyber_mont_ntt_rv32
+	out/speed_dualissue_kyber_mont_ntt_rv32			\
+	out/speed_dualissue_kyber_mont_ntt_rvv			\
+	out/speed_dualissue_dilithium_mont_ntt_rvv
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
 
@@ -83,13 +85,17 @@ out/speed_dualissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(SOURCES) $(HEAD
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_singleissue_kyber_mont_ntt_rvv: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rvv.S
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IMV) -I$(KYBERNTTDIR) -DRVV $(filter %.c, $^) $(filter %.S, $^) -o $@
-
 out/speed_dualissue_kyber_mont_ntt_rv32: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_dualissue_mont_rv32im.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(KYBERNTTDIR) -DKYBER_RV32_MONT $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_dualissue_kyber_mont_ntt_rvv: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_rvv.S $(KYBERNTTDIR)/consts.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMV) -I$(KYBERNTTDIR) -DRVV $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_dualissue_dilithium_mont_ntt_rvv: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_rvv.S $(DILITHIUMNTTDIR)/basemul_acc_double.S $(DILITHIUMNTTDIR)/consts.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMV) -I$(DILITHIUMNTTDIR) -DRVV $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 clean:
 	rm -rf out/

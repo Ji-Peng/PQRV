@@ -82,7 +82,7 @@ int main(void)
         printf("\n");
 
         polyvec_matrix_expand(mat, seed);
-#if defined(VECTOR128)
+#if defined(VECTOR128) && !defined(REF_IMPL)
         for (k = 0; k < K; k++)
             for (j = 0; j < L; j++)
                 ntt2normal_order_8l_rvv(mat[k].vec[j].coeffs, qdata);
@@ -103,7 +103,7 @@ int main(void)
                 }
             }
         }
-#if defined(VECTOR128)
+#if defined(VECTOR128) && !defined(REF_IMPL)
         for (k = 0; k < K; k++)
             for (j = 0; j < L; j++)
                 normal2ntt_order_8l_rvv(mat[k].vec[j].coeffs, qdata);

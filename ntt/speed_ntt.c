@@ -13,6 +13,9 @@
 #endif
 #include "speed_print.h"
 
+extern void poly_basemul_acc_double_8l_rvv(int64_t *c, int32_t *a,
+                                           int32_t *b);
+
 #define NTESTS 10000
 
 uint64_t t[NTESTS];
@@ -118,13 +121,42 @@ int main()
     PERF(poly_plantard_rdc_rv64im(r), plantard_rdc);
     PERF(poly_toplant_rv64im(r), toplant);
 #elif defined(KYBER_NTT_RVV_H)
-    int16_t r[256];
-    const int16_t qdata[1472];
+    int16_t r[256], a[256], b[256], b_cache[256];
     printf(
         "Kyber 7-layer NTT & Montgomery based & 1+6 layers merging & "
         "RV32IMV\n");
     PERF(ntt_rvv(r, qdata), ntt);
     PERF(intt_rvv(r, qdata), intt);
+    PERF(poly_basemul_rvv(r, a, b, qdata), poly_basemul_rvv);
+    PERF(poly_basemul_acc_rvv(r, a, b, qdata), poly_basemul_acc_rvv);
+    PERF(poly_basemul_cache_init_rvv(r, a, b, qdata, b_cache),
+         poly_basemul_cache_init_rvv);
+    PERF(poly_basemul_acc_cache_init_rvv(r, a, b, qdata, b_cache),
+         poly_basemul_acc_cache_init_rvv);
+    PERF(poly_basemul_cached_rvv(r, a, b, qdata, b_cache),
+         poly_basemul_cached_rvv);
+    PERF(poly_basemul_acc_cached_rvv(r, a, b, qdata, b_cache),
+         poly_basemul_acc_cached_rvv);
+    PERF(poly_reduce_rvv(r), poly_reduce_rvv);
+    PERF(poly_tomont_rvv(r), poly_tomont_rvv);
+    PERF(ntt2normal_order(r, a, qdata), ntt2normal_order);
+    PERF(normal2ntt_order(r, a, qdata), normal2ntt_order);
+#elif defined(DILITHIUM_NTT_RVV_H)
+    int32_t r[256], a[256], b[256];
+    int64_t c_double[256];
+    printf(
+        "Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging "
+        "& "
+        "RV32IMV\n");
+    PERF(ntt_8l_rvv(r, qdata), ntt_8l_rvv);
+    PERF(intt_8l_rvv(r, qdata), intt_8l_rvv);
+    PERF(poly_basemul_8l_rvv(r, a, b), poly_basemul_8l_rvv);
+    PERF(poly_basemul_acc_8l_rvv(r, a, b), poly_basemul_acc_8l_rvv);
+    PERF(ntt2normal_order_8l_rvv(r, qdata), ntt2normal_order_8l_rvv);
+    PERF(normal2ntt_order_8l_rvv(r, qdata), normal2ntt_order_8l_rvv);
+    PERF(poly_reduce_rvv(r), poly_reduce_rvv);
+    PERF(poly_basemul_acc_double_8l_rvv(c_double, a, b),
+         poly_basemul_acc_double_8l_rvv);
 #endif
 
     return 0;
