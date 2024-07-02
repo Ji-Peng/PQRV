@@ -17,8 +17,8 @@
 // v0: _MASK_11001100, vmt0/vmt1: _MASK_00010045/_MASK_23006700
 .macro shuffle2 out0, out1, in0, in1, vmt0, vmt1
     vrgather.vv \out0, \in1, \vmt0
-    vmerge.vvm  \out0, \out0, \in0, v0
     vrgather.vv \out1, \in0, \vmt1
+    vmerge.vvm  \out0, \out0, \in0, v0
     vmerge.vvm  \out1, \in1, \out1, v0
 .endm
 
@@ -872,6 +872,26 @@ poly_basemul_acc_rvv_loop:
     addi t5, t5, -1
     bnez t5, poly_basemul_acc_rvv_loop
 ret
+
+// void poly_basemul_acc_double_rvv(int32_t *r, const int16_t *a, const int16_t *b, const int16_t *table);
+# .globl poly_basemul_acc_double_rvv
+# .align 2
+# poly_basemul_acc_double_rvv:
+#     li t0, 3329     // q
+#     li t1, -3327    // qinv
+#     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
+#     addi t4, a3, _ZETAS_BASEMUL*2       // for loading zeta
+#     li   t5, 8
+# poly_basemul_acc_double_rvv_loop:
+#     li t1, 128
+#     vsetvli t2, t1, e32, m1, tu, mu
+#     vle32.v v0, (a0);       addi a0, a0, 4*4
+#     vle32.v v1, (a0);       addi a0, a0, 4*4
+#     vle32.v v2, (a0);       addi a0, a0, 4*4
+#     vle32.v v3, (a0);       addi a0, a0, 4*4
+
+#     addi t5, t5, -1
+#     bnez t5, poly_basemul_acc_double_rvv_loop
 
 // void poly_basemul_cache_init_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
 // basemul and store b1zeta, b3zeta, ... into b_cache

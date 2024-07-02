@@ -602,149 +602,48 @@
     vsub.vv  \va7_1, \vt7_1, \va7_1
 .endm
 
-# Do not use the vlse instruction to implement NTT, as its latency is higher than that of the vle instruction.
-# This is a version using vector-grouping. The performance is slightly slower than normal version
-# .macro ntt_8l_level0to3_rvv off
-#     li a7, 128
-#     vsetvli a7, a7, e32, m1, tu, mu
-#     lw   t2, (_ZETA_EXP_0TO3_L0+0)*4(a1)
-#     lw   t1, (_ZETA_EXP_0TO3_L0+1)*4(a1)
-#     addi a0, a0, (4*\off)*4
-#     vle32.v v16, (a0);          addi a0, a0, 16*4
-#     vle32.v v17, (a0);          addi a0, a0, 16*4
-#     vle32.v v18, (a0);          addi a0, a0, 16*4
-#     vle32.v v19, (a0);          addi a0, a0, 16*4
-#     vle32.v v20, (a0);          addi a0, a0, 16*4
-#     vle32.v v21, (a0);          addi a0, a0, 16*4
-#     vle32.v v22, (a0);          addi a0, a0, 16*4
-#     vle32.v v23, (a0);          addi a0, a0, 16*4
-#     vle32.v v24, (a0);          addi a0, a0, 16*4
-#     vle32.v v25, (a0);          addi a0, a0, 16*4
-#     vle32.v v26, (a0);          addi a0, a0, 16*4
-#     vle32.v v27, (a0);          addi a0, a0, 16*4
-#     vle32.v v28, (a0);          addi a0, a0, 16*4
-#     vle32.v v29, (a0);          addi a0, a0, 16*4
-#     vle32.v v30, (a0);          addi a0, a0, 16*4
-#     vle32.v v31, (a0);          addi a0, a0, -(16*15)*4
-#     # level0
-#     li a7, 128
-#     vsetvli a7, a7, e32, m8, tu, mu
-#     ct_bfu v16, v24, t1, t2, t0, v0, v8
-#     # level1
-#     lw   t2, (_ZETA_EXP_0TO3_L1+0)*4(a1)
-#     lw   t1, (_ZETA_EXP_0TO3_L1+1)*4(a1)
-#     lw   t4, (_ZETA_EXP_0TO3_L1+2)*4(a1)
-#     lw   t3, (_ZETA_EXP_0TO3_L1+3)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m4, tu, mu
-#     ct_bfu_x2 \
-#         v16,v20,v24,v28, \
-#         t1, t2, t3, t4, \
-#         t0, v0, v4, v8, v12
-#     # level2
-#     lw   t2, (_ZETA_EXP_0TO3_L2+0)*4(a1)
-#     lw   t1, (_ZETA_EXP_0TO3_L2+1)*4(a1)
-#     lw   t4, (_ZETA_EXP_0TO3_L2+2)*4(a1)
-#     lw   t3, (_ZETA_EXP_0TO3_L2+3)*4(a1)
-#     lw   t6, (_ZETA_EXP_0TO3_L2+4)*4(a1)
-#     lw   t5, (_ZETA_EXP_0TO3_L2+5)*4(a1)
-#     lw   a6, (_ZETA_EXP_0TO3_L2+6)*4(a1)
-#     lw   a5, (_ZETA_EXP_0TO3_L2+7)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m2, tu, mu
-#     ct_bfu_x4 \
-#         v16,v18,v20,v22,v24,v26,v28,v30,\
-#         t1, t2, t3, t4, t5, t6, a5, a6, \
-#         t0, v0, v2, v4, v6, v8, v10,v12,v14
-#     # level3
-#     lw   t2, (_ZETA_EXP_0TO3_L3+0)*4(a1)
-#     lw   t1, (_ZETA_EXP_0TO3_L3+1)*4(a1)
-#     lw   t4, (_ZETA_EXP_0TO3_L3+2)*4(a1)
-#     lw   t3, (_ZETA_EXP_0TO3_L3+3)*4(a1)
-#     lw   t6, (_ZETA_EXP_0TO3_L3+4)*4(a1)
-#     lw   t5, (_ZETA_EXP_0TO3_L3+5)*4(a1)
-#     lw   a6, (_ZETA_EXP_0TO3_L3+6)*4(a1)
-#     lw   a5, (_ZETA_EXP_0TO3_L3+7)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m1, tu, mu
-#     ct_bfu_x4 \
-#         v16,v17,v18,v19,v20,v21,v22,v23,\
-#         t1, t2, t3, t4, t5, t6, a5, a6, \
-#         t0, \
-#         v0, v1, v2, v3, v4, v5, v6, v7
-#     lw   t2, (_ZETA_EXP_0TO3_L3+8+0)*4(a1)
-#     lw   t1, (_ZETA_EXP_0TO3_L3+8+1)*4(a1)
-#     lw   t4, (_ZETA_EXP_0TO3_L3+8+2)*4(a1)
-#     lw   t3, (_ZETA_EXP_0TO3_L3+8+3)*4(a1)
-#     lw   t6, (_ZETA_EXP_0TO3_L3+8+4)*4(a1)
-#     lw   t5, (_ZETA_EXP_0TO3_L3+8+5)*4(a1)
-#     lw   a6, (_ZETA_EXP_0TO3_L3+8+6)*4(a1)
-#     lw   a5, (_ZETA_EXP_0TO3_L3+8+7)*4(a1)
-#     ct_bfu_x4 \
-#         v24,v25,v26,v27,v28,v29,v30,v31,\
-#         t1, t2, t3, t4, t5, t6, a5, a6, \
-#         t0, \
-#         v0, v1, v2, v3, v4, v5, v6, v7
-#     vse32.v v16, (a0);          addi a0, a0, 16*4
-#     vse32.v v17, (a0);          addi a0, a0, 16*4
-#     vse32.v v18, (a0);          addi a0, a0, 16*4
-#     vse32.v v19, (a0);          addi a0, a0, 16*4
-#     vse32.v v20, (a0);          addi a0, a0, 16*4
-#     vse32.v v21, (a0);          addi a0, a0, 16*4
-#     vse32.v v22, (a0);          addi a0, a0, 16*4
-#     vse32.v v23, (a0);          addi a0, a0, 16*4
-#     vse32.v v24, (a0);          addi a0, a0, 16*4
-#     vse32.v v25, (a0);          addi a0, a0, 16*4
-#     vse32.v v26, (a0);          addi a0, a0, 16*4
-#     vse32.v v27, (a0);          addi a0, a0, 16*4
-#     vse32.v v28, (a0);          addi a0, a0, 16*4
-#     vse32.v v29, (a0);          addi a0, a0, 16*4
-#     vse32.v v30, (a0);          addi a0, a0, 16*4
-#     vse32.v v31, (a0);          addi a0, a0, -(4*\off+16*15)*4
-# .endm
-
 .macro ntt_8l_level0to3_rvv off
     lw   t2, (_ZETA_EXP_0TO3_L0+0)*4(a1)
     lw   t1, (_ZETA_EXP_0TO3_L0+1)*4(a1)
     addi a0, a0, (4*\off)*4
-    vle32.v v16, (a0);          addi a0, a0, 16*4
-    vle32.v v17, (a0);          addi a0, a0, 16*4
-    vle32.v v18, (a0);          addi a0, a0, 16*4
-    vle32.v v19, (a0);          addi a0, a0, 16*4
-    vle32.v v20, (a0);          addi a0, a0, 16*4
-    vle32.v v21, (a0);          addi a0, a0, 16*4
-    vle32.v v22, (a0);          addi a0, a0, 16*4
-    vle32.v v23, (a0);          addi a0, a0, 16*4
-    vle32.v v24, (a0);          addi a0, a0, 16*4
-    vle32.v v25, (a0);          addi a0, a0, 16*4
-    vle32.v v26, (a0);          addi a0, a0, 16*4
-    vle32.v v27, (a0);          addi a0, a0, 16*4
-    vle32.v v28, (a0);          addi a0, a0, 16*4
-    vle32.v v29, (a0);          addi a0, a0, 16*4
-    vle32.v v30, (a0);          addi a0, a0, 16*4
-    vle32.v v31, (a0);          addi a0, a0, -(16*15)*4
+    vle32.v v1,  (a0);          addi a0, a0, 16*4
+    vle32.v v2,  (a0);          addi a0, a0, 16*4
+    vle32.v v3,  (a0);          addi a0, a0, 16*4
+    vle32.v v4,  (a0);          addi a0, a0, 16*4
+    vle32.v v5,  (a0);          addi a0, a0, 16*4
+    vle32.v v6,  (a0);          addi a0, a0, 16*4
+    vle32.v v7,  (a0);          addi a0, a0, 16*4
+    vle32.v v8,  (a0);          addi a0, a0, 16*4
+    vle32.v v9,  (a0);          addi a0, a0, 16*4
+    vle32.v v10, (a0);          addi a0, a0, 16*4
+    vle32.v v11, (a0);          addi a0, a0, 16*4
+    vle32.v v12, (a0);          addi a0, a0, 16*4
+    vle32.v v13, (a0);          addi a0, a0, 16*4
+    vle32.v v14, (a0);          addi a0, a0, 16*4
+    vle32.v v15, (a0);          addi a0, a0, 16*4
+    vle32.v v16, (a0);          addi a0, a0, -(16*15)*4
     # level0
     ct_bfu_x8 \
-        v16,v24,v17,v25,v18,v26,v19,v27,\
-        v20,v28,v21,v29,v22,v30,v23,v31,\
+        v1, v9, v2, v10,v3, v11,v4, v12,\
+        v5, v13,v6, v14,v7, v15,v8, v16,\
         t1, t2, t1, t2, t1, t2, t1, t2, \
         t1, t2, t1, t2, t1, t2, t1, t2, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7, \
-        v8, v9, v10,v11,v12,v13,v14,v15
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v25,v26,v27,v28,v29,v30,v31,v0
     # level1
     lw   t2, (_ZETA_EXP_0TO3_L1+0)*4(a1)
     lw   t1, (_ZETA_EXP_0TO3_L1+1)*4(a1)
     lw   t4, (_ZETA_EXP_0TO3_L1+2)*4(a1)
     lw   t3, (_ZETA_EXP_0TO3_L1+3)*4(a1)
     ct_bfu_x8 \
-        v16,v20,v17,v21,v18,v22,v19,v23,\
-        v24,v28,v25,v29,v26,v30,v27,v31,\
+        v1, v5, v2, v6, v3, v7, v4, v8, \
+        v9, v13,v10,v14,v11,v15,v12,v16,\
         t1, t2, t1, t2, t1, t2, t1, t2, \
         t3, t4, t3, t4, t3, t4, t3, t4, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7, \
-        v8, v9, v10,v11,v12,v13,v14,v15
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v25,v26,v27,v28,v29,v30,v31,v0
     # level2
     lw   t2, (_ZETA_EXP_0TO3_L2+0)*4(a1)
     lw   t1, (_ZETA_EXP_0TO3_L2+1)*4(a1)
@@ -755,13 +654,13 @@
     lw   a6, (_ZETA_EXP_0TO3_L2+6)*4(a1)
     lw   a5, (_ZETA_EXP_0TO3_L2+7)*4(a1)
     ct_bfu_x8 \
-        v16,v18,v17,v19,v20,v22,v21,v23,\
-        v24,v26,v25,v27,v28,v30,v29,v31,\
+        v1, v3, v2, v4, v5, v7, v6, v8, \
+        v9, v11,v10,v12,v13,v15,v14,v16,\
         t1, t2, t1, t2, t3, t4, t3, t4, \
         t5, t6, t5, t6, a5, a6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7, \
-        v8, v9, v10,v11,v12,v13,v14,v15
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v25,v26,v27,v28,v29,v30,v31,v0
     # level3
     lw   t2, (_ZETA_EXP_0TO3_L3+0)*4(a1)
     lw   t1, (_ZETA_EXP_0TO3_L3+1)*4(a1)
@@ -772,10 +671,10 @@
     lw   a6, (_ZETA_EXP_0TO3_L3+6)*4(a1)
     lw   a5, (_ZETA_EXP_0TO3_L3+7)*4(a1)
     ct_bfu_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
+        v1, v2, v3, v4, v5, v6, v7, v8, \
         t1, t2, t3, t4, t5, t6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
+        v17,v18,v19,v20,v21,v22,v23,v24
     lw   t2, (_ZETA_EXP_0TO3_L3+8+0)*4(a1)
     lw   t1, (_ZETA_EXP_0TO3_L3+8+1)*4(a1)
     lw   t4, (_ZETA_EXP_0TO3_L3+8+2)*4(a1)
@@ -785,26 +684,26 @@
     lw   a6, (_ZETA_EXP_0TO3_L3+8+6)*4(a1)
     lw   a5, (_ZETA_EXP_0TO3_L3+8+7)*4(a1)
     ct_bfu_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
+        v9, v10,v11,v12,v13,v14,v15,v16,\
         t1, t2, t3, t4, t5, t6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
-    vse32.v v16, (a0);          addi a0, a0, 16*4
-    vse32.v v17, (a0);          addi a0, a0, 16*4
-    vse32.v v18, (a0);          addi a0, a0, 16*4
-    vse32.v v19, (a0);          addi a0, a0, 16*4
-    vse32.v v20, (a0);          addi a0, a0, 16*4
-    vse32.v v21, (a0);          addi a0, a0, 16*4
-    vse32.v v22, (a0);          addi a0, a0, 16*4
-    vse32.v v23, (a0);          addi a0, a0, 16*4
-    vse32.v v24, (a0);          addi a0, a0, 16*4
-    vse32.v v25, (a0);          addi a0, a0, 16*4
-    vse32.v v26, (a0);          addi a0, a0, 16*4
-    vse32.v v27, (a0);          addi a0, a0, 16*4
-    vse32.v v28, (a0);          addi a0, a0, 16*4
-    vse32.v v29, (a0);          addi a0, a0, 16*4
-    vse32.v v30, (a0);          addi a0, a0, 16*4
-    vse32.v v31, (a0);          addi a0, a0, -(4*\off+16*15)*4
+        v17,v18,v19,v20,v21,v22,v23,v24
+    vse32.v v1,  (a0);          addi a0, a0, 16*4
+    vse32.v v2,  (a0);          addi a0, a0, 16*4
+    vse32.v v3,  (a0);          addi a0, a0, 16*4
+    vse32.v v4,  (a0);          addi a0, a0, 16*4
+    vse32.v v5,  (a0);          addi a0, a0, 16*4
+    vse32.v v6,  (a0);          addi a0, a0, 16*4
+    vse32.v v7,  (a0);          addi a0, a0, 16*4
+    vse32.v v8,  (a0);          addi a0, a0, 16*4
+    vse32.v v9,  (a0);          addi a0, a0, 16*4
+    vse32.v v10, (a0);          addi a0, a0, 16*4
+    vse32.v v11, (a0);          addi a0, a0, 16*4
+    vse32.v v12, (a0);          addi a0, a0, 16*4
+    vse32.v v13, (a0);          addi a0, a0, 16*4
+    vse32.v v14, (a0);          addi a0, a0, 16*4
+    vse32.v v15, (a0);          addi a0, a0, 16*4
+    vse32.v v16, (a0);          addi a0, a0, -(4*\off+16*15)*4
 .endm
 
 .macro ntt_8l_level4to7_rvv off, ZETA_EXP_4TO7_L4, ZETA_EXP_4TO7_L5, ZETA_EXP_4TO7_L6, ZETA_EXP_4TO7_L7
@@ -819,31 +718,31 @@
     lw   a6, 6*4(a4)
     lw   a5, 7*4(a4)
     addi a0, a0, (64*\off)*4
-    vle32.v v16, (a0);          addi a0, a0, 4*4
-    vle32.v v17, (a0);          addi a0, a0, 4*4
-    vle32.v v18, (a0);          addi a0, a0, 4*4
-    vle32.v v19, (a0);          addi a0, a0, 4*4
-    vle32.v v20, (a0);          addi a0, a0, 4*4
-    vle32.v v21, (a0);          addi a0, a0, 4*4
-    vle32.v v22, (a0);          addi a0, a0, 4*4
-    vle32.v v23, (a0);          addi a0, a0, 4*4
-    vle32.v v24, (a0);          addi a0, a0, 4*4
-    vle32.v v25, (a0);          addi a0, a0, 4*4
-    vle32.v v26, (a0);          addi a0, a0, 4*4
-    vle32.v v27, (a0);          addi a0, a0, 4*4
-    vle32.v v28, (a0);          addi a0, a0, 4*4
-    vle32.v v29, (a0);          addi a0, a0, 4*4
-    vle32.v v30, (a0);          addi a0, a0, 4*4
-    vle32.v v31, (a0);          addi a0, a0, -(4*15)*4
+    vle32.v v1,  (a0);          addi a0, a0, 4*4
+    vle32.v v2,  (a0);          addi a0, a0, 4*4
+    vle32.v v3,  (a0);          addi a0, a0, 4*4
+    vle32.v v4,  (a0);          addi a0, a0, 4*4
+    vle32.v v5,  (a0);          addi a0, a0, 4*4
+    vle32.v v6,  (a0);          addi a0, a0, 4*4
+    vle32.v v7,  (a0);          addi a0, a0, 4*4
+    vle32.v v8,  (a0);          addi a0, a0, 4*4
+    vle32.v v9,  (a0);          addi a0, a0, 4*4
+    vle32.v v10, (a0);          addi a0, a0, 4*4
+    vle32.v v11, (a0);          addi a0, a0, 4*4
+    vle32.v v12, (a0);          addi a0, a0, 4*4
+    vle32.v v13, (a0);          addi a0, a0, 4*4
+    vle32.v v14, (a0);          addi a0, a0, 4*4
+    vle32.v v15, (a0);          addi a0, a0, 4*4
+    vle32.v v16, (a0);          addi a0, a0, -(4*15)*4
     # level4
     ct_bfu_x8 \
-        v16,v18,v17,v19,v20,v22,v21,v23,\
-        v24,v26,v25,v27,v28,v30,v29,v31,\
+        v1, v3, v2, v4, v5, v7, v6, v8, \
+        v9, v11,v10,v12,v13,v15,v14,v16,\
         t1, t2, t1, t2, t3, t4, t3, t4, \
         t5, t6, t5, t6, a5, a6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7, \
-        v8, v9, v10,v11,v12,v13,v14,v15
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v25,v26,v27,v28,v29,v30,v31,v0
     # level5
     li   a4, \ZETA_EXP_4TO7_L5*4
     add  a4, a4, a1
@@ -856,10 +755,10 @@
     lw   a6, 6*4(a4)
     lw   a5, 7*4(a4)
     ct_bfu_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
+        v1, v2, v3, v4, v5, v6, v7, v8, \
         t1, t2, t3, t4, t5, t6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
+        v17,v18,v19,v20,v21,v22,v23,v24
     lw   t2, (8+0)*4(a4)
     lw   t1, (8+1)*4(a4)
     lw   t4, (8+2)*4(a4)
@@ -869,115 +768,115 @@
     lw   a6, (8+6)*4(a4)
     lw   a5, (8+7)*4(a4)
     ct_bfu_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
+        v9, v10,v11,v12,v13,v14,v15,v16,\
         t1, t2, t3, t4, t5, t6, a5, a6, \
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
+        v17,v18,v19,v20,v21,v22,v23,v24
     # level6
     li   t4, _MASK_1100*4
     add  t4, t4, a1
     vle32.v v0,  (t4)
     li   t4, _MASK_0101*4
     add  t4, t4, a1
-    vle32.v v1, (t4)
+    vle32.v v31, (t4)
     li   t4, _MASK_2323*4
     add  t4, t4, a1
-    vle32.v v2, (t4)
+    vle32.v v30, (t4)
     shuffle2_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
-        v1, v2
+        v1, v2, v3, v4, v5, v6, v7, v8, \
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v31,v30
     shuffle2_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
-        v1, v2
+        v9, v10,v11,v12,v13,v14,v15,v16,\
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v31,v30
     li   t4, \ZETA_EXP_4TO7_L6*4
     add  t4, t4, a1
-    vle32.v v9,  (t4);      addi t4, t4, 4*4
-    vle32.v v8,  (t4);      addi t4, t4, 4*4
-    vle32.v v11, (t4);      addi t4, t4, 4*4
-    vle32.v v10, (t4);      addi t4, t4, 4*4
-    vle32.v v13, (t4);      addi t4, t4, 4*4
-    vle32.v v12, (t4);      addi t4, t4, 4*4
-    vle32.v v15, (t4);      addi t4, t4, 4*4
-    vle32.v v14, (t4);      addi t4, t4, 4*4
+    vle32.v v31, (t4);      addi t4, t4, 4*4
+    vle32.v v30, (t4);      addi t4, t4, 4*4
+    vle32.v v29, (t4);      addi t4, t4, 4*4
+    vle32.v v28, (t4);      addi t4, t4, 4*4
+    vle32.v v27, (t4);      addi t4, t4, 4*4
+    vle32.v v26, (t4);      addi t4, t4, 4*4
+    vle32.v v25, (t4);      addi t4, t4, 4*4
+    vle32.v v24, (t4);      addi t4, t4, 4*4
     ct_bfu_vv_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
+        v1, v2, v3, v4, v5, v6, v7, v8, \
+        v30,v31,v28,v29,v26,v27,v24,v25,\
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
-    vle32.v v9,  (t4);      addi t4, t4, 4*4
-    vle32.v v8,  (t4);      addi t4, t4, 4*4
-    vle32.v v11, (t4);      addi t4, t4, 4*4
-    vle32.v v10, (t4);      addi t4, t4, 4*4
-    vle32.v v13, (t4);      addi t4, t4, 4*4
-    vle32.v v12, (t4);      addi t4, t4, 4*4
-    vle32.v v15, (t4);      addi t4, t4, 4*4
-    vle32.v v14, (t4)
+        v17,v18,v19,v20,v21,v22,v23,v0
+    vle32.v v31, (t4);      addi t4, t4, 4*4
+    vle32.v v30, (t4);      addi t4, t4, 4*4
+    vle32.v v29, (t4);      addi t4, t4, 4*4
+    vle32.v v28, (t4);      addi t4, t4, 4*4
+    vle32.v v27, (t4);      addi t4, t4, 4*4
+    vle32.v v26, (t4);      addi t4, t4, 4*4
+    vle32.v v25, (t4);      addi t4, t4, 4*4
+    vle32.v v24, (t4)
     ct_bfu_vv_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
+        v9, v10,v11,v12,v13,v14,v15,v16,\
+        v30,v31,v28,v29,v26,v27,v24,v25,\
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
+        v17,v18,v19,v20,v21,v22,v23,v0
     # level7
     li   t4, _MASK_1010*4
     add  t4, t4, a1
     vle32.v v0,  (t4)
     li   t4, _MASK_1032*4
     add  t4, t4, a1
-    vle32.v v1, (t4)
+    vle32.v v31, (t4)
     shuffle1_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
-        v1
+        v1, v2, v3, v4, v5, v6, v7, v8, \
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v31
     shuffle1_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
-        v1
+        v9, v10,v11,v12,v13,v14,v15,v16,\
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v31
     li   t4, \ZETA_EXP_4TO7_L7*4
     add  t4, t4, a1
-    vle32.v v9,  (t4);      addi t4, t4, 4*4
-    vle32.v v8,  (t4);      addi t4, t4, 4*4
-    vle32.v v11, (t4);      addi t4, t4, 4*4
-    vle32.v v10, (t4);      addi t4, t4, 4*4
-    vle32.v v13, (t4);      addi t4, t4, 4*4
-    vle32.v v12, (t4);      addi t4, t4, 4*4
-    vle32.v v15, (t4);      addi t4, t4, 4*4
-    vle32.v v14, (t4);      addi t4, t4, 4*4
+    vle32.v v31, (t4);      addi t4, t4, 4*4
+    vle32.v v30, (t4);      addi t4, t4, 4*4
+    vle32.v v29, (t4);      addi t4, t4, 4*4
+    vle32.v v28, (t4);      addi t4, t4, 4*4
+    vle32.v v27, (t4);      addi t4, t4, 4*4
+    vle32.v v26, (t4);      addi t4, t4, 4*4
+    vle32.v v25, (t4);      addi t4, t4, 4*4
+    vle32.v v24, (t4);      addi t4, t4, 4*4
     ct_bfu_vv_x4 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
+        v1, v2, v3, v4, v5, v6, v7, v8, \
+        v30,v31,v28,v29,v26,v27,v24,v25,\
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
-    vle32.v v9,  (t4);      addi t4, t4, 4*4
-    vle32.v v8,  (t4);      addi t4, t4, 4*4
-    vle32.v v11, (t4);      addi t4, t4, 4*4
-    vle32.v v10, (t4);      addi t4, t4, 4*4
-    vle32.v v13, (t4);      addi t4, t4, 4*4
-    vle32.v v12, (t4);      addi t4, t4, 4*4
-    vle32.v v15, (t4);      addi t4, t4, 4*4
-    vle32.v v14, (t4)
+        v17,v18,v19,v20,v21,v22,v23,v0
+    vle32.v v31, (t4);      addi t4, t4, 4*4
+    vle32.v v30, (t4);      addi t4, t4, 4*4
+    vle32.v v29, (t4);      addi t4, t4, 4*4
+    vle32.v v28, (t4);      addi t4, t4, 4*4
+    vle32.v v27, (t4);      addi t4, t4, 4*4
+    vle32.v v26, (t4);      addi t4, t4, 4*4
+    vle32.v v25, (t4);      addi t4, t4, 4*4
+    vle32.v v24, (t4)
     ct_bfu_vv_x4 \
-        v24,v25,v26,v27,v28,v29,v30,v31,\
-        v8, v9, v10,v11,v12,v13,v14,v15,\
+        v9, v10,v11,v12,v13,v14,v15,v16,\
+        v30,v31,v28,v29,v26,v27,v24,v25,\
         t0, \
-        v0, v1, v2, v3, v4, v5, v6, v7
-    vse32.v v16, (a0);          addi a0, a0, 4*4
-    vse32.v v17, (a0);          addi a0, a0, 4*4
-    vse32.v v18, (a0);          addi a0, a0, 4*4
-    vse32.v v19, (a0);          addi a0, a0, 4*4
-    vse32.v v20, (a0);          addi a0, a0, 4*4
-    vse32.v v21, (a0);          addi a0, a0, 4*4
-    vse32.v v22, (a0);          addi a0, a0, 4*4
-    vse32.v v23, (a0);          addi a0, a0, 4*4
-    vse32.v v24, (a0);          addi a0, a0, 4*4
-    vse32.v v25, (a0);          addi a0, a0, 4*4
-    vse32.v v26, (a0);          addi a0, a0, 4*4
-    vse32.v v27, (a0);          addi a0, a0, 4*4
-    vse32.v v28, (a0);          addi a0, a0, 4*4
-    vse32.v v29, (a0);          addi a0, a0, 4*4
-    vse32.v v30, (a0);          addi a0, a0, 4*4
-    vse32.v v31, (a0);          addi a0, a0, -(64*\off+4*15)*4
+        v17,v18,v19,v20,v21,v22,v23,v0
+    vse32.v v1,  (a0);          addi a0, a0, 4*4
+    vse32.v v2,  (a0);          addi a0, a0, 4*4
+    vse32.v v3,  (a0);          addi a0, a0, 4*4
+    vse32.v v4,  (a0);          addi a0, a0, 4*4
+    vse32.v v5,  (a0);          addi a0, a0, 4*4
+    vse32.v v6,  (a0);          addi a0, a0, 4*4
+    vse32.v v7,  (a0);          addi a0, a0, 4*4
+    vse32.v v8,  (a0);          addi a0, a0, 4*4
+    vse32.v v9,  (a0);          addi a0, a0, 4*4
+    vse32.v v10, (a0);          addi a0, a0, 4*4
+    vse32.v v11, (a0);          addi a0, a0, 4*4
+    vse32.v v12, (a0);          addi a0, a0, 4*4
+    vse32.v v13, (a0);          addi a0, a0, 4*4
+    vse32.v v14, (a0);          addi a0, a0, 4*4
+    vse32.v v15, (a0);          addi a0, a0, 4*4
+    vse32.v v16, (a0);          addi a0, a0, -(64*\off+4*15)*4
 .endm
 
 .macro intt_8l_level0to3_rvv off, ZETA_INTT_0TO3_L0, ZETA_INTT_0TO3_L1, ZETA_INTT_0TO3_L2, ZETA_INTT_0TO3_L3
@@ -1291,8 +1190,6 @@ ntt_8l_rvv:
     ntt_8l_level0to3_rvv 1
     ntt_8l_level0to3_rvv 2
     ntt_8l_level0to3_rvv 3
-    # li t1, 128
-    # vsetvli t2, t1, e32, m1, tu, mu
     ntt_8l_level4to7_rvv 0, \
         _ZETA_EXP_4TO7_P0_L4, _ZETA_EXP_4TO7_P0_L5, \
         _ZETA_EXP_4TO7_P0_L6, _ZETA_EXP_4TO7_P0_L7
@@ -1378,58 +1275,59 @@ ret
 .align 2
 poly_basemul_acc_8l_rvv:
     li t1, 128
-    vsetvli t2, t1, e32, m8, tu, mu
+    vsetvli t2, t1, e32, m1, tu, mu
     li t0, q
     li t1, qinv
-    # 8 loops
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
+    li t2, 8
+poly_basemul_acc_8l_rvv_loop:
+    vle32.v v1,  (a1);          addi a1, a1, 4*4
+    vle32.v v2,  (a1);          addi a1, a1, 4*4
+    vle32.v v3,  (a1);          addi a1, a1, 4*4
+    vle32.v v4,  (a1);          addi a1, a1, 4*4
+    vle32.v v5,  (a1);          addi a1, a1, 4*4
+    vle32.v v6,  (a1);          addi a1, a1, 4*4
+    vle32.v v7,  (a1);          addi a1, a1, 4*4
+    vle32.v v8,  (a1);          addi a1, a1, 4*4
+    vle32.v v9,  (a2);          addi a2, a2, 4*4
+    vle32.v v10, (a2);          addi a2, a2, 4*4
+    vle32.v v11, (a2);          addi a2, a2, 4*4
+    vle32.v v12, (a2);          addi a2, a2, 4*4
+    vle32.v v13, (a2);          addi a2, a2, 4*4
+    vle32.v v14, (a2);          addi a2, a2, 4*4
+    vle32.v v15, (a2);          addi a2, a2, 4*4
+    vle32.v v16, (a2);          addi a2, a2, 4*4
+    montmul_ref_x8 \
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v1, v2, v3, v4, v5, v6, v7, v8, \
+        v9, v10,v11,v12,v13,v14,v15,v16,\
+        t0, t1, \
+        v25,v26,v27,v28,v29,v30,v31,v0
+    vle32.v v25, (a0);          addi a0, a0, 4*4
+    vle32.v v26, (a0);          addi a0, a0, 4*4
+    vle32.v v27, (a0);          addi a0, a0, 4*4
+    vle32.v v28, (a0);          addi a0, a0, 4*4
+    vle32.v v29, (a0);          addi a0, a0, 4*4
+    vle32.v v30, (a0);          addi a0, a0, 4*4
+    vle32.v v31, (a0);          addi a0, a0, 4*4
+    vle32.v v0, (a0);           addi a0, a0, -7*4*4
+    vadd.vv v17, v17, v25
+    vadd.vv v18, v18, v26
+    vadd.vv v19, v19, v27
+    vadd.vv v20, v20, v28
+    vadd.vv v21, v21, v29
+    vadd.vv v22, v22, v30
+    vadd.vv v23, v23, v31
+    vadd.vv v24, v24, v0
+    vse32.v v17, (a0);          addi a0, a0, 4*4
+    vse32.v v18, (a0);          addi a0, a0, 4*4
+    vse32.v v19, (a0);          addi a0, a0, 4*4
+    vse32.v v20, (a0);          addi a0, a0, 4*4
+    vse32.v v21, (a0);          addi a0, a0, 4*4
+    vse32.v v22, (a0);          addi a0, a0, 4*4
+    vse32.v v23, (a0);          addi a0, a0, 4*4
+    vse32.v v24, (a0);          addi a0, a0, 4*4
+    addi t2, t2, -1
+    bnez t2, poly_basemul_acc_8l_rvv_loop
 ret
 
 .globl ntt2normal_order_8l_rvv
