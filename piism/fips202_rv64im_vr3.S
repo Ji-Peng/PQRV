@@ -268,38 +268,37 @@ constants_keccak:
     xor \T04, \T04, \S14
     xor \S01, \S01, \T02
     xor \T03, \T03, \S16
-    sd  \S01, 8*18(sp)
     xor \S06, \S06, \T02
     xor \T04, \T04, \S19
     xor \S11, \S11, \T02
     xor \S16, \S16, \T02
     xor \T04, \T04, \S24
-    slli \S01, \T04, 1
     xor \T03, \T03, \S21
-    xor  \T01, \T01, \S01
-    srli \S01, \T04, 63
     xor \S21, \S21, \T02
-    xor  \T01, \T01, \S01
+    slli \T02, \T04, 1      // inevitable hazards
+    xor  \T01, \T01, \T02
+    srli \T02, \T04, 63
+    xor  \T01, \T01, \T02   // inevitable hazards
     xor \T02, \S03, \S08
     xor \S03, \S03, \T01
     xor \S08, \S08, \T01
     xor \T02, \T02, \S13
     xor \S13, \S13, \T01
     xor \T02, \T02, \S18
-    slli \S01, \T00, 1
-    srli \T00, \T00, 63
     xor \S18, \S18, \T01
     xor \T02, \T02, \S23
-    xor  \T00, \T00, \S01
     xor \S23, \S23, \T01
     // T00=C0 T03=C1 T04=C4 T02=C3
-    xor  \T00, \T00, \T02
+    // inevitable hazards
+    slli \T01, \T00, 1
+    srli \T00, \T00, 63
+    xor  \T00, \T00, \T01
+    xor  \T00, \T00, \T02   // inevitable hazards
     // T00=D4 T03=C1 T04=C4 T02=C3
     slli \T01, \T02, 1
     srli \T02, \T02, 63
     xor \S04, \S04, \T00
     xor \S09, \S09, \T00
-    ld  \S01, 8*18(sp)
     xor  \T02, \T02, \T01
     xor \S14, \S14, \T00
     xor \S19, \S19, \T00
@@ -466,7 +465,7 @@ constants_keccak:
 .globl KeccakF1600_StatePermute_RV64ASM
 .align 2
 KeccakF1600_StatePermute_RV64ASM:
-    addi sp, sp, -8*19
+    addi sp, sp, -8*18
     SaveRegs
     sd a0, 15*8(sp)
 
@@ -496,5 +495,5 @@ loop:
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10
     RestoreRegs
-    addi sp, sp, 8*19
+    addi sp, sp, 8*18
     ret

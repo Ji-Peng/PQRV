@@ -4,10 +4,10 @@ SCP 	= scp
 # SCP		= @:
 
 COMMONDIR 		= ../common
-KECCAKDIR		= ../common/keccak
+KECCAKDIR		= .
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -I$(COMMONDIR) -I$(KECCAKDIR) -I.
+				  -I$(COMMONDIR) -I$(KECCAKDIR)
 
 CFLAGS_RV32IM 	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32 -DRV32=1
 CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DRV32=1 -DBIT_INTERLEAVING
@@ -53,9 +53,9 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/f
 SOURCES_REF 	= $(COMMONDIR)/cpucycles.c $(KECCAKDIR)/fips202_ref.c $(COMMONDIR)/speed_print.c
 HEADERS_REF 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(COMMONDIR)/speed_print.h
 
-.PHONY: speed clean
+.PHONY: all clean
 
-speed: \
+all: \
 	out/test_speed_sha3_rv32im_ref 		out/test_speed_sha3_rv32imb_ref 	\
 	out/test_speed_sha3_rv32imv_ref 	out/test_speed_sha3_rv32imbv_ref	\
 	out/test_speed_sha3_rv64im_ref		out/test_speed_sha3_rv64imv_ref 	\
