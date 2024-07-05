@@ -60,6 +60,15 @@ extern void cpi_sw(int8_t *);
 extern void cpi_sw_lw_addi(int8_t *);
 extern void cpi_sd(int8_t *);
 extern void cpi_sd_ld_addi(int8_t *);
+extern void cpi_load_use_len0(int8_t *);
+extern void cpi_load_use_len1(int8_t *);
+extern void cpi_load_use_len2(int8_t *);
+extern void cpi_load_use_len3(int8_t *);
+extern void cpi_load_use_len4(int8_t *);
+extern void cpi_load_use_len5(int8_t *);
+extern void cpi_load_use_len6(int8_t *);
+extern void cpi_load_use_len7(int8_t *);
+extern void cpi_load_use_len8(int8_t *);
 extern void cpi_plantmul();
 extern void cpi_plantmulx2();
 extern void cpi_plantmulx4();
@@ -81,9 +90,9 @@ extern void cpi_fake_plant_gs_bfu_x1();
 extern int init_vector_e16();
 extern int init_vector_e32();
 extern void cpi_vle16(int8_t *buf);
-extern void cpi_vle16_addi(int8_t *buf);
-extern void cpi_vle16_addi_v2(int8_t *buf0, int8_t *buf1, int8_t *buf2,
-                              int8_t *buf3);
+extern void cpi_vle16_add(int8_t *buf);
+extern void cpi_vle16_add_v2(int8_t *buf0, int8_t *buf1, int8_t *buf2,
+                             int8_t *buf3);
 extern void cpi_vse16(int8_t *buf);
 extern void cpi_vaddvv();
 extern void cpi_vaddvx();
@@ -91,6 +100,7 @@ extern void cpi_vaddvx_x1();
 extern void cpi_vaddvx_x2();
 extern void cpi_vaddvx_x4();
 extern void cpi_vandvv();
+extern void cpi_vandvx();
 extern void cpi_vandvv_x1();
 extern void cpi_vandvv_x2();
 extern void cpi_vandvv_x4();
@@ -151,10 +161,10 @@ int main(void)
     printf("init_vector_e16, the length of vector is %d bits\n",
            vec_len * 16);
     PERF(cpi_vle16((int8_t *)buf), cpi_vle16);
-    PERF(cpi_vle16_addi((int8_t *)buf), cpi_vle16_addi);
-    PERF(cpi_vle16_addi_v2((int8_t *)buf, (int8_t *)&buf[2 * 1],
-                           (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
-         cpi_vle16_addi_v2);
+    PERF(cpi_vle16_add((int8_t *)buf), cpi_vle16_add);
+    PERF(cpi_vle16_add_v2((int8_t *)buf, (int8_t *)&buf[2 * 1],
+                          (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
+         cpi_vle16_add_v2);
     PERF(cpi_vse16((int8_t *)buf), cpi_vse16);
     PERF(cpi_vaddvv(), cpi_vaddvv);
     PERF(cpi_vaddvx(), cpi_vaddvx);
@@ -162,6 +172,7 @@ int main(void)
     PERF(cpi_vaddvx_x2(), cpi_vaddvx_x2);
     PERF(cpi_vaddvx_x4(), cpi_vaddvx_x4);
     PERF(cpi_vandvv(), cpi_vandvv);
+    PERF(cpi_vandvx(), cpi_vandvx);
     PERF(cpi_vandvv_x1(), cpi_vandvv_x1);
     PERF(cpi_vandvv_x2(), cpi_vandvv_x2);
     PERF(cpi_vandvv_x4(), cpi_vandvv_x4);
@@ -217,6 +228,7 @@ int main(void)
     PERF(cpi_vaddvx_x2(), cpi_vaddvx_x2);
     PERF(cpi_vaddvx_x4(), cpi_vaddvx_x4);
     PERF(cpi_vandvv(), cpi_vandvv);
+    PERF(cpi_vandvx(), cpi_vandvx);
     PERF(cpi_vandvv_x1(), cpi_vandvv_x1);
     PERF(cpi_vandvv_x2(), cpi_vandvv_x2);
     PERF(cpi_vandvv_x4(), cpi_vandvv_x4);
@@ -297,6 +309,15 @@ int main(void)
     PERF(cpi_ld((int8_t *)buf), cpi_ld);
     PERF(cpi_ld_addi((int8_t *)buf), cpi_ld_addi);
 #    endif
+    PERF(cpi_load_use_len0((int8_t *)buf), cpi_load_use_len0);
+    PERF(cpi_load_use_len1((int8_t *)buf), cpi_load_use_len1);
+    PERF(cpi_load_use_len2((int8_t *)buf), cpi_load_use_len2);
+    PERF(cpi_load_use_len3((int8_t *)buf), cpi_load_use_len3);
+    PERF(cpi_load_use_len4((int8_t *)buf), cpi_load_use_len4);
+    PERF(cpi_load_use_len5((int8_t *)buf), cpi_load_use_len5);
+    PERF(cpi_load_use_len6((int8_t *)buf), cpi_load_use_len6);
+    PERF(cpi_load_use_len7((int8_t *)buf), cpi_load_use_len7);
+    PERF(cpi_load_use_len8((int8_t *)buf), cpi_load_use_len8);
     PERF(cpi_sh((int8_t *)buf), cpi_sh);
     PERF(cpi_sh_lh_addi((int8_t *)buf), cpi_sh_lh_addi);
     PERF(cpi_sw((int8_t *)buf), cpi_sw);

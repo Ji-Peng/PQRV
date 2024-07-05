@@ -2,8 +2,8 @@ CC = riscv64-unknown-linux-gnu-gcc
 OBJDUMP = riscv64-unknown-linux-gnu-objdump
 
 COMMONDIR 		= ../common
-KYBERNTTDIR		= ../../ntt/kyber
-DILITHIUMNTTDIR	= ../../ntt/dilithium
+KYBERNTTDIR		= ../ntt/kyber
+DILITHIUMNTTDIR	= ../ntt/dilithium
 
 CFLAGS = -O3 -fomit-frame-pointer -static -flax-vector-conversions \
 		 -march=rv64imafdcv_zba_zbb -mabi=lp64d -I$(COMMONDIR) -I$(KYBERNTTDIR) -I.
@@ -26,9 +26,10 @@ TARGET_IP = 192.168.123.99
 .PHONY: all results clean
 
 all: \
-	out/test_dilithium_mont_rv32imv \
-	out/test_dilithium_mont_rv64imv
-
+	out/test_dilithium_mont_rv32imv
+# out/test_kyber_ntt_rvv
+# out/test_dilithium_mont_rv32imv
+# out/test_dilithium_mont_rv64imv
 # out/test_dilithium_singleissue_plant_ntt_rv64 out/test_dilithium_dualissue_plant_ntt_rv64
 # out/test_kyber_hybrid_ntt_rv32v
 # out/test_kyber_mont_ntt_rv32
@@ -37,6 +38,11 @@ all: \
 
 objdump:
 	$(OBJDUMP) -D out/test_add > out/test_add.S
+
+out/test_kyber_ntt_rvv: test_kyber_ntt_rvv.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KYBERNTTDIR)/ntt_rvv.S $(KYBERNTTDIR)/consts.c $(KYBERNTTDIR)/consts.h
+	mkdir -p out
+	$(CC) -I$(KYBERNTTDIR) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
+	scp $@ root@$(TARGET_IP):/sharefs/
 
 out/test_dilithium_mont_rv32imv: test_dilithium_mont_rvv.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(DILITHIUMNTTDIR)/ntt_rvv.S $(DILITHIUMNTTDIR)/consts.c $(DILITHIUMNTTDIR)/consts.h
 	mkdir -p out

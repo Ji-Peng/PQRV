@@ -29,9 +29,9 @@ cpi_vle16:
 .endr
 ret
 
-.globl cpi_vle16_addi
+.globl cpi_vle16_add
 .align 2
-cpi_vle16_addi:
+cpi_vle16_add:
 .rep 200
     vle16.v v0, (a0)
     vadd.vv v1, v1, v0
@@ -45,9 +45,9 @@ cpi_vle16_addi:
 .endr
 ret
 
-.globl cpi_vle16_addi_v2
+.globl cpi_vle16_add_v2
 .align 2
-cpi_vle16_addi_v2:
+cpi_vle16_add_v2:
 .rep 100
     vle16.v v0, (a0)
     vle16.v v5, (a1)
@@ -310,6 +310,23 @@ cpi_vandvv:
     vand.vv v7, v7, v10
     vand.vv v8, v8, v10
     vand.vv v9, v9, v10
+.endr
+ret
+
+.globl cpi_vandvx
+.align 2
+cpi_vandvx:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
 .endr
 ret
 

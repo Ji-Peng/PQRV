@@ -254,19 +254,19 @@ constants_keccak:
     xor \S24_s, \T03_s, \S24_s
     andn \T02_s, \S02_s, \T01_s
     andn \T03_s, \S03_s, \S02_s
+    ld   \T04_s, 17*8(sp)
     xor \S00_s, \T02_s, \T00_s
     xor \S01_s, \T03_s, \T01_s
     andn \T02_s, \S04_s, \S03_s
     andn \T03_s, \T00_s, \S04_s
-    ld   \T04_s, 17*8(sp)
     xor \S02_s, \T02_s, \S02_s
     andn \T02_s, \T01_s, \T00_s
     ld   \T01_s, 0(\T04_s)
-    xor \S03_s, \T03_s, \S03_s
-    xor \S04_s, \T02_s, \S04_s
     addi \T04_s, \T04_s, 8
-    xor  \S00_s, \S00_s, \T01_s
+    xor \S03_s, \T03_s, \S03_s
     sd   \T04_s, 17*8(sp)
+    xor \S04_s, \T02_s, \S04_s
+    xor  \S00_s, \S00_s, \T01_s
 .endm
 
 .globl KeccakF1600_StatePermute_RV64ASM

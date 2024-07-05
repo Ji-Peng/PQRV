@@ -561,6 +561,249 @@ cpi_lw_addi:
 .endr
 ret
 
+.globl cpi_load_use_len0
+.align 2
+cpi_load_use_len0:
+.rep 200
+    lw a1, 8*0(a0)
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len1
+.align 2
+cpi_load_use_len1:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len2
+.align 2
+cpi_load_use_len2:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len3
+.align 2
+cpi_load_use_len3:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len4
+.align 2
+cpi_load_use_len4:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len5
+.align 2
+cpi_load_use_len5:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len6
+.align 2
+cpi_load_use_len6:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len7
+.align 2
+cpi_load_use_len7:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi t6, t6, 1
+    addi a1, a1, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi t6, t6, 1
+    addi a2, a2, 1
+    addi a2, a2, 1
+.endr
+ret
+
+.globl cpi_load_use_len8
+.align 2
+cpi_load_use_len8:
+.rep 200
+    lw a1, 8*0(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi t6, t6, 1
+    addi t3, t3, 1
+    addi a1, a1, 1
+    lw a2, 8*1(a0)
+    addi t0, t0, 1
+    addi t1, t1, 1
+    addi t2, t2, 1
+    addi t3, t3, 1
+    addi t4, t4, 1
+    addi t5, t5, 1
+    addi t6, t6, 1
+    addi t3, t3, 1
+    addi a2, a2, 1
+.endr
+ret
+
 #ifdef RV64
 .globl cpi_ld
 .align 2

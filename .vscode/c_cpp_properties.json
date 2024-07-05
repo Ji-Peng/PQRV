@@ -11,7 +11,8 @@
                 "__riscv_vector",
                 "KYBER_K=3",
                 "RV32",
-                "DILITHIUM_MODE=2"
+                "DILITHIUM_MODE=2",
+                "VECTOR128"
             ],
             "compilerPath": "/home/jipengzhang/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0/bin/riscv64-unknown-linux-gnu-gcc"
         }

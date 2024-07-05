@@ -26,78 +26,119 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 
 SOURCES			= speed_piism_sha3.c
 
-.PHONY: all clean
+.PHONY: run_rv64im run_rv64imb run_rv32im clean
 
-all: \
-	out/speed_piism_sha3_vr0	\
-	out/speed_piism_sha3_vr1	\
-	out/speed_piism_sha3_vr2	\
-	out/speed_piism_sha3_vr3	\
-	out/speed_piism_sha3_vr4	\
-	out/speed_piism_sha3_ve0 	\
-	out/speed_piism_sha3_ve1 	\
-	out/speed_piism_sha3_ve2 	\
-	out/scp_speed
-
-out/scp_speed:	\
-	out/speed_piism_sha3_vr0	\
-	out/speed_piism_sha3_vr1	\
-	out/speed_piism_sha3_vr2	\
-	out/speed_piism_sha3_vr3	\
-	out/speed_piism_sha3_vr4	\
-	out/speed_piism_sha3_ve0	\
-	out/speed_piism_sha3_ve1	\
-	out/speed_piism_sha3_ve2
+out/rv64im_scp:	\
+	out/speed_piism_sha3_rv64im_vr0	\
+	out/speed_piism_sha3_rv64im_vr1	\
+	out/speed_piism_sha3_rv64im_vr2	\
+	out/speed_piism_sha3_rv64im_vr3	\
+	out/speed_piism_sha3_rv64im_vr4	\
+	out/speed_piism_sha3_rv64im_vr5	\
+	out/speed_piism_sha3_rv64im_vr6	\
+	out/speed_piism_sha3_rv64im_ve0	\
+	out/speed_piism_sha3_rv64im_ve1	\
+	out/speed_piism_sha3_rv64im_ve2 \
+	out/speed_piism_sha3_rv64im_ve3 \
+	out/speed_piism_sha3_rv64im_ve4
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
 
-run: \
-	out/speed_piism_sha3_vr0	\
-	out/speed_piism_sha3_vr1	\
-	out/speed_piism_sha3_vr2	\
-	out/speed_piism_sha3_vr3	\
-	out/speed_piism_sha3_vr4	\
-	out/speed_piism_sha3_ve0 	\
-	out/speed_piism_sha3_ve1 	\
-	out/speed_piism_sha3_ve2 	\
-	out/scp_speed
+run_rv64im: out/rv64im_scp
 	@ssh $(TARGET_USER)@$(TARGET_IP) "bash -c '\
 		cd $(TARGET_DIR) && \
-		./speed_piism_sha3_vr0 && ./speed_piism_sha3_vr1 && ./speed_piism_sha3_vr2 && \
-		./speed_piism_sha3_vr3 && ./speed_piism_sha3_vr4 && \
+		./speed_piism_sha3_rv64im_vr0 && ./speed_piism_sha3_rv64im_vr1 && ./speed_piism_sha3_rv64im_vr2 && \
+		./speed_piism_sha3_rv64im_vr3 && ./speed_piism_sha3_rv64im_vr4 && \
+		./speed_piism_sha3_rv64im_vr5 && ./speed_piism_sha3_rv64im_vr6 \
 		echo -e \ && \
-		./speed_piism_sha3_ve0 && ./speed_piism_sha3_ve1 && ./speed_piism_sha3_ve2 \
+		./speed_piism_sha3_rv64im_ve0 && ./speed_piism_sha3_rv64im_ve1 && \
+		./speed_piism_sha3_rv64im_ve2 && ./speed_piism_sha3_rv64im_ve3 && \
+		./speed_piism_sha3_rv64im_ve4 \
 	'"
 
-out/speed_piism_sha3_vr0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr0.S
+out/rv64imb_scp: \
+	out/speed_piism_sha3_rv64imb_vr0 out/speed_piism_sha3_rv64imb_vr1
+	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
+	@echo 1 > $@
+
+run_rv64imb: out/rv64imb_scp
+	@ssh $(TARGET_USER)@$(TARGET_IP) "bash -c '\
+		cd $(TARGET_DIR) && \
+		./speed_piism_sha3_rv64imb_vr0 && ./speed_piism_sha3_rv64imb_vr1 \
+	'"
+
+out/rv32im_scp: \
+	out/speed_piism_sha3_rv32im_vr0 out/speed_piism_sha3_rv32im_vr1
+	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
+	@echo 1 > $@
+
+run_rv32im: out/rv32im_scp
+	@ssh $(TARGET_USER)@$(TARGET_IP) "bash -c '\
+		cd $(TARGET_DIR) && \
+		./speed_piism_sha3_rv32im_vr0 && ./speed_piism_sha3_rv32im_vr1 \
+	'"
+
+out/speed_piism_sha3_rv32im_vr0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv32im_vr0.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv32im_vr1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv32im_vr1.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64imb_vr0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64imb_vr0.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IMB) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64imb_vr1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64imb_vr1.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IMB) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64im_vr0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr0.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_vr1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr1.S
+out/speed_piism_sha3_rv64im_vr1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr1.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_vr2: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr2.S
+out/speed_piism_sha3_rv64im_vr2: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr2.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_vr3: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr3.S
+out/speed_piism_sha3_rv64im_vr3: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr3.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_vr4: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr4.S
+out/speed_piism_sha3_rv64im_vr4: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr4.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_ve0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve0.S
+out/speed_piism_sha3_rv64im_vr5: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr5.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64im_vr6: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_vr6.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) -DRIGHT_IMPL $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64im_ve0: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve0.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_ve1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve1.S
+out/speed_piism_sha3_rv64im_ve1: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve1.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/speed_piism_sha3_ve2: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve2.S
+out/speed_piism_sha3_rv64im_ve2: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve2.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64im_ve3: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve3.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_piism_sha3_rv64im_ve4: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) fips202_rv64im_ve4.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 

@@ -24,6 +24,7 @@ uint64_t t[NTESTS];
     } while (0)
 
 extern void KeccakF1600_StatePermute_RV64ASM(int64_t *s);
+extern void KeccakF1600_StatePermute_RV32ASM(int64_t *s);
 
 int main()
 {
@@ -44,13 +45,26 @@ int main()
     };
     for (i = 0; i < 25; i++)
         s[i] = i;
+#    if defined(RV64)
     KeccakF1600_StatePermute_RV64ASM(s);
+#    elif defined(RV32)
+    KeccakF1600_StatePermute_RV32ASM(s);
+#    else
+#        message "error"
+#    endif
     if (memcmp(s, s_vector, 25 * 8) != 0)
         printf("error\n");
 #endif
 
+#if defined(RV64)
     PERF(KeccakF1600_StatePermute_RV64ASM(s),
          KeccakF1600_StatePermute_RV64ASM);
+#elif defined(RV32)
+    PERF(KeccakF1600_StatePermute_RV32ASM(s),
+         KeccakF1600_StatePermute_RV32ASM);
+#else
+#    message "error"
+#endif
 
     return 0;
 }
