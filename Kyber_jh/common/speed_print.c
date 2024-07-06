@@ -58,7 +58,7 @@ void print_results(const char *s, uint64_t *t, size_t tlen)
     printf("%7llu cycles\n", (unsigned long long)average(t, tlen));
 }
 
-uint64_t get_average(uint64_t *t, size_t tlen)
+uint64_t get_median(uint64_t *t, size_t tlen)
 {
     size_t i;
     static uint64_t overhead = -1;

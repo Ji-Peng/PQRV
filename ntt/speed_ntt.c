@@ -28,7 +28,7 @@ uint64_t t[NTESTS];
             t[i] = cpucycles();                                           \
             FUNC;                                                         \
         }                                                                 \
-        cc_average = get_average(t, NTESTS);                              \
+        cc_average = get_median(t, NTESTS);                              \
         printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
                (unsigned long long)cc_average,                            \
                (unsigned long long)instret, (float)cc_average / instret); \
