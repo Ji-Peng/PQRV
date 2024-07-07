@@ -20,20 +20,6 @@ extern void poly_basemul_acc_double_8l_rvv(int64_t *c, int32_t *a,
 
 uint64_t t[NTESTS];
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
 int main()
 {
     int i;

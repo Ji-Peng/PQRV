@@ -14,20 +14,6 @@
 #define QINV 58728449   // q^(-1) mod 2^32
 #define INVN -32736     // N^-1 mod Q
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
 const int32_t zetas_8l_ref[N] = {
     0,        25847,    -2608894, -518909,  237124,   -777960,  -876248,
     466468,   1826347,  2353451,  -359251,  -2091905, 3119733,  -2884855,

@@ -16,7 +16,7 @@ static int cmp_uint64(const void *a, const void *b)
     return 0;
 }
 
-static uint64_t median(uint64_t *l, size_t llen)
+uint64_t median(uint64_t *l, size_t llen)
 {
     qsort(l, llen, sizeof(uint64_t), cmp_uint64);
 

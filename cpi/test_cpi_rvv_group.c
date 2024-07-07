@@ -8,22 +8,6 @@
 
 uint64_t t[NTESTS];
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        for (int warmup_i = 0; warmup_i < 1000; warmup_i++)               \
-            FUNC;                                                         \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (int i = 0; i < NTESTS; i++) {                                \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
 extern void cpi_m1_vle32(int32_t *a);
 extern void cpi_m8_vle32(int32_t *a);
 extern void cpi_m1_vlse32(int32_t *a);

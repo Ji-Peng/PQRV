@@ -487,36 +487,6 @@ IMPL_TEST_SHA3(14)
 
 uint64_t t[NTESTS];
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
-#define PERF_N(FUNC, LABEL, N)                                           \
-    do {                                                                 \
-        uint64_t instret, cc_average, oneway_cc;                         \
-        get_cpuinstret(FUNC, instret);                                   \
-        for (i = 0; i < NTESTS; i++) {                                   \
-            t[i] = cpucycles();                                          \
-            FUNC;                                                        \
-        }                                                                \
-        cc_average = get_median(t, NTESTS);                             \
-        oneway_cc = cc_average / N;                                      \
-        printf("%-30s cycles/insts/CPI/1-wayCC=%llu/%llu/%.2f/%llu\n",   \
-               #LABEL, (unsigned long long)cc_average,                   \
-               (unsigned long long)instret, (float)cc_average / instret, \
-               (unsigned long long)oneway_cc);                           \
-    } while (0)
-
 #define SPEED_SHA3(N)                                               \
     keccakx##N##_state *sx##N;                                      \
     if ((sx##N = (keccakx##N##_state *)malloc(                      \

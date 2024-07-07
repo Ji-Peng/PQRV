@@ -9,20 +9,6 @@
 
 uint64_t t[NTESTS];
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
 extern void KeccakF1600_StatePermute_RV64ASM(int64_t *s);
 extern void KeccakF1600_StatePermute_RV32ASM(int64_t *s);
 

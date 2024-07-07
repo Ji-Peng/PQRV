@@ -9,20 +9,6 @@
 #define KYBER_N 256
 #define KYBER_Q 3329
 
-#define PERF(FUNC, LABEL)                                                 \
-    do {                                                                  \
-        uint64_t instret, cc_average;                                     \
-        get_cpuinstret(FUNC, instret);                                    \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
-            FUNC;                                                         \
-        }                                                                 \
-        cc_average = get_median(t, NTESTS);                              \
-        printf("%-30s cycles/insts/CPI=%llu/%llu/%.2f\n", #LABEL,         \
-               (unsigned long long)cc_average,                            \
-               (unsigned long long)instret, (float)cc_average / instret); \
-    } while (0)
-
 const int16_t zetas_ref[128] = {
     -1044, -758,  -359,  -1517, 1493,  1422,  287,   202,   -171,  622,
     1577,  182,   962,   -1202, -1474, 1468,  573,   -1325, 264,   383,
