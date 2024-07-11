@@ -75,8 +75,8 @@ int main()
     print_results("poly_basemul_acc: ", t, NTESTS);
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        poly_basemul_acc_cache_init(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
-                                    &b_cache);
+        poly_basemul_acc_cache_init(&ap, &matrix[0].vec[0],
+                                    &matrix[1].vec[0], &b_cache);
     }
     print_results("poly_basemul_acc_cache_init: ", t, NTESTS);
     for (i = 0; i < NTESTS; i++) {
@@ -91,7 +91,7 @@ int main()
                                 &b_cache);
     }
     print_results("poly_basemul_acc_cached: ", t, NTESTS);
-#elif defined(RV32) || defined(RV64)
+#elif !defined(REF_IMPL) && (defined(RV32) || defined(RV64))
     poly_double r_double;
     poly_half b_cache;
     for (i = 0; i < NTESTS; i++) {
@@ -102,14 +102,14 @@ int main()
     print_results("poly_basemul_acc_cache_init: ", t, NTESTS);
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        poly_basemul_acc_cached(&r_double, &matrix[0].vec[0], &matrix[1].vec[0],
-                                &b_cache);
+        poly_basemul_acc_cached(&r_double, &matrix[0].vec[0],
+                                &matrix[1].vec[0], &b_cache);
     }
     print_results("poly_basemul_acc_cached: ", t, NTESTS);
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
-        poly_basemul_acc_cache_end(&ap, &matrix[0].vec[0], &matrix[1].vec[0],
-                                   &b_cache, &r_double);
+        poly_basemul_acc_cache_end(&ap, &matrix[0].vec[0],
+                                   &matrix[1].vec[0], &b_cache, &r_double);
     }
     print_results("poly_basemul_acc_cache_end: ", t, NTESTS);
 #else

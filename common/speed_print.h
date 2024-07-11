@@ -12,12 +12,12 @@ uint64_t median(uint64_t *l, size_t llen);
 #define PERF(FUNC, LABEL)                                                 \
     do {                                                                  \
         uint64_t instret, cc_average;                                     \
-        for (i = 0; i < 10; i++) {                                        \
-            get_cpuinstret(FUNC, t[i]);                                   \
+        for (int ii = 0; ii < 10; ii++) {                                 \
+            get_cpuinstret(FUNC, t[ii]);                                  \
         }                                                                 \
         instret = median(t, 10);                                          \
-        for (i = 0; i < NTESTS; i++) {                                    \
-            t[i] = cpucycles();                                           \
+        for (int ii = 0; ii < NTESTS; ii++) {                             \
+            t[ii] = cpucycles();                                          \
             FUNC;                                                         \
         }                                                                 \
         cc_average = get_median(t, NTESTS);                               \
@@ -29,12 +29,12 @@ uint64_t median(uint64_t *l, size_t llen);
 #define PERF_N(FUNC, LABEL, N)                                           \
     do {                                                                 \
         uint64_t instret, cc_average, oneway_cc;                         \
-        for (i = 0; i < 10; i++) {                                       \
-            get_cpuinstret(FUNC, t[i]);                                  \
+        for (int ii = 0; ii < 10; ii++) {                                \
+            get_cpuinstret(FUNC, t[ii]);                                 \
         }                                                                \
         instret = median(t, 10);                                         \
-        for (i = 0; i < NTESTS; i++) {                                   \
-            t[i] = cpucycles();                                          \
+        for (int ii = 0; ii < NTESTS; ii++) {                            \
+            t[ii] = cpucycles();                                         \
             FUNC;                                                        \
         }                                                                \
         cc_average = get_median(t, NTESTS);                              \

@@ -9,7 +9,7 @@ COMMONDIR 		= ../../common
 KECCAKDIR		= ../../sha3
 CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
-				  -I$(COMMONDIR) -I$(KECCAKDIR) -I.
+				  -I$(COMMONDIR) -I$(KECCAKDIR) -I. -DREF_IMPL
 
 CFLAGS_RV32IM 	= $(CFLAGS_COMMON) -march=rv32imac -mabi=ilp32 -DRV32=1
 CFLAGS_RV32IMB 	= $(CFLAGS_COMMON) -march=rv32imac_zbb -mabi=ilp32 -DRV32=1
@@ -37,7 +37,7 @@ HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) params.h kem.h indcpa.h polyvec.h 
 SOURCES_VECTOR 	= $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
-.PHONY: all speed results clean
+.PHONY: all speed run_speed run_gen_vectors clean
 
 all: \
 	out/test_kyber512_rv32im 	 out/test_kyber768_rv32im 		out/test_kyber1024_rv32im 		\
@@ -69,30 +69,20 @@ speed: \
 	out/test_speed512_rv64imbv	out/test_speed768_rv64imbv	out/test_speed1024_rv64imbv			\
 	out/scp_test_speed
 
-# Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The commands executed on target machine include:
-# ./test_speed512_rv32im > results_rv32im.txt; ./test_speed768_rv32im >> results_rv32im.txt; ./test_speed1024_rv32im >> results_rv32im.txt
-# ./test_speed512_rv32imb > results_rv32imb.txt; ./test_speed768_rv32imb >> results_rv32imb.txt; ./test_speed1024_rv32imb >> results_rv32imb.txt
-# ./test_speed512_rv32imv > results_rv32imv.txt; ./test_speed768_rv32imv >> results_rv32imv.txt; ./test_speed1024_rv32imv >> results_rv32imv.txt
-# ./test_speed512_rv32imbv > results_rv32imbv.txt; ./test_speed768_rv32imbv >> results_rv32imbv.txt; ./test_speed1024_rv32imbv >> results_rv32imbv.txt
-# ./test_speed512_rv64im > results_rv64im.txt; ./test_speed768_rv64im >> results_rv64im.txt; ./test_speed1024_rv64im >> results_rv64im.txt
-# ./test_speed512_rv64imb > results_rv64imb.txt; ./test_speed768_rv64imb >> results_rv64imb.txt; ./test_speed1024_rv64imb >> results_rv64imb.txt
-# ./test_speed512_rv64imv > results_rv64imv.txt; ./test_speed768_rv64imv >> results_rv64imv.txt; ./test_speed1024_rv64imv >> results_rv64imv.txt
-# ./test_speed512_rv64imbv > results_rv64imbv.txt; ./test_speed768_rv64imbv >> results_rv64imbv.txt; ./test_speed1024_rv64imbv >> results_rv64imbv.txt
-results:
-	scp root@$(TARGET_IP):/sharefs/results_rv32im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imbv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imbv.txt .
+run_speed: out/scp_test_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32im; ./test_speed768_rv32im; ./test_speed1024_rv32im" > results_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imb; ./test_speed768_rv32imb; ./test_speed1024_rv32imb" > results_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imv; ./test_speed768_rv32imv; ./test_speed1024_rv32imv" > results_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imbv; ./test_speed768_rv32imbv; ./test_speed1024_rv32imbv" > results_rv32imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64im; ./test_speed768_rv64im; ./test_speed1024_rv64im" > results_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imb; ./test_speed768_rv64imb; ./test_speed1024_rv64imb" > results_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imv; ./test_speed768_rv64imv; ./test_speed1024_rv64imv" > results_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imbv; ./test_speed768_rv64imbv; ./test_speed1024_rv64imbv" > results_rv64imbv.txt
 
-objdump:
-	mkdir -p out
-	$(OBJDUMP) -D out/test_speed512_rv64im > out/test_speed512_rv64im.S
-	$(OBJDUMP) -D out/test_speed512_rv32im > out/test_speed512_rv32im.S
+run_gen_vectors: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv32im" > vectors_kyber512.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv32im" > vectors_kyber768.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv32im" > vectors_kyber1024.txt
 
 out/scp_test_speed:	\
 	out/test_speed512_rv32im 	out/test_speed768_rv32im 	out/test_speed1024_rv32im 	\

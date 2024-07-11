@@ -1,40 +1,33 @@
-Test speed of SHA-3 related subroutines
-KeccakF1600                    cycles/insts/CPI=2513/4296/0.58
-shake128_absorb_once           cycles/insts/CPI=255/333/0.77
-shake128_squeezeblocks_1       cycles/insts/CPI=2775/4726/0.59
-sha3_256                       cycles/insts/CPI=2798/4718/0.59
-sha3_512                       cycles/insts/CPI=2830/4781/0.59
-
 Test speed of Kyber512
-gen_a:                          47648 cycles
-poly_getnoise_eta1:              7883 cycles
-NTT:                            33213 cycles
-INVNTT:                         52446 cycles
-polyvec_basemul_acc_mont:       41094 cycles
-poly_basemul:        17520 cycles
-kyber_keypair:                 353680 cycles
-kyber_encaps:                  510118 cycles
-kyber_decaps:                  671846 cycles
+gen_a:                          47817 cycles
+poly_getnoise_eta1:              7700 cycles
+NTT:                            32433 cycles
+INVNTT:                         51241 cycles
+poly_basemul:                   17113 cycles
+polyvec_basemul_acc:            40148 cycles
+kyber_keypair:                 354919 cycles
+kyber_encaps:                  511375 cycles
+kyber_decaps:                  671873 cycles
 
 Test speed of Kyber768
-gen_a:                         112197 cycles
-poly_getnoise_eta1:              5494 cycles
-NTT:                            33198 cycles
-INVNTT:                         52439 cycles
-polyvec_basemul_acc_mont:       59151 cycles
-poly_basemul:        17513 cycles
-kyber_keypair:                 607324 cycles
-kyber_encaps:                  807545 cycles
-kyber_decaps:                 1016166 cycles
+gen_a:                         111861 cycles
+poly_getnoise_eta1:              5355 cycles
+NTT:                            32434 cycles
+INVNTT:                         51237 cycles
+poly_basemul:                   17112 cycles
+polyvec_basemul_acc:            57778 cycles
+kyber_keypair:                 603280 cycles
+kyber_encaps:                  803546 cycles
+kyber_decaps:                 1011575 cycles
 
 Test speed of Kyber1024
-gen_a:                         195830 cycles
-poly_getnoise_eta1:              5498 cycles
-NTT:                            33210 cycles
-INVNTT:                         52461 cycles
-polyvec_basemul_acc_mont:       77322 cycles
-poly_basemul:        17518 cycles
-kyber_keypair:                 926355 cycles
-kyber_encaps:                 1167673 cycles
-kyber_decaps:                 1423822 cycles
+gen_a:                         196150 cycles
+poly_getnoise_eta1:              5362 cycles
+NTT:                            32433 cycles
+INVNTT:                         51246 cycles
+poly_basemul:                   17112 cycles
+polyvec_basemul_acc:            75470 cycles
+kyber_keypair:                 923396 cycles
+kyber_encaps:                 1159796 cycles
+kyber_decaps:                 1412361 cycles
 
