@@ -13,12 +13,10 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
   				  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(NTTDIR) -I. -DDILITHIUM_COUNT_REJ_NUM
 
-CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64 -DRV64IM
-CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 -DRV64IMB
-CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DRV64IMV \
-	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8 -DHYBRIDX10
-CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DRV64IMBV \
-	-DVECTOR128 -DHYBRIDX8 -DHYBRIDX10 -DHYBRIDX14
+CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
+CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DVECTOR128
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DVECTOR128
 
 TARGET_IP 	= 192.168.123.99
 TARGET_USER = root
@@ -33,15 +31,15 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDI
 
 SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S $(NTTDIR)/ntt_8l_dualissue_plant_rv64im.S
 SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S $(NTTDIR)/ntt_8l_dualissue_plant_rv64im.S
-SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x10.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
-SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x10.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x14.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
+SOURCES_RV64IMV	= $(KECCAKDIR)/fips202_rv64im.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
+SOURCES_RV64IMBV= $(KECCAKDIR)/fips202_rv64imb.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
 SOURCES_VECTOR 	= $(SOURCES_COMMON) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
 
-.PHONY: all speed results scp_vectors diff_vectors clean
+.PHONY: all speed run_speed run_diff_vectors clean
 
 all: \
 	out/test_dilithium2_rv64im 		\
@@ -73,37 +71,25 @@ speed: \
 	out/test_speed3_rv64imbv		out/test_speed5_rv64imbv 	\
 	out/scp_test_speed
 
-# Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The commands executed on target machine include:
-# ./test_mul_rv64im > results_rv64im.txt; ./test_speed2_rv64im >> results_rv64im.txt; ./test_speed3_rv64im >> results_rv64im.txt; ./test_speed5_rv64im >> results_rv64im.txt
-# ./test_mul_rv64imb > results_rv64imb.txt; ./test_speed2_rv64imb >> results_rv64imb.txt; ./test_speed3_rv64imb >> results_rv64imb.txt; ./test_speed5_rv64imb >> results_rv64imb.txt
-# ./test_mul_rv64imv > results_rv64imv.txt; ./test_speed2_rv64imv >> results_rv64imv.txt; ./test_speed3_rv64imv >> results_rv64imv.txt; ./test_speed5_rv64imv >> results_rv64imv.txt
-# ./test_mul_rv64imbv > results_rv64imbv.txt; ./test_speed2_rv64imbv >> results_rv64imbv.txt; ./test_speed3_rv64imbv >> results_rv64imbv.txt; ./test_speed5_rv64imbv >> results_rv64imbv.txt
-results:
-	scp root@$(TARGET_IP):/sharefs/results_rv64im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imbv.txt .
+run_speed: out/scp_test_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv64im; ./test_speed2_rv64im; ./test_speed3_rv64im; ./test_speed5_rv64im" > results_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv64imb; ./test_speed2_rv64imb; ./test_speed3_rv64imb; ./test_speed5_rv64imb" > results_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv64imv; ./test_speed2_rv64imv; ./test_speed3_rv64imv; ./test_speed5_rv64imv" > results_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv64imbv; ./test_speed2_rv64imbv; ./test_speed3_rv64imbv; ./test_speed5_rv64imbv" > results_rv64imbv.txt
 
-# ./test_vectors2_rv64im > vectors_dilithium2_rv64im.txt; ./test_vectors3_rv64im > vectors_dilithium3_rv64im.txt; ./test_vectors5_rv64im > vectors_dilithium5_rv64im.txt
-# ./test_vectors2_rv64imb > vectors_dilithium2_rv64imb.txt; ./test_vectors3_rv64imb > vectors_dilithium3_rv64imb.txt; ./test_vectors5_rv64imb > vectors_dilithium5_rv64imb.txt
-# ./test_vectors2_rv64imv > vectors_dilithium2_rv64imv.txt; ./test_vectors3_rv64imv > vectors_dilithium3_rv64imv.txt; ./test_vectors5_rv64imv > vectors_dilithium5_rv64imv.txt
-# ./test_vectors2_rv64imbv > vectors_dilithium2_rv64imbv.txt; ./test_vectors3_rv64imbv > vectors_dilithium3_rv64imbv.txt; ./test_vectors5_rv64imbv > vectors_dilithium5_rv64imbv.txt
-scp_vectors:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv64imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv64imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv64imbv.txt .
-
-diff_vectors:
+run_diff_vectors: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv64im" > vectors_dilithium2_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv64im" > vectors_dilithium3_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv64im" > vectors_dilithium5_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv64imb" > vectors_dilithium2_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv64imb" > vectors_dilithium3_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv64imb" > vectors_dilithium5_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv64imv" > vectors_dilithium2_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv64imv" > vectors_dilithium3_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv64imv" > vectors_dilithium5_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv64imbv" > vectors_dilithium2_rv64imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv64imbv" > vectors_dilithium3_rv64imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv64imbv" > vectors_dilithium5_rv64imbv.txt
 	diff vectors_dilithium2_rv64im.txt ../ref/vectors_dilithium2.txt
 	diff vectors_dilithium3_rv64im.txt ../ref/vectors_dilithium3.txt
 	diff vectors_dilithium5_rv64im.txt ../ref/vectors_dilithium5.txt

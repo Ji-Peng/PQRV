@@ -41,7 +41,7 @@ HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) params.h kem.h indcpa.h polyvec.h 
 SOURCES_VECTOR 	= $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
-.PHONY: all speed results scp_vectors diff_vectors clean
+.PHONY: all speed run_speed run_diff_vectors clean
 
 all: \
 	out/test_kyber512_rv32im    	\
@@ -73,37 +73,25 @@ speed: \
 	out/test_speed768_rv32imbv		out/test_speed1024_rv32imbv		\
 	out/scp_test_speed
 
-# Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The command executed on target machine include: 
-# ./test_speed512_rv32im > results_rv32im.txt; ./test_speed768_rv32im >> results_rv32im.txt; ./test_speed1024_rv32im >> results_rv32im.txt
-# ./test_speed512_rv32imb > results_rv32imb.txt; ./test_speed768_rv32imb >> results_rv32imb.txt; ./test_speed1024_rv32imb >> results_rv32imb.txt
-# ./test_speed512_rv32imv > results_rv32imv.txt; ./test_speed768_rv32imv >> results_rv32imv.txt; ./test_speed1024_rv32imv >> results_rv32imv.txt
-# ./test_speed512_rv32imbv > results_rv32imbv.txt; ./test_speed768_rv32imbv >> results_rv32imbv.txt; ./test_speed1024_rv32imbv >> results_rv32imbv.txt
-results:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv32imbv.txt .
+run_speed: out/scp_test_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32im; ./test_speed768_rv32im; ./test_speed1024_rv32im" > results_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imb; ./test_speed768_rv32imb; ./test_speed1024_rv32imb" > results_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imv; ./test_speed768_rv32imv; ./test_speed1024_rv32imv" > results_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv32imbv; ./test_speed768_rv32imbv; ./test_speed1024_rv32imbv" > results_rv32imbv.txt
 
-# ./test_vectors512_rv32im > vectors_kyber512_rv32im.txt; ./test_vectors768_rv32im > vectors_kyber768_rv32im.txt; ./test_vectors1024_rv32im > vectors_kyber1024_rv32im.txt
-# ./test_vectors512_rv32imb > vectors_kyber512_rv32imb.txt; ./test_vectors768_rv32imb > vectors_kyber768_rv32imb.txt; ./test_vectors1024_rv32imb > vectors_kyber1024_rv32imb.txt
-# ./test_vectors512_rv32imv > vectors_kyber512_rv32imv.txt; ./test_vectors768_rv32imv > vectors_kyber768_rv32imv.txt; ./test_vectors1024_rv32imv > vectors_kyber1024_rv32imv.txt
-# ./test_vectors512_rv32imbv > vectors_kyber512_rv32imbv.txt; ./test_vectors768_rv32imbv > vectors_kyber768_rv32imbv.txt; ./test_vectors1024_rv32imbv > vectors_kyber1024_rv32imbv.txt
-scp_vectors:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv32imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv32imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv32imbv.txt .
-
-diff_vectors:
+run_diff_vectors: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv32im" > vectors_kyber512_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv32im" > vectors_kyber768_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv32im" > vectors_kyber1024_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv32imb" > vectors_kyber512_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv32imb" > vectors_kyber768_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv32imb" > vectors_kyber1024_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv32imv" > vectors_kyber512_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv32imv" > vectors_kyber768_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv32imv" > vectors_kyber1024_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv32imbv" > vectors_kyber512_rv32imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv32imbv" > vectors_kyber768_rv32imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv32imbv" > vectors_kyber1024_rv32imbv.txt
 	diff vectors_kyber512_rv32im.txt ../ref/vectors_kyber512.txt
 	diff vectors_kyber768_rv32im.txt ../ref/vectors_kyber768.txt
 	diff vectors_kyber1024_rv32im.txt ../ref/vectors_kyber1024.txt
@@ -116,10 +104,6 @@ diff_vectors:
 	diff vectors_kyber512_rv32imbv.txt ../ref/vectors_kyber512.txt
 	diff vectors_kyber768_rv32imbv.txt ../ref/vectors_kyber768.txt
 	diff vectors_kyber1024_rv32imbv.txt ../ref/vectors_kyber1024.txt
-
-objdump:
-	mkdir -p out
-	$(OBJDUMP) -D out/test_speed_sha3_rv32im > out/test_speed_sha3_rv32im.S
 
 out/scp_test_speed: \
 	out/test_speed512_rv32im	\

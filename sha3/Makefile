@@ -53,7 +53,7 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/f
 SOURCES_REF 	= $(COMMONDIR)/cpucycles.c $(KECCAKDIR)/fips202_ref.c $(COMMONDIR)/speed_print.c
 HEADERS_REF 	= $(COMMONDIR)/cpucycles.h $(KECCAKDIR)/fips202.h $(COMMONDIR)/speed_print.h
 
-.PHONY: all clean
+.PHONY: all run_all clean
 
 all: \
 	out/test_speed_sha3_rv32im_ref 		out/test_speed_sha3_rv32imb_ref 	\
@@ -64,29 +64,50 @@ all: \
 	out/test_speed_sha3_rv32imv 		out/test_speed_sha3_rv32imbv		\
 	out/test_speed_sha3_rv64im			out/test_speed_sha3_rv64imv 		\
 	out/test_speed_sha3_rv64imb			out/test_speed_sha3_rv64imbv		\
+	out/speed_ko_sha3_rv32im \
 	out/scp_test
 
-# Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The commands executed on target machine include:
-# ./test_speed_sha3_rv32im_ref > results_rv32im_ref.txt; ./test_speed_sha3_rv32imb_ref > results_rv32imb_ref.txt; ./test_speed_sha3_rv32imv_ref > results_rv32imv_ref.txt; ./test_speed_sha3_rv32imbv_ref > results_rv32imbv_ref.txt; ./test_speed_sha3_rv64im_ref > results_rv64im_ref.txt; ./test_speed_sha3_rv64imb_ref > results_rv64imb_ref.txt; ./test_speed_sha3_rv64imv_ref > results_rv64imv_ref.txt; ./test_speed_sha3_rv64imbv_ref > results_rv64imbv_ref.txt
-# ./test_speed_sha3_rv32im > results_rv32im.txt; ./test_speed_sha3_rv32imb > results_rv32imb.txt; ./test_speed_sha3_rv32imv > results_rv32imv.txt; ./test_speed_sha3_rv32imbv > results_rv32imbv.txt; ./test_speed_sha3_rv64im > results_rv64im.txt; ./test_speed_sha3_rv64imb > results_rv64imb.txt; ./test_speed_sha3_rv64imv > results_rv64imv.txt; ./test_speed_sha3_rv64imbv > results_rv64imbv.txt
-results:
-	scp root@$(TARGET_IP):/sharefs/results_rv32im_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imb_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imv_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imbv_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64im_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imb_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imv_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imbv_ref.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imbv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv64imbv.txt .
+run_all: \
+	run_rv32im_ref run_rv32imb_ref run_rv32imv_ref run_rv32imbv_ref \
+	run_rv64im_ref run_rv64imv_ref run_rv64imb_ref run_rv64imbv_ref \
+	run_rv32im run_rv32imb run_rv32imv run_rv32imbv \
+	run_rv64im run_rv64imv run_rv64imb run_rv64imbv \
+	run_ko_rv32im
+
+run_rv32im_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32im_ref" > results_rv32im_ref.txt
+run_rv32imb_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imb_ref" > results_rv32imb_ref.txt
+run_rv32imv_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imv_ref" > results_rv32imv_ref.txt
+run_rv32imbv_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imbv_ref" > results_rv32imbv_ref.txt
+run_rv64im_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64im_ref" > results_rv64im_ref.txt
+run_rv64imv_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imv_ref" > results_rv64imv_ref.txt
+run_rv64imb_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imb_ref" > results_rv64imb_ref.txt
+run_rv64imbv_ref: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imbv_ref" > results_rv64imbv_ref.txt
+run_rv32im: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32im" > results_rv32im.txt
+run_rv32imb: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imb" > results_rv32imb.txt
+run_rv32imv: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imv" > results_rv32imv.txt
+run_rv32imbv: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32imbv" > results_rv32imbv.txt
+run_rv64im: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64im" > results_rv64im.txt
+run_rv64imv: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imv" > results_rv64imv.txt
+run_rv64imb: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imb" > results_rv64imb.txt
+run_rv64imbv: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imbv" > results_rv64imbv.txt
+run_ko_rv32im: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_ko_sha3_rv32im" > results_ko_rv32im.txt
 
 out/scp_test:	\
 	out/test_speed_sha3_rv32im_ref 		out/test_speed_sha3_rv32imb_ref 	\
@@ -96,9 +117,16 @@ out/scp_test:	\
 	out/test_speed_sha3_rv32im 			out/test_speed_sha3_rv32imb 		\
 	out/test_speed_sha3_rv32imv 		out/test_speed_sha3_rv32imbv		\
 	out/test_speed_sha3_rv64im			out/test_speed_sha3_rv64imv 		\
-	out/test_speed_sha3_rv64imb			out/test_speed_sha3_rv64imbv
+	out/test_speed_sha3_rv64imb			out/test_speed_sha3_rv64imbv		\
+	out/speed_ko_sha3_rv32im
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
+
+# Ko Stoffelen implementation
+
+out/speed_ko_sha3_rv32im: $(SOURCES_COMMON) $(HEADERS_COMMON) speed_ko_sha3.c ko_fips202_rv32im.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IM_REF) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # ref implementation
 

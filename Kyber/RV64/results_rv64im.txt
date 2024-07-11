@@ -1,39 +1,39 @@
 Test speed of Kyber512
-gen_a:                          57462 cycles
-poly_getnoise_eta1:              9550 cycles
-NTT:                             6746 cycles
-INVNTT:                          7134 cycles
-poly_basemul_acc_cache_init:     2735 cycles
-poly_basemul_acc_cached:         2176 cycles
-poly_basemul_acc_cache_end:      3323 cycles
-polyvec_basemul_acc:             6721 cycles
-kyber_keypair:                 189499 cycles
-kyber_encaps:                  231210 cycles
-kyber_decaps:                  251101 cycles
+gen_a:                          47004 cycles
+poly_getnoise_eta1:              7838 cycles
+NTT:                             6610 cycles
+INVNTT:                          6997 cycles
+poly_basemul_acc_cache_init:     2669 cycles
+poly_basemul_acc_cached:         2123 cycles
+poly_basemul_acc_cache_end:      3246 cycles
+polyvec_basemul_acc:             6550 cycles
+kyber_keypair:                 168891 cycles
+kyber_encaps:                  204122 cycles
+kyber_decaps:                  228896 cycles
 
 Test speed of Kyber768
-gen_a:                         130295 cycles
-poly_getnoise_eta1:              6499 cycles
-NTT:                             6755 cycles
-INVNTT:                          7146 cycles
-poly_basemul_acc_cache_init:     2733 cycles
-poly_basemul_acc_cached:         2174 cycles
-poly_basemul_acc_cache_end:      3324 cycles
-polyvec_basemul_acc:             9405 cycles
-kyber_keypair:                 310918 cycles
-kyber_encaps:                  367073 cycles
-kyber_decaps:                  390130 cycles
+gen_a:                         113974 cycles
+poly_getnoise_eta1:              5604 cycles
+NTT:                             6599 cycles
+INVNTT:                          6982 cycles
+poly_basemul_acc_cache_init:     2667 cycles
+poly_basemul_acc_cached:         2122 cycles
+poly_basemul_acc_cache_end:      3244 cycles
+polyvec_basemul_acc:             9183 cycles
+kyber_keypair:                 279681 cycles
+kyber_encaps:                  328529 cycles
+kyber_decaps:                  358420 cycles
 
 Test speed of Kyber1024
-gen_a:                         232928 cycles
-poly_getnoise_eta1:              6500 cycles
-NTT:                             6754 cycles
-INVNTT:                          7146 cycles
-poly_basemul_acc_cache_init:     2747 cycles
-poly_basemul_acc_cached:         2175 cycles
-poly_basemul_acc_cache_end:      3325 cycles
-polyvec_basemul_acc:            12107 cycles
-kyber_keypair:                 476285 cycles
-kyber_encaps:                  544161 cycles
-kyber_decaps:                  569714 cycles
+gen_a:                         198194 cycles
+poly_getnoise_eta1:              5596 cycles
+NTT:                             6594 cycles
+INVNTT:                          6981 cycles
+poly_basemul_acc_cache_init:     2667 cycles
+poly_basemul_acc_cached:         2122 cycles
+poly_basemul_acc_cache_end:      3244 cycles
+polyvec_basemul_acc:            11821 cycles
+kyber_keypair:                 426079 cycles
+kyber_encaps:                  483132 cycles
+kyber_decaps:                  519382 cycles
 

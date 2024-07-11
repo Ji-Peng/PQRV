@@ -147,72 +147,72 @@ constants_keccak:
         S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, \
         S20, S21, S22, S23, S24, T00, T01, T02, T03, T04
     ld \S02, 2*8(a0)
-    ld \S12, 12*8(a0)
     ld \S07, 7*8(a0)
     ld \S00, 0*8(a0)
     ld \S05, 5*8(a0)
-    ld \S10, 10*8(a0)
-    ld \S17, 17*8(a0)
-    ld \S15, 15*8(a0)
     not \S02, \S02
-    not \S12, \S12
+    ld \S12, 12*8(a0)
     xor \T01, \S02, \S07
     xor \T00, \S00, \S05
+    ld \S10, 10*8(a0)
+    ld \S17, 17*8(a0)
+    not \S12, \S12
+    ld \S15, 15*8(a0)
     sd  \S00, 8*19(sp)
     xor \T01, \T01, \S12
+    not \S17, \S17
     ld \S22, 22*8(a0)
     ld \S20, 20*8(a0)
-    not \S17, \S17
-    ld \S04, 4*8(a0)
-    ld \S09, 9*8(a0)
     xor \T00, \T00, \S10
     xor \T01, \T01, \S17
-    xor \T00, \T00, \S15
     not \S20, \S20
-    ld \S01, 1*8(a0)
-    ld \S06, 6*8(a0)
+    xor \T00, \T00, \S15
+    ld \S04, 4*8(a0)
+    ld \S09, 9*8(a0)
     xor \T01, \T01, \S22
     xor \T00, \T00, \S20
+    ld \S01, 1*8(a0)
+    ld \S06, 6*8(a0)
     slli \T03, \T01, 1
     srli \T02, \T01, 64-1
+    xor  \S00, \S04, \S09
+    not \S01, \S01
+    xor  \T02, \T02, \T03
     ld \S11, 11*8(a0)
     ld \S14, 14*8(a0)
-    not \S01, \S01
-    xor  \S00, \S04, \S09
-    xor  \T02, \T02, \T03
     xor  \T03, \S01, \S06
-    ld \S16, 16*8(a0)
-    ld \S19, 19*8(a0)
     xor  \T02, \T02, \T00
+    ld \S16, 16*8(a0)
     xor \T03, \T03, \S11
     xor \S00, \S00, \S14
-    ld \S24, 24*8(a0)
-    ld \S21, 21*8(a0)
+    ld \S19, 19*8(a0)
     xor \S01, \S01, \T02
     xor \T03, \T03, \S16
     sd  \S01, 8*18(sp)
     xor \S06, \S06, \T02
     xor \S00, \S00, \S19
-    ld \S03, 3*8(a0)
-    ld \S08, 8*8(a0)
+    ld \S24, 24*8(a0)
+    ld \S21, 21*8(a0)
     xor \S11, \S11, \T02
     xor \S16, \S16, \T02
-    ld \S13, 13*8(a0)
-    ld \S18, 18*8(a0)
-    ld \S23, 23*8(a0)
     xor \S00, \S00, \S24
     slli \S01, \S00, 1
-    not \S08, \S08
     xor \T03, \T03, \S21
+    ld \S03, 3*8(a0)
+    ld \S08, 8*8(a0)
     xor  \T01, \T01, \S01
     srli \S01, \S00, 63
+    not \S08, \S08
     xor \S21, \S21, \T02
     xor  \T01, \T01, \S01
     xor \T02, \S03, \S08
+    ld \S13, 13*8(a0)
+    ld \S18, 18*8(a0)
     xor \S03, \S03, \T01
     xor \S08, \S08, \T01
     xor \T02, \T02, \S13
     xor \S13, \S13, \T01
+    ld \S23, 23*8(a0)
     xor \T02, \T02, \S18
     slli \S01, \T00, 1
     srli \T00, \T00, 63

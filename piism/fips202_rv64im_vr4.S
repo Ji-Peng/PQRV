@@ -160,6 +160,7 @@ constants_keccak:
     xor \T00, \T00, \S20
     slli \T03, \T01, 1
     srli \T02, \T01, 64-1
+    sd  \S00, 8*18(sp)
     xor  \T04, \S04, \S09
     xor  \T02, \T02, \T03
     xor  \T03, \S01, \S06
@@ -172,29 +173,28 @@ constants_keccak:
     xor \T04, \T04, \S14
     xor \S01, \S01, \T02
     xor \T03, \T03, \S16
-    sd  \S01, 8*18(sp)
     xor \S06, \S06, \T02
     xor \T04, \T04, \S19
     xor \S11, \S11, \T02
     xor \S16, \S16, \T02
     xor \T04, \T04, \S24
-    slli \S01, \T04, 1
+    slli \S00, \T04, 1
     xor \T03, \T03, \S21
-    xor  \T01, \T01, \S01
-    srli \S01, \T04, 63
+    xor  \T01, \T01, \S00
+    srli \S00, \T04, 63
     xor \S21, \S21, \T02
-    xor  \T01, \T01, \S01
+    xor  \T01, \T01, \S00
     xor \T02, \S03, \S08
     xor \S03, \S03, \T01
     xor \S08, \S08, \T01
     xor \T02, \T02, \S13
     xor \S13, \S13, \T01
     xor \T02, \T02, \S18
-    slli \S01, \T00, 1
+    slli \S00, \T00, 1
     srli \T00, \T00, 63
     xor \S18, \S18, \T01
     xor \T02, \T02, \S23
-    xor  \T00, \T00, \S01
+    xor  \T00, \T00, \S00
     xor \S23, \S23, \T01
     // T00=C0 T03=C1 T04=C4 T02=C3
     xor  \T00, \T00, \T02
@@ -203,7 +203,7 @@ constants_keccak:
     srli \T02, \T02, 63
     xor \S04, \S04, \T00
     xor \S09, \S09, \T00
-    ld  \S01, 8*18(sp)
+    ld  \S00, 8*18(sp)
     xor  \T02, \T02, \T01
     xor \S14, \S14, \T00
     xor \S19, \S19, \T00
@@ -355,12 +355,15 @@ constants_keccak:
     xor \S02, \S02, \T02
     ld   \T02, 17*8(sp)
     and \T03, \T00, \T01
-    ld   \T01, 0(\T02)
     xor \S03, \S03, \T04
-    xor \S04, \S04, \T03
+    ld   \T01, 0(\T02)
+    # loop control
+    ld   \T04, 16*8(sp)
     addi \T02, \T02, 8
-    xor  \S00, \S00, \T01
+    xor \S04, \S04, \T03
     sd   \T02, 17*8(sp)
+    addi \T04, \T04, -1
+    xor  \S00, \S00, \T01
     # Rho & Pi & Chi - end
 .endm
 
@@ -390,8 +393,8 @@ loop:
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
-    ld a0, 16*8(sp)
-    addi a0, a0, -1
+    # ld a0, 16*8(sp)
+    # addi a0, a0, -1
     bnez a0, loop
 
     ld a0, 15*8(sp)

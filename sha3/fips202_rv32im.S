@@ -478,9 +478,9 @@ constants_keccak:
     ROLn \S08h, \S08l, \S16h, \S16l, 45
     lw \T02l, 3*8(a0)
     lw \T02h, 3*8+4(a0)
+    ROLn \S16h, \S16l, \S05h, \S05l, 36
     lw \T03l, 18*8(a0)
     lw \T03h, 18*8+4(a0)
-    ROLn \S16h, \S16l, \S05h, \S05l, 36
     ROLn \S05h, \S05l, \T02h, \T02l, 28
     ROLn \T02h, \T02l, \T03h, \T03l, 21
     lw \T03l, 13*8(a0)
@@ -496,9 +496,9 @@ constants_keccak:
     sw \T02l, 13*8(a0)
     sw \T02h, 13*8+4(a0)
     ROLn \S10h, \S10l, \T03h, \T03l, 1
-    ROLn \T02h, \T02l, \S02h, \S02l, 62
     lw \T03l, 12*8(a0)
     lw \T03h, 12*8+4(a0)
+    ROLn \T02h, \T02l, \S02h, \S02l, 62
     sw \T02l, 1*8(a0)
     sw \T02h, 1*8+4(a0)
     lw \T02l, 9*8(a0)
@@ -566,14 +566,14 @@ constants_keccak:
     xorand \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
     or  \T03l, \T00l, \T01l
     or  \T03h, \T00h, \T01h
-    sw \T02l, 9*8(a0)
-    sw \T02h, 9*8+4(a0)
     lw \T01l, 19*8(a0)
     lw \T01h, 19*8+4(a0)
-    xor \S05h, \S05h, \T03h
-    xor \S05l, \S05l, \T03l
+    sw \T02l, 9*8(a0)
+    sw \T02h, 9*8+4(a0)
     lw \T00l, 18*8(a0)
     lw \T00h, 18*8+4(a0)
+    xor \S05h, \S05h, \T03h
+    xor \S05l, \S05l, \T03l
     # T00,T01,S14,S10,T02=S'12,S'13,S'14,S'10,S'11
     xornotand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
     lw \T02l, 11*8(a0)
@@ -629,12 +629,10 @@ constants_keccak:
     lw \T04, 17*4(sp)
     or  \T03l, \T00l, \T01l
     or  \T03h, \T00h, \T01h
-    sw \T02l, 22*8(a0)
-    sw \T02h, 22*8+4(a0)
     lw \T00l, 18*4(sp)
     lw \T00h, 19*4(sp)
-    # lw \T00l, 0*8(a0)
-    # lw \T00h, 0*8+4(a0)
+    sw \T02l, 22*8(a0)
+    sw \T02h, 22*8+4(a0)
     lw \T01l, 20*4(sp)
     lw \T01h, 21*4(sp)
     xor \S23h, \S23h, \T03h
@@ -655,9 +653,12 @@ constants_keccak:
     sw \T03l, 1*8(a0)
     sw \T03h, 1*8+4(a0)
     xorand \S02h, \S02l, \S02h, \S02l, \T02h, \T02l, \S04h, \S04l, \T03h, \T03l
+    # loop control
+    lw \T04, 16*4(sp)
     xoror \T03h, \T03l, \T02h, \T02l, \S04h, \S04l, \T00h, \T00l, \T03h, \T03l
     sw \T03l, 3*8(a0)
     sw \T03h, 3*8+4(a0)
+    addi \T04, \T04, -1
     xorand \S04h, \S04l, \S04h, \S04l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
 .endm
 
@@ -675,9 +676,9 @@ constants_keccak:
 .align 2
 KeccakF1600_StatePermute_RV32ASM:
     addi sp, sp, -4*28
+    la t0, constants_keccak
     SaveRegs
-    la tp, constants_keccak
-    sw tp, 17*4(sp)
+    sw t0, 17*4(sp)
 
     InitLoad \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
@@ -693,8 +694,8 @@ loop_start:
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10,s11,ra, gp, tp
     
-    lw tp, 16*4(sp)
-    addi tp, tp, -1
+    # lw tp, 16*4(sp)
+    # addi tp, tp, -1
     bnez tp, loop_start
 
     FinalStore \

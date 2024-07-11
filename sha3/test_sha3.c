@@ -508,7 +508,6 @@ uint64_t t[NTESTS];
 
 int main(void)
 {
-    int i;
     keccak_state s;
     const uint8_t buff[16] = {0};
     uint8_t *buff_out;

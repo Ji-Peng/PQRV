@@ -13,12 +13,10 @@ CFLAGS_COMMON 	= -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls
 			  	  -Wshadow -Wpointer-arith -O3 -fomit-frame-pointer -static \
 				  -DRV64=1 -I$(COMMONDIR) -I$(KECCAKDIR) -I$(NTTDIR) -I.
 
-CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64 -DRV64IM
-CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64 -DRV64IMB
-CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DRV64IMV \
-	-DVECTOR128 -DHYBRIDX3 -DHYBRIDX4 -DHYBRIDX5 -DHYBRIDX6 -DHYBRIDX8
-CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DRV64IMBV \
-	-DVECTOR128 -DHYBRIDX8
+CFLAGS_RV64IM 	= $(CFLAGS_COMMON) -march=rv64imac -mabi=lp64
+CFLAGS_RV64IMB 	= $(CFLAGS_COMMON) -march=rv64imac_zba_zbb -mabi=lp64
+CFLAGS_RV64IMV 	= $(CFLAGS_COMMON) -march=rv64imacv -mabi=lp64 -DVECTOR128
+CFLAGS_RV64IMBV = $(CFLAGS_COMMON) -march=rv64imacv_zba_zbb -mabi=lp64 -DVECTOR128
 TARGET_IP = 192.168.123.99
 TARGET_USER = root
 TARGET_DIR  = /sharefs
@@ -31,15 +29,15 @@ SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KECCAKDI
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h $(KECCAKDIR)/fips202.h $(KECCAKDIR)/fips202x.h
 SOURCES_RV64IM	= $(KECCAKDIR)/fips202_rv64im.S $(NTTDIR)/ntt_dualissue_plant_rv64im.S
 SOURCES_RV64IMB	= $(KECCAKDIR)/fips202_rv64imb.S $(NTTDIR)/ntt_dualissue_plant_rv64im.S
-SOURCES_RV64IMV	= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64im.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imv_hybrid_x8.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
-SOURCES_RV64IMBV= $(KECCAKDIR)/fips202x_rv64.c $(KECCAKDIR)/fips202_rv64imb.S $(KECCAKDIR)/fips202_rv64v.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x3.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x4.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x5.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x6.S $(KECCAKDIR)/fips202_rv64imbv_hybrid_x8.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
+SOURCES_RV64IMV	= $(KECCAKDIR)/fips202_rv64im.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
+SOURCES_RV64IMBV= $(KECCAKDIR)/fips202_rv64imb.S $(NTTDIR)/ntt_rvv.S $(NTTDIR)/consts.c
 
 SOURCES 		= $(SOURCES_COMMON) $(SOURCES_RAND) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.h verify.h symmetric.h
 SOURCES_VECTOR 	= $(SOURCES_COMMON) kem.c indcpa.c polyvec.c poly.c ntt.c cbd.c reduce.c verify.c symmetric-shake.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.c verify.h symmetric.h
 
-.PHONY: all speed results scp_vectors diff_vectors clean
+.PHONY: all speed run_speed run_diff_vectors clean
 
 all: \
 	out/test_kyber512_rv64im    \
@@ -71,38 +69,25 @@ speed: \
 	out/test_speed768_rv64imbv   	out/test_speed1024_rv64imbv		\
 	out/scp_test_speed
 
+run_speed: out/scp_test_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64im; ./test_speed768_rv64im; ./test_speed1024_rv64im" > results_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imb; ./test_speed768_rv64imb; ./test_speed1024_rv64imb" > results_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imv; ./test_speed768_rv64imv; ./test_speed1024_rv64imv" > results_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed512_rv64imbv; ./test_speed768_rv64imbv; ./test_speed1024_rv64imbv" > results_rv64imbv.txt
 
-# Get the file results*.txt from the target machine. Note that when executing commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The commands executed on target machine include:
-# ./test_speed512_rv64im > results_rv64im.txt; ./test_speed768_rv64im >> results_rv64im.txt; ./test_speed1024_rv64im >> results_rv64im.txt
-# ./test_speed512_rv64imb > results_rv64imb.txt; ./test_speed768_rv64imb >> results_rv64imb.txt; ./test_speed1024_rv64imb >> results_rv64imb.txt
-# ./test_speed512_rv64imv > results_rv64imv.txt; ./test_speed768_rv64imv >> results_rv64imv.txt; ./test_speed1024_rv64imv >> results_rv64imv.txt
-# ./test_speed512_rv64imbv > results_rv64imbv.txt; ./test_speed768_rv64imbv >> results_rv64imbv.txt; ./test_speed1024_rv64imbv >> results_rv64imbv.txt
-results:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/results_rv64imbv.txt .
-
-# ./test_vectors512_rv64im > vectors_kyber512_rv64im.txt; ./test_vectors768_rv64im > vectors_kyber768_rv64im.txt; ./test_vectors1024_rv64im > vectors_kyber1024_rv64im.txt
-# ./test_vectors512_rv64imb > vectors_kyber512_rv64imb.txt; ./test_vectors768_rv64imb > vectors_kyber768_rv64imb.txt; ./test_vectors1024_rv64imb > vectors_kyber1024_rv64imb.txt
-# ./test_vectors512_rv64imv > vectors_kyber512_rv64imv.txt; ./test_vectors768_rv64imv > vectors_kyber768_rv64imv.txt; ./test_vectors1024_rv64imv > vectors_kyber1024_rv64imv.txt
-# ./test_vectors512_rv64imbv > vectors_kyber512_rv64imbv.txt; ./test_vectors768_rv64imbv > vectors_kyber768_rv64imbv.txt; ./test_vectors1024_rv64imbv > vectors_kyber1024_rv64imbv.txt
-scp_vectors:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber512_rv64imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber768_rv64imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_kyber1024_rv64imbv.txt .
-
-diff_vectors:
+run_diff_vectors: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv64im" > vectors_kyber512_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv64im" > vectors_kyber768_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv64im" > vectors_kyber1024_rv64im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv64imb" > vectors_kyber512_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv64imb" > vectors_kyber768_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv64imb" > vectors_kyber1024_rv64imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv64imv" > vectors_kyber512_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv64imv" > vectors_kyber768_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv64imv" > vectors_kyber1024_rv64imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors512_rv64imbv" > vectors_kyber512_rv64imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors768_rv64imbv" > vectors_kyber768_rv64imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors1024_rv64imbv" > vectors_kyber1024_rv64imbv.txt
 	diff vectors_kyber512_rv64im.txt ../ref/vectors_kyber512.txt
 	diff vectors_kyber768_rv64im.txt ../ref/vectors_kyber768.txt
 	diff vectors_kyber1024_rv64im.txt ../ref/vectors_kyber1024.txt
@@ -115,10 +100,6 @@ diff_vectors:
 	diff vectors_kyber512_rv64imbv.txt ../ref/vectors_kyber512.txt
 	diff vectors_kyber768_rv64imbv.txt ../ref/vectors_kyber768.txt
 	diff vectors_kyber1024_rv64imbv.txt ../ref/vectors_kyber1024.txt
-
-
-objdump:
-	$(OBJDUMP) -D out/test_speed_sha3_rv64imv > out/test_speed_sha3_rv64imv.S
 
 out/scp_test_speed:	\
 	out/test_speed512_rv64im 		\

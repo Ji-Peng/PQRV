@@ -41,7 +41,7 @@ HEADERS 		= $(HEADERS_COMMON) $(HEADERS_RAND) config.h params.h api.h sign.h pac
 SOURCES_VECTOR 	= $(SOURCES_COMMON) sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c
 HEADERS_VECTOR 	= $(HEADERS_COMMON) config.h params.h api.h sign.h packing.h polyvec.h poly.h ntt.h reduce.h rounding.h
 
-.PHONY: all speed results scp_vectors diff_vectors clean
+.PHONY: all speed run_speed run_diff_vectors clean
 
 all: \
 	out/test_dilithium2_rv32im 		\
@@ -73,37 +73,25 @@ speed: \
 	out/test_speed3_rv32imbv		out/test_speed5_rv32imbv 	\
 	out/scp_test_speed
 
-# Get the file results*.txt from the target machine. Note that when execute commands like test_speed* on the target machine, the output results are redirected to results.txt.
-# The commands executed on target machine include:
-# ./test_mul_rv32im > results_rv32im.txt; ./test_speed2_rv32im >> results_rv32im.txt; ./test_speed3_rv32im >> results_rv32im.txt; ./test_speed5_rv32im >> results_rv32im.txt
-# ./test_mul_rv32imb > results_rv32imb.txt; ./test_speed2_rv32imb >> results_rv32imb.txt; ./test_speed3_rv32imb >> results_rv32imb.txt; ./test_speed5_rv32imb >> results_rv32imb.txt
-# ./test_mul_rv32imv > results_rv32imv.txt; ./test_speed2_rv32imv >> results_rv32imv.txt; ./test_speed3_rv32imv >> results_rv32imv.txt; ./test_speed5_rv32imv >> results_rv32imv.txt
-# ./test_mul_rv32imbv > results_rv32imbv.txt; ./test_speed2_rv32imbv >> results_rv32imbv.txt; ./test_speed3_rv32imbv >> results_rv32imbv.txt; ./test_speed5_rv32imbv >> results_rv32imbv.txt
-results:
-	scp root@$(TARGET_IP):/sharefs/results_rv32im.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imb.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imv.txt .
-	scp root@$(TARGET_IP):/sharefs/results_rv32imbv.txt .
+run_speed: out/scp_test_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv32im; ./test_speed2_rv32im; ./test_speed3_rv32im; ./test_speed5_rv32im" > results_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv32imb; ./test_speed2_rv32imb; ./test_speed3_rv32imb; ./test_speed5_rv32imb" > results_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv32imv; ./test_speed2_rv32imv; ./test_speed3_rv32imv; ./test_speed5_rv32imv" > results_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_mul_rv32imbv; ./test_speed2_rv32imbv; ./test_speed3_rv32imbv; ./test_speed5_rv32imbv" > results_rv32imbv.txt
 
-# ./test_vectors2_rv32im > vectors_dilithium2_rv32im.txt; ./test_vectors3_rv32im > vectors_dilithium3_rv32im.txt; ./test_vectors5_rv32im > vectors_dilithium5_rv32im.txt
-# ./test_vectors2_rv32imb > vectors_dilithium2_rv32imb.txt; ./test_vectors3_rv32imb > vectors_dilithium3_rv32imb.txt; ./test_vectors5_rv32imb > vectors_dilithium5_rv32imb.txt
-# ./test_vectors2_rv32imv > vectors_dilithium2_rv32imv.txt; ./test_vectors3_rv32imv > vectors_dilithium3_rv32imv.txt; ./test_vectors5_rv32imv > vectors_dilithium5_rv32imv.txt
-# ./test_vectors2_rv32imbv > vectors_dilithium2_rv32imbv.txt; ./test_vectors3_rv32imbv > vectors_dilithium3_rv32imbv.txt; ./test_vectors5_rv32imbv > vectors_dilithium5_rv32imbv.txt
-scp_vectors:
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv32im.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv32imb.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv32imv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium2_rv32imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium3_rv32imbv.txt .
-	$(SCP) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/vectors_dilithium5_rv32imbv.txt .
-
-diff_vectors:
+run_diff_vectors: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv32im" > vectors_dilithium2_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv32im" > vectors_dilithium3_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv32im" > vectors_dilithium5_rv32im.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv32imb" > vectors_dilithium2_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv32imb" > vectors_dilithium3_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv32imb" > vectors_dilithium5_rv32imb.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv32imv" > vectors_dilithium2_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv32imv" > vectors_dilithium3_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv32imv" > vectors_dilithium5_rv32imv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors2_rv32imbv" > vectors_dilithium2_rv32imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors3_rv32imbv" > vectors_dilithium3_rv32imbv.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_vectors5_rv32imbv" > vectors_dilithium5_rv32imbv.txt
 	diff vectors_dilithium2_rv32im.txt ../ref/vectors_dilithium2.txt
 	diff vectors_dilithium3_rv32im.txt ../ref/vectors_dilithium3.txt
 	diff vectors_dilithium5_rv32im.txt ../ref/vectors_dilithium5.txt

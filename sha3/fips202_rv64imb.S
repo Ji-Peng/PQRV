@@ -128,9 +128,10 @@ constants_keccak:
     sd \S24, 24*8(a0)
 .endm
 
-.macro ARoundInPlace    S00_s, S01_s, S02_s, S03_s, S04_s, S05_s, S06_s, S07_s, S08_s, S09_s, \
-                        S10_s, S11_s, S12_s, S13_s, S14_s, S15_s, S16_s, S17_s, S18_s, S19_s, \
-                        S20_s, S21_s, S22_s, S23_s, S24_s, T00_s, T01_s, T02_s, T03_s, T04_s
+.macro ARoundInPlace \
+        S00_s, S01_s, S02_s, S03_s, S04_s, S05_s, S06_s, S07_s, S08_s, S09_s, \
+        S10_s, S11_s, S12_s, S13_s, S14_s, S15_s, S16_s, S17_s, S18_s, S19_s, \
+        S20_s, S21_s, S22_s, S23_s, S24_s, T00_s, T01_s, T02_s, T03_s, T04_s
     xor \T01_s, \S02_s, \S07_s
     xor \T00_s, \S00_s, \S05_s
     xor \T01_s, \T01_s, \S12_s
@@ -139,24 +140,24 @@ constants_keccak:
     xor \T00_s, \T00_s, \S15_s
     xor \T01_s, \T01_s, \S22_s
     xor \T00_s, \T00_s, \S20_s
-    rori \T02_s, \T01_s, 64-1
-    xor \T03_s, \S01_s, \S06_s
-    xor  \T02_s, \T02_s, \T00_s
-    xor \T03_s, \T03_s, \S11_s
+    rori \T02_s, \T01_s, 63
     xor \T04_s, \S04_s, \S09_s
-    xor \S01_s, \S01_s, \T02_s
+    xor  \T02_s, \T02_s, \T00_s
+    xor \T03_s, \S01_s, \S06_s
     xor \T04_s, \T04_s, \S14_s
+    xor \S01_s, \S01_s, \T02_s
     xor \S06_s, \S06_s, \T02_s
-    sd  \S06_s, 8*18(sp)
-    xor \T03_s, \T03_s, \S16_s
+    xor \T03_s, \T03_s, \S11_s
     xor \T04_s, \T04_s, \S19_s
     xor \S11_s, \S11_s, \T02_s
-    xor \T04_s, \T04_s, \S24_s
-    xor \T03_s, \T03_s, \S21_s
-    rori \S06_s, \T04_s, 63
+    xor \T03_s, \T03_s, \S16_s
     xor \S16_s, \S16_s, \T02_s
+    xor \T03_s, \T03_s, \S21_s
     xor \S21_s, \S21_s, \T02_s
-    xor  \T01_s, \T01_s, \S06_s
+    xor \T04_s, \T04_s, \S24_s
+    rori \T02_s, \T04_s, 63
+    rori \T00_s, \T00_s, 63
+    xor  \T01_s, \T01_s, \T02_s
     xor \T02_s, \S03_s, \S08_s
     xor \S03_s, \S03_s, \T01_s
     xor \T02_s, \T02_s, \S13_s
@@ -164,30 +165,28 @@ constants_keccak:
     xor \T02_s, \T02_s, \S18_s
     xor \S13_s, \S13_s, \T01_s
     xor \T02_s, \T02_s, \S23_s
-    xor \S18_s, \S18_s, \T01_s
-    ld  \S06_s, 8*18(sp)
-    rori \T00_s, \T00_s, 64-1
-    xor \S23_s, \S23_s, \T01_s
     xor  \T00_s, \T00_s, \T02_s
-    rori \T02_s, \T02_s, 64-1
+    xor \S18_s, \S18_s, \T01_s
+    xor \S23_s, \S23_s, \T01_s
     xor \S04_s, \S04_s, \T00_s
-    xor  \T02_s, \T02_s, \T03_s
+    rori \T02_s, \T02_s, 63
     xor \S09_s, \S09_s, \T00_s
-    rori \T03_s, \T03_s, 64-1
     xor \S14_s, \S14_s, \T00_s
-    xor  \T03_s, \T03_s, \T04_s
+    xor  \T02_s, \T02_s, \T03_s
     xor \S19_s, \S19_s, \T00_s
     xor \S24_s, \S24_s, \T00_s
+    rori \T03_s, \T03_s, 63
     xor \S02_s, \S02_s, \T02_s
     xor \S07_s, \S07_s, \T02_s
     xor \S12_s, \S12_s, \T02_s
+    xor  \T03_s, \T03_s, \T04_s
     xor \S17_s, \S17_s, \T02_s
     xor \S22_s, \S22_s, \T02_s
-    xor \T00_s, \S00_s, \T03_s
     xor \S05_s, \S05_s, \T03_s
     xor \S10_s, \S10_s, \T03_s
     xor \S15_s, \S15_s, \T03_s
     xor \S20_s, \S20_s, \T03_s
+    xor \T00_s, \S00_s, \T03_s
     rori \T01_s, \S06_s, 64-44
     rori \S00_s, \S02_s, 64-62
     rori \S02_s, \S12_s, 64-43
@@ -254,25 +253,28 @@ constants_keccak:
     xor \S24_s, \T03_s, \S24_s
     andn \T02_s, \S02_s, \T01_s
     andn \T03_s, \S03_s, \S02_s
+    ld   \T04_s, 17*8(sp)
     xor \S00_s, \T02_s, \T00_s
     xor \S01_s, \T03_s, \T01_s
     andn \T02_s, \S04_s, \S03_s
     andn \T03_s, \T00_s, \S04_s
-    ld   \T04_s, 17*8(sp)
     xor \S02_s, \T02_s, \S02_s
     andn \T02_s, \T01_s, \T00_s
     ld   \T01_s, 0(\T04_s)
-    xor \S03_s, \T03_s, \S03_s
-    xor \S04_s, \T02_s, \S04_s
     addi \T04_s, \T04_s, 8
-    xor  \S00_s, \S00_s, \T01_s
+    xor \S03_s, \T03_s, \S03_s
     sd   \T04_s, 17*8(sp)
+    # loop control
+    ld   \T04_s, 16*8(sp)
+    xor \S04_s, \T02_s, \S04_s
+    xor  \S00_s, \S00_s, \T01_s
+    addi \T04_s, \T04_s, -1
 .endm
 
 .globl KeccakF1600_StatePermute_RV64ASM
 .align 2
 KeccakF1600_StatePermute_RV64ASM:
-    addi sp, sp, -8*19
+    addi sp, sp, -8*18
     SaveRegs
     sd a0, 15*8(sp)
 
@@ -289,11 +291,12 @@ KeccakF1600_StatePermute_RV64ASM:
     
 rounds1_loop_start:
     sd a0, 16*8(sp)
-    ARoundInPlace       a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
-                        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
-                        s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
-    ld a0, 16*8(sp)
-    addi a0, a0, -1
+    ARoundInPlace \
+        a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
+        t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
+        s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
+    # ld a0, 16*8(sp)
+    # addi a0, a0, -1
     bnez a0, rounds1_loop_start
 
     ld a0, 15*8(sp)
@@ -302,5 +305,5 @@ rounds1_loop_start:
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10
     RestoreRegs
-    addi sp, sp, 8*19
+    addi sp, sp, 8*18
     ret

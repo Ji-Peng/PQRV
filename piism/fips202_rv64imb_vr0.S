@@ -135,12 +135,12 @@ constants_keccak:
     xor \out, \out, \S04
 .endm
 
-.macro ROLn out, in, tmp, n
+.macro ROLn out, in, n
     rori \out, \in, 64-\n
 .endm
 
-.macro ROL1 out, in, tmp
-    ROLn \out, \in, \tmp, 1
+.macro ROL1 out, in
+    ROLn \out, \in, 1
 .endm
 
 .macro EachXOR S00, S01, S02, S03, S04, D
@@ -165,7 +165,7 @@ constants_keccak:
     # C2 = S02 ^ S07 ^ S12 ^ S17 ^ S22
     XOR5 \T01, \S02, \S07, \S12, \S17, \S22 // T00=C0 T01=C2
     # D1 = C0 ^ ROL(C2, 1)
-    ROL1 \T02, \T01, \T03
+    ROL1 \T02, \T01
     xor  \T02, \T02, \T00 // T00=C0 T01=C2 T02=D1
 
     # C1 = S01 ^ S06 ^ S11 ^ S16 ^ S21
@@ -174,31 +174,31 @@ constants_keccak:
     EachXOR \S01, \S06, \S11, \S16, \S21, \T02 // T00=C0 T01=C2 T03=C1
 
     # C4 = S04 ^ S09 ^ S14 ^ S19 ^ S24
-    XOR5 \T02, \S04, \S09, \S14, \S19, \S24 // T00=C0 T01=C2 T03=C1 T02=C4
+    XOR5 \T04, \S04, \S09, \S14, \S19, \S24 // T00=C0 T01=C2 T03=C1 T04=C4
     # D3 = C2 ^ ROL(C4, 1); C2 can be overwritten
-    rori \T04, \T02, 63
-    xor  \T01, \T01, \T04 // T00=C0 T01=D3 T03=C1 T02=C4
+    rori \T02, \T04, 63
+    xor  \T01, \T01, \T02 // T00=C0 T01=D3 T03=C1 T04=C4
 
     # C3 = S03 ^ S08 ^ S13 ^ S18 ^ S23
-    XOR5 \T04, \S03, \S08, \S13, \S18, \S23 // T00=C0 T01=D3 T03=C1 T02=C4 T04=C3
+    XOR5 \T02, \S03, \S08, \S13, \S18, \S23 // T00=C0 T01=D3 T03=C1 T04=C4 T02=C3
     # S18 ^= D3; S03 ^= D3; S13 ^= D3; S23 ^= D3; S08 ^= D3
-    EachXOR \S03, \S08, \S13, \S18, \S23, \T01 // T00=C0 T03=C1 T02=C4 T04=C3
+    EachXOR \S03, \S08, \S13, \S18, \S23, \T01 // T00=C0 T03=C1 T04=C4 T02=C3
 
     # D4 = C3 ^ ROL(C0, 1); C0 can be overwritten
-    ROL1 \T00, \T00, \T01
-    xor  \T00, \T00, \T04 // T00=D4 T03=C1 T02=C4 T04=C3
+    ROL1 \T00, \T00
+    xor  \T00, \T00, \T02 // T00=D4 T03=C1 T04=C4 T02=C3
     # S24 ^= D4; S09 ^= D4; S19 ^= D4; S04 ^= D4; S14 ^= D4
-    EachXOR \S04, \S09, \S14, \S19, \S24, \T00 // T03=C1 T02=C4 T04=C3
+    EachXOR \S04, \S09, \S14, \S19, \S24, \T00 // T03=C1 T04=C4 T02=C3
 
     # D2 = C1 ^ ROL(C3, 1)
-    ROL1 \T04, \T04, \T01
-    xor  \T04, \T04, \T03 // T03=C1 T02=C4 T04=D2
+    ROL1 \T02, \T02
+    xor  \T02, \T02, \T03 // T03=C1 T04=C4 T02=D2
     # S12 ^= D2; S22 ^= D2; S07 ^= D2; S17 ^= D2; S02 ^= D2
-    EachXOR \S02, \S07, \S12, \S17, \S22, \T04 // T03=C1 T02=C4
+    EachXOR \S02, \S07, \S12, \S17, \S22, \T02 // T03=C1 T02=C4
 
     # D0 = C4 ^ ROL(C1, 1)
-    ROL1 \T03, \T03, \T01
-    xor  \T03, \T03, \T02 // T03=D0
+    ROL1 \T03, \T03
+    xor  \T03, \T03, \T04 // T03=D0
     # S00 ^= D0; S05 ^= D0; S10 ^= D0; S15 ^= D0; S20 ^= D0
     # EachXOR \S00, \S05, \S10, \S15, \S20, \T03
     xor \S05, \S05, \T03
@@ -209,30 +209,30 @@ constants_keccak:
     # theta - end
 
     # Rho & Pi & Chi - start
-    ROLn \T01, \S06, \T02, 44
-    ROLn \S00, \S02, \T03, 62
-    ROLn \S02, \S12, \T02, 43
-    ROLn \S12, \S13, \T03, 25
-    ROLn \S13, \S19, \T02, 8
-    ROLn \S19, \S23, \T03, 56
-    ROLn \S23, \S15, \T02, 41
-    ROLn \S15, \S01, \T03, 1
-    ROLn \S01, \S08, \T02, 55
-    ROLn \S08, \S16, \T03, 45
-    ROLn \S16, \S07, \T02, 6
-    ROLn \S07, \S10, \T03, 3
-    ROLn \S10, \S03, \T02, 28
-    ROLn \S03, \S18, \T03, 21
-    ROLn \S18, \S17, \T02, 15
-    ROLn \S17, \S11, \T03, 10
-    ROLn \S11, \S09, \T02, 20
-    ROLn \S09, \S22, \T03, 61
-    ROLn \S22, \S14, \T02, 39
-    ROLn \S14, \S20, \T03, 18
-    ROLn \S20, \S04, \T02, 27
-    ROLn \S04, \S24, \T03, 14
-    ROLn \S24, \S21, \T02, 2
-    ROLn \S21, \S05, \T03, 36
+    ROLn \T01, \S06, 44
+    ROLn \S00, \S02, 62
+    ROLn \S02, \S12, 43
+    ROLn \S12, \S13, 25
+    ROLn \S13, \S19, 8
+    ROLn \S19, \S23, 56
+    ROLn \S23, \S15, 41
+    ROLn \S15, \S01, 1
+    ROLn \S01, \S08, 55
+    ROLn \S08, \S16, 45
+    ROLn \S16, \S07, 6
+    ROLn \S07, \S10, 3
+    ROLn \S10, \S03, 28
+    ROLn \S03, \S18, 21
+    ROLn \S18, \S17, 15
+    ROLn \S17, \S11, 10
+    ROLn \S11, \S09, 20
+    ROLn \S09, \S22, 61
+    ROLn \S22, \S14, 39
+    ROLn \S14, \S20, 18
+    ROLn \S20, \S04, 27
+    ROLn \S04, \S24, 14
+    ROLn \S24, \S21, 2
+    ROLn \S21, \S05, 36
 
     ChiOp \S05, \S10, \S11, \S07, \T02
     ChiOp \S06, \S11, \S07, \S08, \T03

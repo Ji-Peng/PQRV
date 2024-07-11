@@ -22,7 +22,6 @@ uint64_t t[NTESTS];
 
 int main()
 {
-    int i;
 #ifdef DILITHIUM_NTT_RV32_H
     int32_t a[256], b[256], c[256], zetas[256 * 2];
     int64_t tmp[256];

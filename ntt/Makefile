@@ -28,7 +28,7 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 
 SOURCES			= speed_ntt.c
 
-.PHONY: all clean
+.PHONY: all run_all clean
 
 all: \
 	out/speed_singleissue_kyber_plantard_ntt_rv32	\
@@ -42,6 +42,28 @@ all: \
 	out/speed_dualissue_kyber_mont_ntt_rvv			\
 	out/speed_dualissue_dilithium_mont_ntt_rvv		\
 	out/scp_speed
+
+run_all: out/scp_speed
+	@echo "speed_singleissue_kyber_plantard_ntt_rv32:" > speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_singleissue_kyber_plantard_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_plantard_ntt_rv32:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_plantard_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_singleissue_kyber_plantard_ntt_rv64:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_singleissue_kyber_plantard_ntt_rv64" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_plantard_ntt_rv64:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_plantard_ntt_rv64" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_plantard_l32_ntt_rv64:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_plantard_l32_ntt_rv64" >> speed_ntt.txt
+	@echo "\nspeed_singleissue_dilithium_mont_ntt_rv32:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_singleissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_dilithium_mont_ntt_rv32:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_mont_ntt_rv32:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_mont_ntt_rvv:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rvv" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_dilithium_mont_ntt_rvv:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_mont_ntt_rvv" >> speed_ntt.txt
 
 out/scp_speed:	\
 	out/speed_singleissue_kyber_plantard_ntt_rv32	\

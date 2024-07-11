@@ -355,12 +355,15 @@ constants_keccak:
     xor \S02, \S02, \T02
     ld   \T02, 17*8(sp)
     and \T03, \T00, \T01
-    ld   \T01, 0(\T02)
     xor \S03, \S03, \T04
-    xor \S04, \S04, \T03
+    ld   \T01, 0(\T02)
+    # loop control
+    ld   \T04, 16*8(sp)
     addi \T02, \T02, 8
-    xor  \S00, \S00, \T01
+    xor \S04, \S04, \T03
     sd   \T02, 17*8(sp)
+    addi \T04, \T04, -1
+    xor  \S00, \S00, \T01
     # Rho & Pi & Chi - end
 .endm
 
@@ -390,8 +393,6 @@ loop:
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \
         t3, t4, t5, t6, s0, s1, s2, s3, s4, s5, \
         s6, s7, s8, s9, s10,s11,ra, gp, tp, a0
-    ld a0, 16*8(sp)
-    addi a0, a0, -1
     bnez a0, loop
 
     ld a0, 15*8(sp)

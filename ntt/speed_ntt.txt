@@ -1,0 +1,130 @@
+speed_singleissue_kyber_plantard_ntt_rv32:
+Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV32IM
+ntt                            cycles/insts/CPI=13218/6774/1.95
+intt                           cycles/insts/CPI=11427/7317/1.56
+basemul_acc                    cycles/insts/CPI=4171/3085/1.35
+basemul_acc_end                cycles/insts/CPI=7120/4182/1.70
+basemul_cache_init             cycles/insts/CPI=3916/2766/1.42
+basemul_acc_cache_init         cycles/insts/CPI=4172/3278/1.27
+basemul_acc_cache_init_end     cycles/insts/CPI=7121/4375/1.63
+basemul_acc_cached             cycles/insts/CPI=2891/2572/1.12
+basemul_acc_cache_end          cycles/insts/CPI=5900/3663/1.61
+plantard_rdc                   cycles/insts/CPI=2841/1642/1.73
+toplant                        cycles/insts/CPI=2841/1642/1.73
+
+speed_dualissue_kyber_plantard_ntt_rv32:
+Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV32IM
+ntt                            cycles/insts/CPI=5714/6870/0.83
+intt                           cycles/insts/CPI=6005/7398/0.81
+basemul_acc                    cycles/insts/CPI=2057/2925/0.70
+basemul_acc_end                cycles/insts/CPI=3053/4049/0.75
+basemul_cache_init             cycles/insts/CPI=1962/2574/0.76
+basemul_acc_cache_init         cycles/insts/CPI=2218/3086/0.72
+basemul_acc_cache_init_end     cycles/insts/CPI=3340/4305/0.78
+basemul_acc_cached             cycles/insts/CPI=1673/2412/0.69
+basemul_acc_cache_end          cycles/insts/CPI=2668/3536/0.75
+plantard_rdc                   cycles/insts/CPI=1339/1597/0.84
+toplant                        cycles/insts/CPI=1339/1597/0.84
+
+speed_singleissue_kyber_plantard_ntt_rv64:
+Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV64IM
+ntt                            cycles/insts/CPI=15010/6775/2.22
+intt                           cycles/insts/CPI=13444/7318/1.84
+basemul_acc                    cycles/insts/CPI=4941/3086/1.60
+basemul_acc_end                cycles/insts/CPI=8279/4189/1.98
+basemul_cache_init             cycles/insts/CPI=4685/2767/1.69
+basemul_acc_cache_init         cycles/insts/CPI=4941/3279/1.51
+basemul_acc_cache_init_end     cycles/insts/CPI=8344/4382/1.90
+basemul_acc_cached             cycles/insts/CPI=3404/2573/1.32
+basemul_acc_cache_end          cycles/insts/CPI=6868/3670/1.87
+plantard_rdc                   cycles/insts/CPI=3293/1647/2.00
+toplant                        cycles/insts/CPI=3295/1649/2.00
+
+speed_dualissue_kyber_plantard_ntt_rv64:
+Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV64IM
+ntt                            cycles/insts/CPI=6609/6871/0.96
+intt                           cycles/insts/CPI=6996/7399/0.95
+basemul_acc                    cycles/insts/CPI=2635/2926/0.90
+basemul_acc_end                cycles/insts/CPI=3757/4050/0.93
+basemul_cache_init             cycles/insts/CPI=2507/2575/0.97
+basemul_acc_cache_init         cycles/insts/CPI=2667/3087/0.86
+basemul_acc_cache_init_end     cycles/insts/CPI=4172/4496/0.93
+basemul_acc_cached             cycles/insts/CPI=2122/2413/0.88
+basemul_acc_cache_end          cycles/insts/CPI=3245/3537/0.92
+plantard_rdc                   cycles/insts/CPI=1532/1598/0.96
+toplant                        cycles/insts/CPI=1534/1600/0.96
+
+speed_dualissue_kyber_plantard_l32_ntt_rv64:
+Kyber 7-layer NTT & Plantard based & 4+3 layers merging & RV64IM
+ntt                            cycles/insts/CPI=7281/6871/1.06
+intt                           cycles/insts/CPI=7668/7399/1.04
+basemul_acc                    cycles/insts/CPI=2763/2926/0.94
+basemul_acc_end                cycles/insts/CPI=3987/4056/0.98
+basemul_cache_init             cycles/insts/CPI=2635/2575/1.02
+basemul_acc_cache_init         cycles/insts/CPI=2795/3087/0.91
+basemul_acc_cache_init_end     cycles/insts/CPI=4498/4502/1.00
+basemul_acc_cached             cycles/insts/CPI=2122/2413/0.88
+basemul_acc_cache_end          cycles/insts/CPI=3347/3543/0.94
+plantard_rdc                   cycles/insts/CPI=1760/1602/1.10
+toplant                        cycles/insts/CPI=1762/1604/1.10
+
+speed_singleissue_dilithium_mont_ntt_rv32:
+Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging
+ntt                            cycles/insts/CPI=13223/8494/1.56
+poly_basemul_init              cycles/insts/CPI=1035/1706/0.61
+poly_basemul_acc               cycles/insts/CPI=1933/3242/0.60
+poly_basemul_acc_end           cycles/insts/CPI=3787/3823/0.99
+poly_basemul                   cycles/insts/CPI=2856/2221/1.29
+poly_reduce                    cycles/insts/CPI=1226/1673/0.73
+intt                           cycles/insts/CPI=11114/9009/1.23
+Dilithium 6-layer NTT & Montgomery based & 3+3 layers merging
+ntt                            cycles/insts/CPI=9574/5964/1.61
+basemul_cache_init             cycles/insts/CPI=9226/8401/1.10
+basemul_cached                 cycles/insts/CPI=7721/7278/1.06
+intt                           cycles/insts/CPI=8169/6479/1.26
+
+speed_dualissue_dilithium_mont_ntt_rv32:
+Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging
+ntt                            cycles/insts/CPI=7054/8692/0.81
+poly_basemul_init              cycles/insts/CPI=1035/1706/0.61
+poly_basemul_acc               cycles/insts/CPI=1933/3242/0.60
+poly_basemul_acc_end           cycles/insts/CPI=3115/4015/0.78
+poly_basemul                   cycles/insts/CPI=2026/2349/0.86
+poly_reduce                    cycles/insts/CPI=1226/1673/0.73
+intt                           cycles/insts/CPI=7561/9206/0.82
+Dilithium 6-layer NTT & Montgomery based & 3+3 layers merging
+ntt                            cycles/insts/CPI=4876/6065/0.80
+basemul_cache_init             cycles/insts/CPI=7371/8464/0.87
+basemul_cached                 cycles/insts/CPI=6442/7341/0.88
+intt                           cycles/insts/CPI=5448/6676/0.82
+
+speed_dualissue_kyber_mont_ntt_rv32:
+Kyber 7-layer NTT & Mont based & 1+3+3 layers merging & RV32IM
+ntt                            cycles/insts/CPI=6442/7865/0.82
+intt                           cycles/insts/CPI=7192/8672/0.83
+
+speed_dualissue_kyber_mont_ntt_rvv:
+Kyber 7-layer NTT & Montgomery based & 1+6 layers merging & RV32IMV
+ntt                            cycles/insts/CPI=1575/1347/1.17
+intt                           cycles/insts/CPI=1840/1592/1.16
+poly_basemul_rvv               cycles/insts/CPI=712/705/1.01
+poly_basemul_acc_rvv           cycles/insts/CPI=824/801/1.03
+poly_basemul_cache_init_rvv    cycles/insts/CPI=753/738/1.02
+poly_basemul_acc_cache_init_rvv cycles/insts/CPI=865/834/1.04
+poly_basemul_cached_rvv        cycles/insts/CPI=631/608/1.04
+poly_basemul_acc_cached_rvv    cycles/insts/CPI=743/704/1.06
+poly_reduce_rvv                cycles/insts/CPI=313/276/1.13
+poly_tomont_rvv                cycles/insts/CPI=290/277/1.05
+ntt2normal_order               cycles/insts/CPI=771/374/2.06
+normal2ntt_order               cycles/insts/CPI=755/366/2.06
+
+speed_dualissue_dilithium_mont_ntt_rvv:
+Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging & RV32IMV
+ntt_8l_rvv                     cycles/insts/CPI=3395/2899/1.17
+intt_8l_rvv                    cycles/insts/CPI=3540/3106/1.14
+poly_basemul_8l_rvv            cycles/insts/CPI=759/734/1.03
+poly_basemul_acc_8l_rvv        cycles/insts/CPI=811/117/6.93
+ntt2normal_order_8l_rvv        cycles/insts/CPI=1103/557/1.98
+normal2ntt_order_8l_rvv        cycles/insts/CPI=1103/557/1.98
+poly_reduce_rvv                cycles/insts/CPI=623/531/1.17
+poly_basemul_acc_double_8l_rvv cycles/insts/CPI=929/219/4.24
