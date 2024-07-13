@@ -372,8 +372,8 @@ constants_keccak:
     XOR1 \T02h, \T02l, \T00h, \T00l
     sw \T02l, 11*8(a0)
     sw \T02h, 11*8+4(a0)
-    lw \T02l, 6*8(a0)
-    lw \T02h, 6*8+4(a0)
+    mv \T02l, \T03l
+    mv \T02h, \T03h
     ROLn_e \T03h, \T03l, \S21h, \S21l, 1
     lw \T00l, 0*8(a0)
     lw \T00h, 0*8+4(a0)

@@ -1,0 +1,1 @@
+riscvcrypto - keccakf1600      cycles/insts/CPI=2563/4649/0.55

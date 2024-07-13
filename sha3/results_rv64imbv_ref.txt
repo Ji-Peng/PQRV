@@ -1,6 +1,6 @@
 Test speed of SHA-3 related subroutines
 KeccakF1600                    cycles/insts/CPI=2646/4606/0.57
-shake128_absorb_once           cycles/insts/CPI=247/333/0.74
+shake128_absorb_once           cycles/insts/CPI=248/333/0.74
 shake128_squeezeblocks_1       cycles/insts/CPI=2941/5036/0.58
 sha3_256                       cycles/insts/CPI=2956/5028/0.59
 sha3_512                       cycles/insts/CPI=2991/5091/0.59

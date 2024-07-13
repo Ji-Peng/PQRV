@@ -21,19 +21,18 @@
 #define POLY_UNIFORM_GAMMA1_NBLOCKS \
     ((POLYZ_PACKEDBYTES + SHAKE256_RATE - 1) / SHAKE256_RATE)
 
-#if DILITHIUM_MODE == 2
-#    if defined(RV32IMV)
-// 4x 3-way + 1x 4-way sha3
+#if DILITHIUM_MODE == 2 && (defined(RV32IMV) || defined(RV32IMBV))
+// 4x 3-way + 2x 2-way sha3
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
-    unsigned int i, j, ctr[4];
+    unsigned int i, j, ctr[3];
     unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
+    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
     keccakx3_state *statex3;
-    keccakx4_state *statex4;
+    keccakx2_state *statex2;
     keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
     const uint8_t *seed = rho;
     const uint8_t buf_index[4][3][2] = {
         {{0, 0}, {0, 1}, {0, 2}},
@@ -41,11 +40,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         {{1, 2}, {1, 3}, {2, 0}},
         {{2, 1}, {2, 2}, {2, 3}},
     };
-    const uint8_t buf_index_x4[4][2] = {
-        {3, 0},
-        {3, 1},
-        {3, 2},
-        {3, 3},
+    const uint8_t buf_index_x2[2][4][2] = {
+        {{3, 0}, {3, 1}},
+        {{3, 2}, {3, 3}},
     };
 
     if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
@@ -81,84 +78,33 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         }
     }
     free(statex3);
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
-    for (j = 0; j < 4; j++) {
-        outN[j] = buf[j].coeffs;
-        inN[j] = buf[j].coeffs;
-        memcpy(buf[j].coeffs, seed, 32);
-        buf[j].coeffs[32] = buf_index_x4[j][1];
-        buf[j].coeffs[33] = buf_index_x4[j][0];
-    }
-    shake128x4_absorb_once(statex4, inN, 34);
-    shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
-    for (j = 0; j < 4; j++)
-        ctr[j] = rej_uniform(
-            mat[buf_index_x4[j][0]].vec[buf_index_x4[j][1]].coeffs, N,
-            buf[j].coeffs, buflen);
-    for (j = 0; j < 4; j++) {
-        if (ctr[j] < N)
-            keccakx4_get_oneway_state(statex4, &statex1, j);
-        while (ctr[j] < N) {
-            shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-            ctr[j] += rej_uniform(
-                mat[buf_index_x4[j][0]].vec[buf_index_x4[j][1]].coeffs +
-                    ctr[j],
-                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-        }
-    }
-    for (i = 0; i < K; i++)
-        for (j = 0; j < L; j++)
-            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
-    free(statex4);
-}
-#    elif defined(RV32IMBV)
-// 4x 4-way sha3
-void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint8_t *seed = rho;
-    const uint8_t buf_index[(K * L) >> 2][4][2] = {
-        {{0, 0}, {0, 1}, {0, 2}, {0, 3}},
-        {{1, 0}, {1, 1}, {1, 2}, {1, 3}},
-        {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
-        {{3, 0}, {3, 1}, {3, 2}, {3, 3}},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (K * L) >> 2; i++) {
-        for (j = 0; j < 4; j++) {
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
             outN[j] = buf[j].coeffs;
             inN[j] = buf[j].coeffs;
             memcpy(buf[j].coeffs, seed, 32);
-            buf[j].coeffs[32] = buf_index[i][j][1];
-            buf[j].coeffs[33] = buf_index[i][j][0];
+            buf[j].coeffs[32] = buf_index_x2[i][j][1];
+            buf[j].coeffs[33] = buf_index_x2[i][j][0];
         }
-        shake128x4_absorb_once(statex4, inN, 34);
-        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
+        shake128x2_absorb_once(statex2, inN, 34);
+        shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
+        for (j = 0; j < 2; j++)
+            ctr[j] = rej_uniform(mat[buf_index_x2[i][j][0]]
+                                     .vec[buf_index_x2[i][j][1]]
+                                     .coeffs,
+                                 N, buf[j].coeffs, buflen);
+        for (j = 0; j < 2; j++) {
             if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
+                keccakx2_get_oneway_state(statex2, &statex1, j);
             while (ctr[j] < N) {
                 shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
                 ctr[j] +=
-                    rej_uniform(mat[buf_index[i][j][0]]
-                                        .vec[buf_index[i][j][1]]
+                    rej_uniform(mat[buf_index_x2[i][j][0]]
+                                        .vec[buf_index_x2[i][j][1]]
                                         .coeffs +
                                     ctr[j],
                                 N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
@@ -168,13 +114,11 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
     for (i = 0; i < K; i++)
         for (j = 0; j < L; j++)
             normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
-    free(statex4);
+    free(statex2);
 }
-#    endif
 #endif
 
-#if DILITHIUM_MODE == 3
-#    if defined(RV32IMV)
+#if DILITHIUM_MODE == 3 && (defined(RV32IMV) || defined(RV32IMBV))
 // 10x 3-way sha3
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
@@ -231,105 +175,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex3);
 }
-#    elif defined(RV32IMBV)
-// 6x 4-way + 2x 3-way sha3
-void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccakx3_state *statex3;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint8_t *seed = rho;
-    const uint8_t buf_index[6][4][2] = {
-        {{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{0, 4}, {1, 0}, {1, 1}, {1, 2}},
-        {{1, 3}, {1, 4}, {2, 0}, {2, 1}}, {{2, 2}, {2, 3}, {2, 4}, {3, 0}},
-        {{3, 1}, {3, 2}, {3, 3}, {3, 4}}, {{4, 0}, {4, 1}, {4, 2}, {4, 3}},
-    };
-    const uint8_t buf_index_x3[2][3][2] = {
-        {{4, 4}, {5, 0}, {5, 1}},
-        {{5, 2}, {5, 3}, {5, 4}},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < 6; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            buf[j].coeffs[32] = buf_index[i][j][1];
-            buf[j].coeffs[33] = buf_index[i][j][0];
-        }
-        shake128x4_absorb_once(statex4, inN, 34);
-        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
-            while (ctr[j] < N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] +=
-                    rej_uniform(mat[buf_index[i][j][0]]
-                                        .vec[buf_index[i][j][1]]
-                                        .coeffs +
-                                    ctr[j],
-                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    free(statex4);
-    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < 2; i++) {
-        for (j = 0; j < 3; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            buf[j].coeffs[32] = buf_index_x3[i][j][1];
-            buf[j].coeffs[33] = buf_index_x3[i][j][0];
-        }
-        shake128x3_absorb_once(statex3, inN, 34);
-        shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
-        for (j = 0; j < 3; j++)
-            ctr[j] = rej_uniform(mat[buf_index_x3[i][j][0]]
-                                     .vec[buf_index_x3[i][j][1]]
-                                     .coeffs,
-                                 N, buf[j].coeffs, buflen);
-        for (j = 0; j < 3; j++) {
-            if (ctr[j] < N)
-                keccakx3_get_oneway_state(statex3, &statex1, j);
-            while (ctr[j] < N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] +=
-                    rej_uniform(mat[buf_index_x3[i][j][0]]
-                                        .vec[buf_index_x3[i][j][1]]
-                                        .coeffs +
-                                    ctr[j],
-                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    for (i = 0; i < K; i++)
-        for (j = 0; j < L; j++)
-            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
-    free(statex3);
-}
-#    endif
 #endif
 
-#if DILITHIUM_MODE == 5
-#    if defined(RV32IMV)
+#if DILITHIUM_MODE == 5 && (defined(RV32IMV) || defined(RV32IMBV))
 // 18x 3-way + 1x 2-way sha3
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
@@ -421,66 +269,6 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
             normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
     free(statex2);
 }
-#    elif defined(RV32IMBV)
-// 14x 4-way sha3
-void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint8_t *seed = rho;
-    const uint8_t buf_index[(K * L) >> 2][4][2] = {
-        {{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{0, 4}, {0, 5}, {0, 6}, {1, 0}},
-        {{1, 1}, {1, 2}, {1, 3}, {1, 4}}, {{1, 5}, {1, 6}, {2, 0}, {2, 1}},
-        {{2, 2}, {2, 3}, {2, 4}, {2, 5}}, {{2, 6}, {3, 0}, {3, 1}, {3, 2}},
-        {{3, 3}, {3, 4}, {3, 5}, {3, 6}}, {{4, 0}, {4, 1}, {4, 2}, {4, 3}},
-        {{4, 4}, {4, 5}, {4, 6}, {5, 0}}, {{5, 1}, {5, 2}, {5, 3}, {5, 4}},
-        {{5, 5}, {5, 6}, {6, 0}, {6, 1}}, {{6, 2}, {6, 3}, {6, 4}, {6, 5}},
-        {{6, 6}, {7, 0}, {7, 1}, {7, 2}}, {{7, 3}, {7, 4}, {7, 5}, {7, 6}},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (K * L) >> 2; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, 32);
-            buf[j].coeffs[32] = buf_index[i][j][1];
-            buf[j].coeffs[33] = buf_index[i][j][0];
-        }
-        shake128x4_absorb_once(statex4, inN, 34);
-        shake128x4_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
-            while (ctr[j] < N) {
-                shake128_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] +=
-                    rej_uniform(mat[buf_index[i][j][0]]
-                                        .vec[buf_index[i][j][1]]
-                                        .coeffs +
-                                    ctr[j],
-                                N - ctr[j], buf[0].coeffs, SHAKE128_RATE);
-            }
-        }
-    }
-    for (i = 0; i < K; i++)
-        for (j = 0; j < L; j++)
-            normal2ntt_order_8l_rvv(mat[i].vec[j].coeffs, qdata);
-    free(statex4);
-}
-#    endif
 #endif
 
 #if !defined(RV32IMV) && !defined(RV32IMBV)
@@ -494,8 +282,7 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 }
 #endif
 
-#if DILITHIUM_MODE == 2
-#    if defined(RV32IMV)
+#if DILITHIUM_MODE == 2 && (defined(RV32IMV) || defined(RV32IMBV))
 // 2x 3-way + 1x 2-way sha3
 void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            const uint8_t seed[CRHBYTES], uint16_t nonce_l,
@@ -573,63 +360,9 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
     }
     free(statex2);
 }
-#    elif defined(RV32IMBV)
-// 2x 4-way sha3
-void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
-                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
-                           uint16_t nonce_k)
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint16_t buf_nonce[(K + L) >> 2][4] = {
-        {nonce_l, nonce_l + 1, nonce_l + 2, nonce_l + 3},
-        {nonce_k, nonce_k + 1, nonce_k + 2, nonce_k + 3},
-    };
-    int32_t *buf_polys[(K + L) >> 2][4] = {
-        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
-         v_l->vec[3].coeffs},
-        {v_k->vec[0].coeffs, v_k->vec[1].coeffs, v_k->vec[2].coeffs,
-         v_k->vec[3].coeffs},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (K + L) >> 2; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, CRHBYTES);
-            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
-            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
-        }
-        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
-        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
-            while (ctr[j] < N) {
-                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
-                                  buf[0].coeffs, SHAKE256_RATE);
-            }
-        }
-    }
-    free(statex4);
-}
-#    endif
 #endif
 
-#if DILITHIUM_MODE == 3
-#    if defined(RV32IMV)
+#if DILITHIUM_MODE == 3 && (defined(RV32IMV) || defined(RV32IMBV))
 // 3x 3-way + 1x 2-way sha3
 void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            const uint8_t seed[CRHBYTES], uint16_t nonce_l,
@@ -709,91 +442,9 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
     }
     free(statex2);
 }
-#    elif defined(RV32IMBV)
-// 2x 4-way + 1x 3-way sha3
-void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
-                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
-                           uint16_t nonce_k)
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccakx3_state *statex3;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint16_t buf_nonce[((K + L) >> 2) + 1][4] = {
-        {nonce_l + 0, nonce_l + 1, nonce_l + 2, nonce_l + 3},
-        {nonce_l + 4, nonce_k + 0, nonce_k + 1, nonce_k + 2},
-        {nonce_k + 3, nonce_k + 4, nonce_k + 5, 0},
-    };
-    int32_t *buf_polys[((K + L) >> 2) + 1][4] = {
-        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
-         v_l->vec[3].coeffs},
-        {v_l->vec[4].coeffs, v_k->vec[0].coeffs, v_k->vec[1].coeffs,
-         v_k->vec[2].coeffs},
-        {v_k->vec[3].coeffs, v_k->vec[4].coeffs, v_k->vec[5].coeffs, 0},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (K + L) >> 2; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, CRHBYTES);
-            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
-            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
-        }
-        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
-        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
-            while (ctr[j] < N) {
-                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
-                                  buf[0].coeffs, SHAKE256_RATE);
-            }
-        }
-    }
-    free(statex4);
-    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (j = 0; j < 3; j++) {
-        outN[j] = buf[j].coeffs;
-        inN[j] = buf[j].coeffs;
-        memcpy(buf[j].coeffs, seed, CRHBYTES);
-        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
-        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
-    }
-    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
-    shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
-    for (j = 0; j < 3; j++)
-        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
-    for (j = 0; j < 3; j++) {
-        if (ctr[j] < N)
-            keccakx3_get_oneway_state(statex3, &statex1, j);
-        while (ctr[j] < N) {
-            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
-            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
-                              buf[0].coeffs, SHAKE256_RATE);
-        }
-    }
-    free(statex3);
-}
-#    endif
 #endif
 
-#if DILITHIUM_MODE == 5
-#    if defined(RV32IMV)
+#if DILITHIUM_MODE == 5 && (defined(RV32IMV) || defined(RV32IMBV))
 // 5x 3-way sha3
 void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            const uint8_t seed[CRHBYTES], uint16_t nonce_l,
@@ -849,90 +500,6 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
     }
     free(statex3);
 }
-#    elif defined(RV32IMBV)
-// 3x 4-way + 1x 3-way sha3
-void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
-                           const uint8_t seed[CRHBYTES], uint16_t nonce_l,
-                           uint16_t nonce_k)
-{
-    unsigned int i, j, ctr[4];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
-    ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[4];
-    keccakx4_state *statex4;
-    keccakx3_state *statex3;
-    keccak_state statex1;
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    const uint16_t buf_nonce[((K + L) >> 2) + 1][4] = {
-        {nonce_l + 0, nonce_l + 1, nonce_l + 2, nonce_l + 3},
-        {nonce_l + 4, nonce_l + 5, nonce_l + 6, nonce_k + 0},
-        {nonce_k + 1, nonce_k + 2, nonce_k + 3, nonce_k + 4},
-        {nonce_k + 5, nonce_k + 6, nonce_k + 7, 0},
-    };
-    int32_t *buf_polys[((K + L) >> 2) + 1][4] = {
-        {v_l->vec[0].coeffs, v_l->vec[1].coeffs, v_l->vec[2].coeffs,
-         v_l->vec[3].coeffs},
-        {v_l->vec[4].coeffs, v_l->vec[5].coeffs, v_l->vec[6].coeffs,
-         v_k->vec[0].coeffs},
-        {v_k->vec[1].coeffs, v_k->vec[2].coeffs, v_k->vec[3].coeffs,
-         v_k->vec[4].coeffs},
-        {v_k->vec[5].coeffs, v_k->vec[6].coeffs, v_k->vec[7].coeffs, 0},
-    };
-
-    if ((statex4 = malloc(sizeof(keccakx4_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (i = 0; i < (K + L) >> 2; i++) {
-        for (j = 0; j < 4; j++) {
-            outN[j] = buf[j].coeffs;
-            inN[j] = buf[j].coeffs;
-            memcpy(buf[j].coeffs, seed, CRHBYTES);
-            buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
-            buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
-        }
-        shake256x4_absorb_once(statex4, inN, CRHBYTES + 2);
-        shake256x4_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex4);
-        for (j = 0; j < 4; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
-        for (j = 0; j < 4; j++) {
-            if (ctr[j] < N)
-                keccakx4_get_oneway_state(statex4, &statex1, j);
-            while (ctr[j] < N) {
-                shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
-                ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
-                                  buf[0].coeffs, SHAKE256_RATE);
-            }
-        }
-    }
-    free(statex4);
-    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
-        LOG("%s", "malloc failed\n");
-        return;
-    }
-    for (j = 0; j < 3; j++) {
-        outN[j] = buf[j].coeffs;
-        inN[j] = buf[j].coeffs;
-        memcpy(buf[j].coeffs, seed, CRHBYTES);
-        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[i][j];
-        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[i][j] >> 8;
-    }
-    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
-    shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
-    for (j = 0; j < 3; j++)
-        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
-    for (j = 0; j < 3; j++) {
-        if (ctr[j] < N)
-            keccakx3_get_oneway_state(statex3, &statex1, j);
-        while (ctr[j] < N) {
-            shake256_squeezeblocks(buf[0].coeffs, 1, &statex1);
-            ctr[j] += rej_eta(buf_polys[i][j] + ctr[j], N - ctr[j],
-                              buf[0].coeffs, SHAKE256_RATE);
-        }
-    }
-    free(statex3);
-}
-#    endif
 #endif
 
 #if !defined(RV32IMV) && !defined(RV32IMBV)
@@ -950,7 +517,52 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
 #endif
 
 #if DILITHIUM_MODE == 2
-#    if defined(RV32IMV) || defined(RV32IMBV)
+#    if defined(RV32IMV)
+// 2x 2-way sha3
+void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
+                             uint16_t nonce)
+{
+    unsigned int j;
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[2];
+    keccakx2_state *statex2;
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    const uint16_t buf_nonce[4] = {
+        L * nonce + 0,
+        L * nonce + 1,
+        L * nonce + 2,
+        L * nonce + 3,
+    };
+
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 2; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        polyz_unpack(&v->vec[j], buf[j].coeffs);
+    for (j = 0; j < 2; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j + 2];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j + 2] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        polyz_unpack(&v->vec[j + 2], buf[j].coeffs);
+    free(statex2);
+}
+#    elif defined(RV32IMBV)
 // 1x 4-way sha3
 void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
                              uint16_t nonce)
@@ -988,7 +600,7 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
 #endif
 
 #if DILITHIUM_MODE == 3
-#    if defined(RV32IMV)
+#    if defined(RV32IMV) || defined(RV32IMBV)
 // 1x 3-way + 1x 2-way sha3
 void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
                              uint16_t nonce)
@@ -1037,43 +649,72 @@ void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
         polyz_unpack(&v->vec[j + 3], buf[j].coeffs);
     free(statex2);
 }
-#    elif defined(RV32IMBV)
-// 1x 5-way sha3
+#    endif
+#endif
+
+#if DILITHIUM_MODE == 5
+#    if defined(RV32IMV)
+// 1x 3-way + 2x 2-way sha3
 void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
                              uint16_t nonce)
 {
     unsigned int j;
-    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[5];
-    keccakx5_state *statex5;
-    const uint8_t *inN[5];
-    uint8_t *outN[5];
-    const uint16_t buf_nonce[5] = {
-        L * nonce + 0, L * nonce + 1, L * nonce + 2,
-        L * nonce + 3, L * nonce + 4,
+    ALIGNED_UINT8(POLY_UNIFORM_GAMMA1_NBLOCKS * SHAKE256_RATE) buf[3];
+    keccakx2_state *statex2;
+    keccakx3_state *statex3;
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    const uint16_t buf_nonce[4 + 3] = {
+        L * nonce + 0, L * nonce + 1, L * nonce + 2, L * nonce + 3,
+        L * nonce + 4, L * nonce + 5, L * nonce + 6,
     };
 
-    if ((statex5 = malloc(sizeof(keccakx5_state))) == NULL) {
+    if ((statex2 = malloc(sizeof(keccakx2_state))) == NULL) {
         LOG("%s", "malloc failed\n");
         return;
     }
-    for (j = 0; j < 5; ++j) {
+    for (j = 0; j < 2; ++j) {
         outN[j] = buf[j].coeffs;
         inN[j] = buf[j].coeffs;
         memcpy(buf[j].coeffs, seed, CRHBYTES);
         buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j];
         buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j] >> 8;
     }
-    shake256x5_absorb_once(statex5, inN, CRHBYTES + 2);
-    shake256x5_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex5);
-    for (j = 0; j < 5; j++)
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
         polyz_unpack(&v->vec[j], buf[j].coeffs);
-    free(statex5);
-}
-#    endif
-#endif
+    for (j = 0; j < 2; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[j + 2];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[j + 2] >> 8;
+    }
+    shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
+    shake256x2_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex2);
+    for (j = 0; j < 2; j++)
+        polyz_unpack(&v->vec[j + 2], buf[j].coeffs);
+    free(statex2);
 
-#if DILITHIUM_MODE == 5
-#    if defined(RV32IMV) || defined(RV32IMBV)
+    if ((statex3 = malloc(sizeof(keccakx3_state))) == NULL) {
+        LOG("%s", "malloc failed\n");
+        return;
+    }
+    for (j = 0; j < 3; ++j) {
+        outN[j] = buf[j].coeffs;
+        inN[j] = buf[j].coeffs;
+        memcpy(buf[j].coeffs, seed, CRHBYTES);
+        buf[j].coeffs[CRHBYTES + 0] = buf_nonce[4 + j];
+        buf[j].coeffs[CRHBYTES + 1] = buf_nonce[4 + j] >> 8;
+    }
+    shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
+    shake256x3_squeezeblocks(outN, POLY_UNIFORM_GAMMA1_NBLOCKS, statex3);
+    for (j = 0; j < 3; j++)
+        polyz_unpack(&v->vec[4 + j], buf[j].coeffs);
+    free(statex3);
+}
+#    elif defined(RV32IMBV)
 // 1x 3-way + 1x 4-way sha3
 void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES],
                              uint16_t nonce)

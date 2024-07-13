@@ -64,7 +64,7 @@ all: \
 	out/test_speed_sha3_rv32imv 		out/test_speed_sha3_rv32imbv		\
 	out/test_speed_sha3_rv64im			out/test_speed_sha3_rv64imv 		\
 	out/test_speed_sha3_rv64imb			out/test_speed_sha3_rv64imbv		\
-	out/speed_ko_sha3_rv32im \
+	out/speed_ko_sha3_rv32im 			out/speed_riscvcrypto_sha3_rv64imb \
 	out/scp_test
 
 run_all: \
@@ -72,7 +72,7 @@ run_all: \
 	run_rv64im_ref run_rv64imv_ref run_rv64imb_ref run_rv64imbv_ref \
 	run_rv32im run_rv32imb run_rv32imv run_rv32imbv \
 	run_rv64im run_rv64imv run_rv64imb run_rv64imbv \
-	run_ko_rv32im
+	run_ko_rv32im run_riscvcrypto_rv64imb
 
 run_rv32im_ref: out/scp_test
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv32im_ref" > results_rv32im_ref.txt
@@ -108,6 +108,8 @@ run_rv64imbv: out/scp_test
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./test_speed_sha3_rv64imbv" > results_rv64imbv.txt
 run_ko_rv32im: out/scp_test
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_ko_sha3_rv32im" > results_ko_rv32im.txt
+run_riscvcrypto_rv64imb: out/scp_test
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_riscvcrypto_sha3_rv64imb" > results_riscvcrypto_rv64imb.txt
 
 out/scp_test:	\
 	out/test_speed_sha3_rv32im_ref 		out/test_speed_sha3_rv32imb_ref 	\
@@ -118,9 +120,13 @@ out/scp_test:	\
 	out/test_speed_sha3_rv32imv 		out/test_speed_sha3_rv32imbv		\
 	out/test_speed_sha3_rv64im			out/test_speed_sha3_rv64imv 		\
 	out/test_speed_sha3_rv64imb			out/test_speed_sha3_rv64imbv		\
-	out/speed_ko_sha3_rv32im
+	out/speed_ko_sha3_rv32im		 	out/speed_riscvcrypto_sha3_rv64imb
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
+
+out/speed_riscvcrypto_sha3_rv64imb: $(SOURCES_COMMON) $(HEADERS_COMMON) speed_riscvcrypto_sha3.c riscvcrypto_rv64imb.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 # Ko Stoffelen implementation
 

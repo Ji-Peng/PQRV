@@ -75,554 +75,830 @@ constants_keccak:
 .endm
 
 .macro XOREach                 \
-        S00h, S00l, S01h, S01l,\
-        S02h, S02l, S03h, S03l,\
-        S04h, S04l, Dh,   Dl
-    XOR1 \S00h, \S00l, \Dh, \Dl
-    XOR1 \S01h, \S01l, \Dh, \Dl
-    XOR1 \S02h, \S02l, \Dh, \Dl
-    XOR1 \S03h, \S03l, \Dh, \Dl
-    XOR1 \S04h, \S04l, \Dh, \Dl
+        S00h_s, S00l_s, S01h_s, S01l_s,\
+        S02h_s, S02l_s, S03h_s, S03l_s,\
+        S04h_s, S04l_s, Dh,   Dl
+    XOR1 \S00h_s, \S00l_s, \Dh, \Dl
+    XOR1 \S01h_s, \S01l_s, \Dh, \Dl
+    XOR1 \S02h_s, \S02l_s, \Dh, \Dl
+    XOR1 \S03h_s, \S03l_s, \Dh, \Dl
+    XOR1 \S04h_s, \S04l_s, \Dh, \Dl
 .endm
 
-.macro ROLn outh, outl, S00h, S00l, n
+.macro ROLn outh, outl, S00h_s, S00l_s, n
 .if \n < 32
-    slli \outl, \S00l, \n
-    srli \S00l, \S00l, 32-\n
-    srli \outh, \S00h, 32-\n
-    slli \S00h, \S00h, \n
+    slli \outl, \S00l_s, \n
+    srli \S00l_s, \S00l_s, 32-\n
+    srli \outh, \S00h_s, 32-\n
+    slli \S00h_s, \S00h_s, \n
     xor  \outl, \outl, \outh
-    xor  \outh, \S00h, \S00l
+    xor  \outh, \S00h_s, \S00l_s
 .else
-    slli \outl, \S00h, \n-32
-    srli \S00h, \S00h, 64-\n
-    srli \outh, \S00l, 64-\n
-    slli \S00l, \S00l, \n-32
+    slli \outl, \S00h_s, \n-32
+    srli \S00h_s, \S00h_s, 64-\n
+    srli \outh, \S00l_s, 64-\n
+    slli \S00l_s, \S00l_s, \n-32
     xor  \outl, \outl, \outh
-    xor  \outh, \S00l, \S00h
+    xor  \outh, \S00l_s, \S00h_s
 .endif
 .endm
 
-.macro ROLnInplace S00h, S00l, T0, T1, n
+.macro ROLnInplace S00h_s, S00l_s, T0, T1, n
 .if \n < 32
-    srli \T0,   \S00l, 32-\n
-    slli \S00l, \S00l, \n
-    srli \T1,   \S00h, 32-\n
-    slli \S00h, \S00h, \n
-    xor  \S00l, \S00l, \T1
-    xor  \S00h, \S00h, \T0
+    srli \T0,   \S00l_s, 32-\n
+    slli \S00l_s, \S00l_s, \n
+    srli \T1,   \S00h_s, 32-\n
+    slli \S00h_s, \S00h_s, \n
+    xor  \S00l_s, \S00l_s, \T1
+    xor  \S00h_s, \S00h_s, \T0
 .else
-    slli \T0,  \S00l, \n-32
-    srli \S00l,\S00l, 64-\n
-    slli \T1,  \S00h, \n-32
-    srli \S00h,\S00h, 64-\n
-    xor  \S00l,\S00l, \T1
-    xor  \S00h,\S00h, \T0
+    slli \T0,  \S00l_s, \n-32
+    srli \S00l_s,\S00l_s, 64-\n
+    slli \T1,  \S00h_s, \n-32
+    srli \S00h_s,\S00h_s, 64-\n
+    xor  \S00l_s,\S00l_s, \T1
+    xor  \S00h_s,\S00h_s, \T0
 .endif
 .endm
 
-.macro xoror outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    or \Tl, \S01l, \S02l
-    or \Th, \S01h, \S02h
-    xor \outl, \S00l, \Tl
-    xor \outh, \S00h, \Th
+.macro xoror outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl
+    or \Tl, \S01l_s, \S02l_s
+    or \Th, \S01h_s, \S02h_s
+    xor \outl, \S00l_s, \Tl
+    xor \outh, \S00h_s, \Th
 .endm
 
-.macro xornotor outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Tl, \S01l
-    not \Th, \S01h
-    or \Tl, \Tl, \S02l
-    or \Th, \Th, \S02h
-    xor \outl, \S00l, \Tl
-    xor \outh, \S00h, \Th
+.macro xornotor outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl
+    not \Tl, \S01l_s
+    not \Th, \S01h_s
+    or \Tl, \Tl, \S02l_s
+    or \Th, \Th, \S02h_s
+    xor \outl, \S00l_s, \Tl
+    xor \outh, \S00h_s, \Th
 .endm
 
-.macro xorand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    and \Tl, \S01l, \S02l
-    and \Th, \S01h, \S02h
-    xor \outl, \S00l, \Tl
-    xor \outh, \S00h, \Th
+.macro xorand outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl
+    and \Tl, \S01l_s, \S02l_s
+    and \Th, \S01h_s, \S02h_s
+    xor \outl, \S00l_s, \Tl
+    xor \outh, \S00h_s, \Th
 .endm
 
-.macro xorornot outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Tl, \S02l
-    not \Th, \S02h
-    or \Tl, \Tl, \S01l
-    or \Th, \Th, \S01h
-    xor \outl, \S00l, \Tl
-    xor \outh, \S00h, \Th
+.macro xorornot outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl
+    not \Tl, \S02l_s
+    not \Th, \S02h_s
+    or \Tl, \Tl, \S01l_s
+    or \Th, \Th, \S01h_s
+    xor \outl, \S00l_s, \Tl
+    xor \outh, \S00h_s, \Th
 .endm
 
-.macro xornotand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl
-    not \Tl, \S01l
-    not \Th, \S01h
-    and \Tl, \Tl, \S02l
-    and \Th, \Th, \S02h
-    xor \outl, \S00l, \Tl
-    xor \outh, \S00h, \Th
+.macro xornotand outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl
+    not \Tl, \S01l_s
+    not \Th, \S01h_s
+    and \Tl, \Tl, \S02l_s
+    and \Th, \Th, \S02h_s
+    xor \outl, \S00l_s, \Tl
+    xor \outh, \S00h_s, \Th
 .endm
 
-.macro notxoror outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl, T0
-    not \T0, \S00h
-    or  \Th, \S01h, \S02h
-    or  \Tl, \S01l, \S02l
+.macro notxoror outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl, T0
+    not \T0, \S00h_s
+    or  \Th, \S01h_s, \S02h_s
+    or  \Tl, \S01l_s, \S02l_s
     xor \outh, \Th, \T0
-    not \T0, \S00l
+    not \T0, \S00l_s
     xor \outl, \Tl, \T0
 .endm
 
-.macro notxorand outh, outl, S00h, S00l, S01h, S01l, S02h, S02l, Th, Tl, T0
-    not \T0, \S00h
-    and \Th, \S01h, \S02h
-    and \Tl, \S01l, \S02l
+.macro notxorand outh, outl, S00h_s, S00l_s, S01h_s, S01l_s, S02h_s, S02l_s, Th, Tl, T0
+    not \T0, \S00h_s
+    and \Th, \S01h_s, \S02h_s
+    and \Tl, \S01l_s, \S02l_s
     xor \outh, \Th, \T0
-    not \T0, \S00l
+    not \T0, \S00l_s
     xor \outl, \Tl, \T0
 .endm
 
 .macro InitLoad \
-        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
-        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
-        T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
+        S02h_s, S02l_s, S04h_s, S04l_s, S05h_s, S05l_s, S08h_s, S08l_s, S10h_s, S10l_s, \
+        S14h_s, S14l_s, S16h_s, S16l_s, S17h_s, S17l_s, S21h_s, S21l_s, S23h_s, S23l_s, \
+        T00h_s, T00l_s, T01h_s, T01l_s, T02h_s, T02l_s, T03h_s, T03l_s, T04_s
     # lane complement: 1,2,8,12,17,20
-    lw \T00l, 1*8(a0)
-    lw \T00h, 1*8+4(a0)
-    lw \T01l, 12*8(a0)
-    lw \T01h, 12*8+4(a0)
-    lw \S02l, 2*8(a0)
-    lw \S02h, 2*8+4(a0)
-    lw \S04l, 4*8(a0)
-    lw \S04h, 4*8+4(a0)
-    lw \S05l, 5*8(a0)
-    lw \S05h, 5*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    not \T01l, \T01l
-    not \T01h, \T01h
-    sw \T00l, 1*8(a0)
-    sw \T00h, 1*8+4(a0)
-    lw \S08l, 8*8(a0)
-    lw \S08h, 8*8+4(a0)
-    sw \T01l, 12*8(a0)
-    sw \T01h, 12*8+4(a0)
-    lw \S10l, 10*8(a0)
-    lw \S10h, 10*8+4(a0)
-    lw \T00l, 20*8(a0)
-    lw \T00h, 20*8+4(a0)
-    not \S02l, \S02l
-    not \S02h, \S02h
-    not \S08l, \S08l
-    not \S08h, \S08h
-    lw \S14l, 14*8(a0)
-    lw \S14h, 14*8+4(a0)
-    lw \S16l, 16*8(a0)
-    lw \S16h, 16*8+4(a0)
-    lw \S17l, 17*8(a0)
-    lw \S17h, 17*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    lw \S21l, 21*8(a0)
-    lw \S21h, 21*8+4(a0)
-    sw \T00l, 20*8(a0)
-    sw \T00h, 20*8+4(a0)
-    not \S17l, \S17l
-    not \S17h, \S17h
-    lw \S23l, 23*8(a0)
-    lw \S23h, 23*8+4(a0)
+    lw \T00l_s, 1*8(a0)
+    lw \T00h_s, 1*8+4(a0)
+    lw \T01l_s, 12*8(a0)
+    lw \T01h_s, 12*8+4(a0)
+    lw \S02l_s, 2*8(a0)
+    lw \S02h_s, 2*8+4(a0)
+    lw \S04l_s, 4*8(a0)
+    lw \S04h_s, 4*8+4(a0)
+    lw \S05l_s, 5*8(a0)
+    lw \S05h_s, 5*8+4(a0)
+    not \T00l_s, \T00l_s
+    not \T00h_s, \T00h_s
+    not \T01l_s, \T01l_s
+    not \T01h_s, \T01h_s
+    sw \T00l_s, 1*8(a0)
+    sw \T00h_s, 1*8+4(a0)
+    lw \S08l_s, 8*8(a0)
+    lw \S08h_s, 8*8+4(a0)
+    sw \T01l_s, 12*8(a0)
+    sw \T01h_s, 12*8+4(a0)
+    lw \S10l_s, 10*8(a0)
+    lw \S10h_s, 10*8+4(a0)
+    lw \T00l_s, 20*8(a0)
+    lw \T00h_s, 20*8+4(a0)
+    not \S02l_s, \S02l_s
+    not \S02h_s, \S02h_s
+    not \S08l_s, \S08l_s
+    not \S08h_s, \S08h_s
+    lw \S14l_s, 14*8(a0)
+    lw \S14h_s, 14*8+4(a0)
+    lw \S16l_s, 16*8(a0)
+    lw \S16h_s, 16*8+4(a0)
+    lw \S17l_s, 17*8(a0)
+    lw \S17h_s, 17*8+4(a0)
+    not \T00l_s, \T00l_s
+    not \T00h_s, \T00h_s
+    lw \S21l_s, 21*8(a0)
+    lw \S21h_s, 21*8+4(a0)
+    sw \T00l_s, 20*8(a0)
+    sw \T00h_s, 20*8+4(a0)
+    not \S17l_s, \S17l_s
+    not \S17h_s, \S17h_s
+    lw \S23l_s, 23*8(a0)
+    lw \S23h_s, 23*8+4(a0)
 .endm
 
 .macro FinalStore \
-        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
-        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
-        T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
+        S02h_s, S02l_s, S04h_s, S04l_s, S05h_s, S05l_s, S08h_s, S08l_s, S10h_s, S10l_s, \
+        S14h_s, S14l_s, S16h_s, S16l_s, S17h_s, S17l_s, S21h_s, S21l_s, S23h_s, S23l_s, \
+        T00h_s, T00l_s, T01h_s, T01l_s, T02h_s, T02l_s, T03h_s, T03l_s, T04_s
     # lane complement: 1,2,8,12,17,20
-    lw \T00l, 1*8(a0)
-    lw \T00h, 1*8+4(a0)
-    lw \T01l, 12*8(a0)
-    lw \T01h, 12*8+4(a0)
-    not \S02l, \S02l
-    not \S02h, \S02h
-    not \S08l, \S08l
-    not \S08h, \S08h
-    sw \S02l, 2*8(a0)
-    sw \S02h, 2*8+4(a0)
-    sw \S04l, 4*8(a0)
-    sw \S04h, 4*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    not \T01l, \T01l
-    not \T01h, \T01h
-    sw \T00l, 1*8(a0)
-    sw \T00h, 1*8+4(a0)
-    sw \T01l, 12*8(a0)
-    sw \T01h, 12*8+4(a0)
-    lw \T00l, 20*8(a0)
-    lw \T00h, 20*8+4(a0)
-    not \S17l, \S17l
-    not \S17h, \S17h
-    sw \S05l, 5*8(a0)
-    sw \S05h, 5*8+4(a0)
-    sw \S08l, 8*8(a0)
-    sw \S08h, 8*8+4(a0)
-    sw \S10l, 10*8(a0)
-    sw \S10h, 10*8+4(a0)
-    not \T00l, \T00l
-    not \T00h, \T00h
-    sw \S14l, 14*8(a0)
-    sw \S14h, 14*8+4(a0)
-    sw \T00l, 20*8(a0)
-    sw \T00h, 20*8+4(a0)
-    sw \S16l, 16*8(a0)
-    sw \S16h, 16*8+4(a0)
-    sw \S17l, 17*8(a0)
-    sw \S17h, 17*8+4(a0)
-    sw \S21l, 21*8(a0)
-    sw \S21h, 21*8+4(a0)
-    sw \S23l, 23*8(a0)
-    sw \S23h, 23*8+4(a0)
+    lw \T00l_s, 1*8(a0)
+    lw \T00h_s, 1*8+4(a0)
+    lw \T01l_s, 12*8(a0)
+    lw \T01h_s, 12*8+4(a0)
+    not \S02l_s, \S02l_s
+    not \S02h_s, \S02h_s
+    not \S08l_s, \S08l_s
+    not \S08h_s, \S08h_s
+    sw \S02l_s, 2*8(a0)
+    sw \S02h_s, 2*8+4(a0)
+    sw \S04l_s, 4*8(a0)
+    sw \S04h_s, 4*8+4(a0)
+    not \T00l_s, \T00l_s
+    not \T00h_s, \T00h_s
+    not \T01l_s, \T01l_s
+    not \T01h_s, \T01h_s
+    sw \T00l_s, 1*8(a0)
+    sw \T00h_s, 1*8+4(a0)
+    sw \T01l_s, 12*8(a0)
+    sw \T01h_s, 12*8+4(a0)
+    lw \T00l_s, 20*8(a0)
+    lw \T00h_s, 20*8+4(a0)
+    not \S17l_s, \S17l_s
+    not \S17h_s, \S17h_s
+    sw \S05l_s, 5*8(a0)
+    sw \S05h_s, 5*8+4(a0)
+    sw \S08l_s, 8*8(a0)
+    sw \S08h_s, 8*8+4(a0)
+    sw \S10l_s, 10*8(a0)
+    sw \S10h_s, 10*8+4(a0)
+    not \T00l_s, \T00l_s
+    not \T00h_s, \T00h_s
+    sw \S14l_s, 14*8(a0)
+    sw \S14h_s, 14*8+4(a0)
+    sw \T00l_s, 20*8(a0)
+    sw \T00h_s, 20*8+4(a0)
+    sw \S16l_s, 16*8(a0)
+    sw \S16h_s, 16*8+4(a0)
+    sw \S17l_s, 17*8(a0)
+    sw \S17h_s, 17*8+4(a0)
+    sw \S21l_s, 21*8(a0)
+    sw \S21h_s, 21*8+4(a0)
+    sw \S23l_s, 23*8(a0)
+    sw \S23h_s, 23*8+4(a0)
 .endm
 
 .macro ARound \
-        S02h, S02l, S04h, S04l, S05h, S05l, S08h, S08l, S10h, S10l, \
-        S14h, S14l, S16h, S16l, S17h, S17l, S21h, S21l, S23h, S23l, \
-        T00h, T00l, T01h, T01l, T02h, T02l, T03h, T03l, T04
-    lw \T03l, 0*8(a0)
-    lw \T03h, 0*8+4(a0)
-    XOR1Init \T00h, \T00l, \S05h, \S05l, \S10h, \S10l
-    lw \T02l, 15*8(a0)
-    lw \T02h, 15*8+4(a0)
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    lw \T03l, 20*8(a0)
-    lw \T03h, 20*8+4(a0)
-    XOR1 \T00h, \T00l, \T02h, \T02l
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    lw \T03l, 3*8(a0)
-    lw \T03h, 3*8+4(a0)
-    sw \T00l, 18*4(sp)
-    sw \T00h, 19*4(sp)
-    XOR1Init \T01h, \T01l, \S08h, \S08l, \S23h, \S23l
-    lw \T02l, 13*8(a0)
-    lw \T02h, 13*8+4(a0)
-    XOR1 \T01h, \T01l, \T03h, \T03l
-    lw \T03l, 18*8(a0)
-    lw \T03h, 18*8+4(a0)
-    XOR1 \T01h, \T01l, \T02h, \T02l
-    XOR1 \T01h, \T01l, \T03h, \T03l
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    sw \T01l, 24*4(sp)
-    sw \T01h, 25*4(sp)
-    XOR1 \T00h, \T00l, \T01h, \T01l
-    lw \T03l, 9*8(a0)
-    lw \T03h, 9*8+4(a0)
-    XOR1Init \T01h, \T01l, \S04h, \S04l, \S14h, \S14l
-    XOR1 \S04h, \S04l, \T00h, \T00l
-    XOR1 \S14h, \S14l, \T00h, \T00l
-    lw \T02l, 19*8(a0)
-    lw \T02h, 19*8+4(a0)
-    XOR1 \T01h, \T01l, \T03h, \T03l
-    XOR1 \T03h, \T03l, \T00h, \T00l
-    sw \T03l, 9*8(a0)
-    sw \T03h, 9*8+4(a0)
-    lw \T03l, 24*8(a0)
-    lw \T03h, 24*8+4(a0)
-    XOR1 \T01h, \T01l, \T02h, \T02l
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    XOR1 \T01h, \T01l, \T03h, \T03l
-    sw \T02l, 19*8(a0)
-    sw \T02h, 19*8+4(a0)
-    XOR1 \T03h, \T03l, \T00h, \T00l
-    sw \T01l, 26*4(sp)
-    sw \T01h, 27*4(sp)
-    sw \T03l, 24*8(a0)
-    sw \T03h, 24*8+4(a0)
-    lw \T03l, 1*8(a0)
-    lw \T03h, 1*8+4(a0)
-    XOR1Init \T00h, \T00l, \S16h, \S16l, \S21h, \S21l
-    lw \T02l, 6*8(a0)
-    lw \T02h, 6*8+4(a0)
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    lw \T03l, 11*8(a0)
-    lw \T03h, 11*8+4(a0)
-    XOR1 \T00h, \T00l, \T02h, \T02l
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    sw \T00l, 20*4(sp)
-    sw \T00h, 21*4(sp)
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    lw \T02l, 0*8(a0)
-    lw \T02h, 0*8+4(a0)
-    XOR1 \T00h, \T00l, \T01h, \T01l
-    XOR1 \S05h, \S05l, \T00h, \T00l
-    lw \T03l, 20*8(a0)
-    lw \T03h, 20*8+4(a0)
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 0*8(a0)
-    sw \T02h, 0*8+4(a0)
-    lw \T02l, 15*8(a0)
-    lw \T02h, 15*8+4(a0)
-    XOR1 \S10h, \S10l, \T00h, \T00l
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    sw \T02l, 15*8(a0)
-    sw \T02h, 15*8+4(a0)
-    XOR1 \T03h, \T03l, \T00h, \T00l
-    lw \T02l, 24*4(sp)
-    lw \T02h, 25*4(sp)
-    lw \T00l, 20*4(sp)
-    lw \T00h, 21*4(sp)
-    sw \T03l, 20*8(a0)
-    sw \T03h, 20*8+4(a0)
-    ROLnInplace \T02h, \T02l, \T03h, \T03l, 1
-    lw \T03l, 7*8(a0)
-    lw \T03h, 7*8+4(a0)
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    XOR1Init \T00h, \T00l, \S02h, \S02l, \S17h, \S17l
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    XOR1 \T03h, \T03l, \T02h, \T02l
-    XOR1 \S02h, \S02l, \T02h, \T02l
-    sw \T03l, 7*8(a0)
-    sw \T03h, 7*8+4(a0)
-    lw \T03l, 12*8(a0)
-    lw \T03h, 12*8+4(a0)
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    XOR1 \T03h, \T03l, \T02h, \T02l
-    XOR1 \S17h, \S17l, \T02h, \T02l
-    sw \T03l, 12*8(a0)
-    sw \T03h, 12*8+4(a0)
-    lw \T03l, 22*8(a0)
-    lw \T03h, 22*8+4(a0)
-    XOR1 \T00h, \T00l, \T03h, \T03l
-    XOR1 \T03h, \T03l, \T02h, \T02l
-    sw \T00l, 22*4(sp)
-    sw \T00h, 23*4(sp)
-    sw \T03l, 22*8(a0)
-    sw \T03h, 22*8+4(a0)
-    ROLnInplace \T01h, \T01l, \T03h, \T03l, 1
-    lw \T03l, 3*8(a0)
-    lw \T03h, 3*8+4(a0)
-    XOR1 \T01h, \T01l, \T00h, \T00l
-    XOR1 \S08h, \S08l, \T01h, \T01l
-    XOR1 \T03h, \T03l, \T01h, \T01l
-    lw \T02l, 13*8(a0)
-    lw \T02h, 13*8+4(a0)
-    sw \T03l, 3*8(a0)
-    sw \T03h, 3*8+4(a0)
-    lw \T03l, 18*8(a0)
-    lw \T03h, 18*8+4(a0)
-    XOR1 \T02h, \T02l, \T01h, \T01l
-    XOR1 \S23h, \S23l, \T01h, \T01l
-    sw \T02l, 13*8(a0)
-    sw \T02h, 13*8+4(a0)
-    XOR1 \T03h, \T03l, \T01h, \T01l
-    lw \T01l, 18*4(sp)
-    lw \T01h, 19*4(sp)
-    sw \T03l, 18*8(a0)
-    sw \T03h, 18*8+4(a0)
-    ROLnInplace \T00h, \T00l, \T03h, \T03l, 1
-    lw \T02l, 1*8(a0)
-    lw \T02h, 1*8+4(a0)
-    XOR1 \T00h, \T00l, \T01h, \T01l
-    lw \T03l, 6*8(a0)
-    lw \T03h, 6*8+4(a0)
-    XOR1 \S16h, \S16l, \T00h, \T00l
-    XOR1 \S21h, \S21l, \T00h, \T00l
-    XOR1 \T02h, \T02l, \T00h, \T00l // here
-    sw \T02l, 1*8(a0)
-    sw \T02h, 1*8+4(a0)
-    XOR1 \T03h, \T03l, \T00h, \T00l
-    lw \T02l, 11*8(a0)
-    lw \T02h, 11*8+4(a0)
-    sw \T03l, 6*8(a0)
-    sw \T03h, 6*8+4(a0)
-    XOR1 \T02h, \T02l, \T00h, \T00l
-    mv \T01l, \T03l
-    mv \T01h, \T03h
-    sw \T02l, 11*8(a0)
-    sw \T02h, 11*8+4(a0)
-    ROLn \T03h, \T03l, \S21h, \S21l, 2
-    ROLnInplace \T01h, \T01l, \T02h, \T02l, 44
-    lw \T00l, 0*8(a0)
-    lw \T00h, 0*8+4(a0)
-    ROLn \S21h, \S21l, \S08h, \S08l, 55
-    sw \T03l, 0*8(a0)
-    sw \T03h, 0*8+4(a0)
-    ROLn \S08h, \S08l, \S16h, \S16l, 45
-    lw \T02l, 3*8(a0)
-    lw \T02h, 3*8+4(a0)
-    ROLn \S16h, \S16l, \S05h, \S05l, 36
-    lw \T03l, 18*8(a0)
-    lw \T03h, 18*8+4(a0)
-    ROLn \S05h, \S05l, \T02h, \T02l, 28
-    ROLn \T02h, \T02l, \T03h, \T03l, 21
-    lw \T03l, 13*8(a0)
-    lw \T03h, 13*8+4(a0)
-    sw \T02l, 3*8(a0)
-    sw \T02h, 3*8+4(a0)
-    ROLnInplace \T03h, \T03l, \T04, \T02l, 25
-    sw \T03l, 18*8(a0)
-    sw \T03h, 18*8+4(a0)
-    ROLn \T02h, \T02l, \S10h, \S10l, 3
-    lw \T03l, 1*8(a0)
-    lw \T03h, 1*8+4(a0)
-    sw \T02l, 13*8(a0)
-    sw \T02h, 13*8+4(a0)
-    ROLn \S10h, \S10l, \T03h, \T03l, 1
-    lw \T03l, 12*8(a0)
-    lw \T03h, 12*8+4(a0)
-    ROLn \T02h, \T02l, \S02h, \S02l, 62
-    sw \T02l, 1*8(a0)
-    sw \T02h, 1*8+4(a0)
-    lw \T02l, 9*8(a0)
-    lw \T02h, 9*8+4(a0)
-    ROLn \S02h, \S02l, \T03h, \T03l, 43
-    ROLn \T03h, \T03l, \T02h, \T02l, 20
-    lw \T02l, 22*8(a0)
-    lw \T02h, 22*8+4(a0)
-    sw \T03l, 12*8(a0)
-    sw \T03h, 12*8+4(a0)
-    ROLnInplace \T02h, \T02l, \T04, \T03l, 61
-    sw \T02l, 9*8(a0)
-    sw \T02h, 9*8+4(a0)
-    ROLn \T03h, \T03l, \S14h, \S14l, 39
-    lw \T02l, 20*8(a0)
-    lw \T02h, 20*8+4(a0)
-    sw \T03l, 22*8(a0)
-    sw \T03h, 22*8+4(a0)
-    ROLn \S14h, \S14l, \T02h, \T02l, 18
-    lw \T03l, 15*8(a0)
-    lw \T03h, 15*8+4(a0)
-    ROLn \T02h, \T02l, \S23h, \S23l, 56
-    ROLn \S23h, \S23l, \T03h, \T03l, 41
-    sw \T02l, 20*8(a0)
-    sw \T02h, 20*8+4(a0)
-    ROLn \T02h, \T02l, \S04h, \S04l, 27
-    lw \T03l, 24*8(a0)
-    lw \T03h, 24*8+4(a0)
-    sw \T02l, 15*8(a0)
-    sw \T02h, 15*8+4(a0)
-    ROLn \S04h, \S04l, \T03h, \T03l, 14
-    ROLn \T02h, \T02l, \S17h, \S17l, 15
-    lw \T03l, 11*8(a0)
-    lw \T03h, 11*8+4(a0)
-    sw \T02l, 24*8(a0)
-    sw \T02h, 24*8+4(a0)
-    lw \T04, 7*8(a0)
-    lw \T02l, 7*8+4(a0)
-    ROLn \S17h, \S17l, \T03h, \T03l, 10
-    ROLnInplace \T02l, \T04, \T03h, \T03l, 6
-    lw \T03l, 19*8(a0)
-    lw \T03h, 19*8+4(a0)
-    sw \T04, 11*8(a0)
-    sw \T02l, 11*8+4(a0)
-    sw \T00l, 18*4(sp)
-    sw \T00h, 19*4(sp)
-    ROLnInplace \T03h, \T03l, \T02h, \T04, 8
-    lw \T00l, 12*8(a0)
-    lw \T00h, 12*8+4(a0)
-    sw \T01l, 20*4(sp)
-    sw \T01h, 21*4(sp)
-    lw \T01l, 13*8(a0)
-    lw \T01h, 13*8+4(a0)
-    sw \T03l, 19*8(a0)
-    sw \T03h, 19*8+4(a0)
-    xorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S08h, \S08l, \T03h, \T03l
-    lw \T02l, 9*8(a0)
-    lw \T02h, 9*8+4(a0)
-    sw \T03l, 6*8(a0)
-    sw \T03h, 6*8+4(a0)
-    xorornot \T03h, \T03l, \T01h, \T01l, \S08h, \S08l, \T02h, \T02l, \T03h, \T03l
-    sw \T03l, 7*8(a0)
-    sw \T03h, 7*8+4(a0)
-    xoror \S08h, \S08l, \S08h, \S08l, \T02h, \T02l, \S05h, \S05l, \T03h, \T03l
-    xorand \T02h, \T02l, \T02h, \T02l, \S05h, \S05l, \T00h, \T00l, \T03h, \T03l
-    or  \T03l, \T00l, \T01l
-    or  \T03h, \T00h, \T01h
-    lw \T01l, 19*8(a0)
-    lw \T01h, 19*8+4(a0)
-    sw \T02l, 9*8(a0)
-    sw \T02h, 9*8+4(a0)
-    lw \T00l, 18*8(a0)
-    lw \T00h, 18*8+4(a0)
-    xor \S05h, \S05h, \T03h
-    xor \S05l, \S05l, \T03l
-    xornotand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S14h, \S14l, \T03h, \T03l
-    lw \T02l, 11*8(a0)
-    lw \T02h, 11*8+4(a0)
-    sw \T03l, 12*8(a0)
-    sw \T03h, 12*8+4(a0)
-    notxoror \T03h, \T03l, \T01h, \T01l, \S14h, \S14l, \S10h, \S10l, \T03h, \T03l, \T04
-    sw \T03l, 13*8(a0)
-    sw \T03h, 13*8+4(a0)
-    xorand \S14h, \S14l, \S14h, \S14l, \S10h, \S10l, \T02h, \T02l, \T03h, \T03l
-    xoror \S10h, \S10l, \S10h, \S10l, \T02h, \T02l, \T00h, \T00l, \T03h, \T03l
-    xorand \T02h, \T02l, \T02h, \T02l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
-    lw \T00h, 24*8+4(a0)
-    lw \T01h, 20*8+4(a0)
-    sw \T02h, 11*8+4(a0)
-    sw \T02l, 11*8(a0)
-    lw \T02h, 15*8+4(a0)
-    lw \T01l, 20*8(a0)
-    lw \T02l, 15*8(a0)
-    lw \T00l, 24*8(a0)
-    notxorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \T02h, \T02l, \T03h, \T03l, \T04
-    sw \T03l, 18*8(a0)
-    sw \T03h, 18*8+4(a0)
-    xoror \T03h, \T03l, \T01h, \T01l, \T02h, \T02l, \S16h, \S16l, \T03h, \T03l
-    sw \T03l, 19*8(a0)
-    sw \T03h, 19*8+4(a0)
-    xorand \T02h, \T02l, \T02h, \T02l, \S16h, \S16l, \S17h, \S17l, \T03h, \T03l
-    sw \T02l, 15*8(a0)
-    sw \T02h, 15*8+4(a0)
-    xoror \S16h, \S16l, \S16h, \S16l, \S17h, \S17l, \T00h, \T00l, \T03h, \T03l
-    lw \T02l, 22*8(a0)
-    lw \T02h, 22*8+4(a0)
-    not \T03l, \T00l
-    not \T03h, \T00h
-    lw \T00l, 0*8(a0)
-    lw \T00h, 0*8+4(a0)
-    or  \T03l, \T03l, \T01l
-    or  \T03h, \T03h, \T01h
-    lw \T01l, 1*8(a0)
-    lw \T01h, 1*8+4(a0)
-    xor \S17l, \S17l, \T03l
-    xor \S17h, \S17h, \T03h
-    xorand \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S21h, \S21l, \T03h, \T03l
-    sw \T03l, 24*8(a0)
-    sw \T03h, 24*8+4(a0)
-    xornotand \T03h, \T03l, \T01h, \T01l, \S21h, \S21l, \T02h, \T02l, \T03h, \T03l
-    sw \T03l, 20*8(a0)
-    sw \T03h, 20*8+4(a0)
-    notxoror \S21h, \S21l, \S21h, \S21l, \T02h, \T02l, \S23h, \S23l, \T03h, \T03l, \T04
-    xorand \T02h, \T02l, \T02h, \T02l, \S23h, \S23l, \T00h, \T00l, \T03h, \T03l
-    lw \T04, 17*4(sp)
-    or  \T03l, \T00l, \T01l
-    or  \T03h, \T00h, \T01h
-    lw \T00l, 18*4(sp)
-    lw \T00h, 19*4(sp)
-    sw \T02l, 22*8(a0)
-    sw \T02h, 22*8+4(a0)
-    lw \T01l, 20*4(sp)
-    lw \T01h, 21*4(sp)
-    xor \S23h, \S23h, \T03h
-    xor \S23l, \S23l, \T03l
-    lw \T02l, 0(\T04)
-    lw \T02h, 4(\T04)
-    addi \T04, \T04, 8
-    xoror \T03h, \T03l, \T00h, \T00l, \T01h, \T01l, \S02h, \S02l, \T03h, \T03l
-    sw  \T04, 17*4(sp)
-    XOR1 \T03h, \T03l, \T02h, \T02l
-    lw \T02l, 3*8(a0)
-    lw \T02h, 3*8+4(a0)
-    sw \T03l, 0*8(a0)
-    sw \T03h, 0*8+4(a0)
-    xornotor \T03h, \T03l, \T01h, \T01l, \S02h, \S02l, \T02h, \T02l, \T03h, \T03l
-    sw \T03l, 1*8(a0)
-    sw \T03h, 1*8+4(a0)
-    xorand \S02h, \S02l, \S02h, \S02l, \T02h, \T02l, \S04h, \S04l, \T03h, \T03l
-    lw \T04, 16*4(sp)
-    xoror \T03h, \T03l, \T02h, \T02l, \S04h, \S04l, \T00h, \T00l, \T03h, \T03l
-    sw \T03l, 3*8(a0)
-    sw \T03h, 3*8+4(a0)
-    addi \T04, \T04, -1
-    xorand \S04h, \S04l, \S04h, \S04l, \T00h, \T00l, \T01h, \T01l, \T03h, \T03l
+        S02h_s, S02l_s, S04h_s, S04l_s, S05h_s, S05l_s, S08h_s, S08l_s, S10h_s, S10l_s, \
+        S14h_s, S14l_s, S16h_s, S16l_s, S17h_s, S17l_s, S21h_s, S21l_s, S23h_s, S23l_s, \
+        T00h_s, T00l_s, T01h_s, T01l_s, T02h_s, T02l_s, T03h_s, T03l_s, T04_s
+    lw \T03l_s, 0*8(a0)
+    lw \T03h_s, 0*8+4(a0)
+    xor \T00l_s, \S05l_s, \S10l_s
+    xor \T00h_s, \S05h_s, \S10h_s
+    lw \T02l_s, 15*8(a0)
+    lw \T02h_s, 15*8+4(a0)
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    lw \T03l_s, 20*8(a0)
+    lw \T03h_s, 20*8+4(a0)
+    xor \T00l_s, \T00l_s, \T02l_s
+    xor \T00h_s, \T00h_s, \T02h_s
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    lw \T03l_s, 3*8(a0)
+    lw \T03h_s, 3*8+4(a0)
+    sw \T00l_s, 18*4(sp)
+    sw \T00h_s, 19*4(sp)
+    xor \T01l_s, \S08l_s, \S23l_s
+    xor \T01h_s, \S08h_s, \S23h_s
+    lw \T02l_s, 13*8(a0)
+    lw \T02h_s, 13*8+4(a0)
+    xor \T01l_s, \T01l_s, \T03l_s
+    xor \T01h_s, \T01h_s, \T03h_s
+    lw \T03l_s, 18*8(a0)
+    lw \T03h_s, 18*8+4(a0)
+    xor \T01l_s, \T01l_s, \T02l_s
+    xor \T01h_s, \T01h_s, \T02h_s
+    xor \T01l_s, \T01l_s, \T03l_s
+    xor \T01h_s, \T01h_s, \T03h_s
+    srli \T03h_s,   \T00l_s, 31
+    slli \T00l_s, \T00l_s, 1
+    srli \T03l_s,   \T00h_s, 31
+    slli \T00h_s, \T00h_s, 1
+    xor  \T00l_s, \T00l_s, \T03l_s
+    xor  \T00h_s, \T00h_s, \T03h_s
+    sw \T01l_s, 24*4(sp)
+    sw \T01h_s, 25*4(sp)
+    xor \T00l_s, \T00l_s, \T01l_s
+    xor \T00h_s, \T00h_s, \T01h_s
+    lw \T03l_s, 9*8(a0)
+    lw \T03h_s, 9*8+4(a0)
+    xor \T01l_s, \S04l_s, \S14l_s
+    xor \T01h_s, \S04h_s, \S14h_s
+    xor \S04l_s, \S04l_s, \T00l_s
+    xor \S04h_s, \S04h_s, \T00h_s
+    xor \S14l_s, \S14l_s, \T00l_s
+    xor \S14h_s, \S14h_s, \T00h_s
+    lw \T02l_s, 19*8(a0)
+    lw \T02h_s, 19*8+4(a0)
+    xor \T01l_s, \T01l_s, \T03l_s
+    xor \T01h_s, \T01h_s, \T03h_s
+    xor \T03l_s, \T03l_s, \T00l_s
+    xor \T03h_s, \T03h_s, \T00h_s
+    sw \T03l_s, 9*8(a0)
+    sw \T03h_s, 9*8+4(a0)
+    lw \T03l_s, 24*8(a0)
+    lw \T03h_s, 24*8+4(a0)
+    xor \T01l_s, \T01l_s, \T02l_s
+    xor \T01h_s, \T01h_s, \T02h_s
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    xor \T01l_s, \T01l_s, \T03l_s
+    xor \T01h_s, \T01h_s, \T03h_s
+    sw \T02l_s, 19*8(a0)
+    sw \T02h_s, 19*8+4(a0)
+    xor \T03l_s, \T03l_s, \T00l_s
+    xor \T03h_s, \T03h_s, \T00h_s
+    sw \T01l_s, 26*4(sp)
+    sw \T01h_s, 27*4(sp)
+    sw \T03l_s, 24*8(a0)
+    sw \T03h_s, 24*8+4(a0)
+    lw \T03l_s, 1*8(a0)
+    lw \T03h_s, 1*8+4(a0)
+    xor \T00l_s, \S16l_s, \S21l_s
+    xor \T00h_s, \S16h_s, \S21h_s
+    lw \T02l_s, 6*8(a0)
+    lw \T02h_s, 6*8+4(a0)
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    lw \T03l_s, 11*8(a0)
+    lw \T03h_s, 11*8+4(a0)
+    xor \T00l_s, \T00l_s, \T02l_s
+    xor \T00h_s, \T00h_s, \T02h_s
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    sw \T00l_s, 20*4(sp)
+    sw \T00h_s, 21*4(sp)
+    srli \T03h_s,   \T00l_s, 31
+    slli \T00l_s, \T00l_s, 1
+    srli \T03l_s,   \T00h_s, 31
+    slli \T00h_s, \T00h_s, 1
+    xor  \T00l_s, \T00l_s, \T03l_s
+    xor  \T00h_s, \T00h_s, \T03h_s
+    lw \T02l_s, 0*8(a0)
+    lw \T02h_s, 0*8+4(a0)
+    xor \T00l_s, \T00l_s, \T01l_s
+    xor \T00h_s, \T00h_s, \T01h_s
+    xor \S05l_s, \S05l_s, \T00l_s
+    xor \S05h_s, \S05h_s, \T00h_s
+    lw \T03l_s, 20*8(a0)
+    lw \T03h_s, 20*8+4(a0)
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    sw \T02l_s, 0*8(a0)
+    sw \T02h_s, 0*8+4(a0)
+    lw \T02l_s, 15*8(a0)
+    lw \T02h_s, 15*8+4(a0)
+    xor \S10l_s, \S10l_s, \T00l_s
+    xor \S10h_s, \S10h_s, \T00h_s
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    sw \T02l_s, 15*8(a0)
+    sw \T02h_s, 15*8+4(a0)
+    xor \T03l_s, \T03l_s, \T00l_s
+    xor \T03h_s, \T03h_s, \T00h_s
+    lw \T02l_s, 24*4(sp)
+    lw \T02h_s, 25*4(sp)
+    lw \T00l_s, 20*4(sp)
+    lw \T00h_s, 21*4(sp)
+    sw \T03l_s, 20*8(a0)
+    sw \T03h_s, 20*8+4(a0)
+    srli \T03h_s,   \T02l_s, 31
+    slli \T02l_s, \T02l_s, 1
+    srli \T03l_s,   \T02h_s, 31
+    slli \T02h_s, \T02h_s, 1
+    xor  \T02l_s, \T02l_s, \T03l_s
+    xor  \T02h_s, \T02h_s, \T03h_s
+    lw \T03l_s, 7*8(a0)
+    lw \T03h_s, 7*8+4(a0)
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    xor \T00l_s, \S02l_s, \S17l_s
+    xor \T00h_s, \S02h_s, \S17h_s
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    xor \T03l_s, \T03l_s, \T02l_s
+    xor \T03h_s, \T03h_s, \T02h_s
+    xor \S02l_s, \S02l_s, \T02l_s
+    xor \S02h_s, \S02h_s, \T02h_s
+    sw \T03l_s, 7*8(a0)
+    sw \T03h_s, 7*8+4(a0)
+    lw \T03l_s, 12*8(a0)
+    lw \T03h_s, 12*8+4(a0)
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    xor \T03l_s, \T03l_s, \T02l_s
+    xor \T03h_s, \T03h_s, \T02h_s
+    xor \S17l_s, \S17l_s, \T02l_s
+    xor \S17h_s, \S17h_s, \T02h_s
+    sw \T03l_s, 12*8(a0)
+    sw \T03h_s, 12*8+4(a0)
+    lw \T03l_s, 22*8(a0)
+    lw \T03h_s, 22*8+4(a0)
+    xor \T00l_s, \T00l_s, \T03l_s
+    xor \T00h_s, \T00h_s, \T03h_s
+    xor \T03l_s, \T03l_s, \T02l_s
+    xor \T03h_s, \T03h_s, \T02h_s
+    sw \T00l_s, 22*4(sp)
+    sw \T00h_s, 23*4(sp)
+    sw \T03l_s, 22*8(a0)
+    sw \T03h_s, 22*8+4(a0)
+    srli \T03h_s,   \T01l_s, 31
+    slli \T01l_s, \T01l_s, 1
+    srli \T03l_s,   \T01h_s, 31
+    slli \T01h_s, \T01h_s, 1
+    xor  \T01l_s, \T01l_s, \T03l_s
+    xor  \T01h_s, \T01h_s, \T03h_s
+    lw \T03l_s, 3*8(a0)
+    lw \T03h_s, 3*8+4(a0)
+    xor \T01l_s, \T01l_s, \T00l_s
+    xor \T01h_s, \T01h_s, \T00h_s
+    xor \S08l_s, \S08l_s, \T01l_s
+    xor \S08h_s, \S08h_s, \T01h_s
+    xor \T03l_s, \T03l_s, \T01l_s
+    xor \T03h_s, \T03h_s, \T01h_s
+    lw \T02l_s, 13*8(a0)
+    lw \T02h_s, 13*8+4(a0)
+    sw \T03l_s, 3*8(a0)
+    sw \T03h_s, 3*8+4(a0)
+    lw \T03l_s, 18*8(a0)
+    lw \T03h_s, 18*8+4(a0)
+    xor \T02l_s, \T02l_s, \T01l_s
+    xor \T02h_s, \T02h_s, \T01h_s
+    xor \S23l_s, \S23l_s, \T01l_s
+    xor \S23h_s, \S23h_s, \T01h_s
+    sw \T02l_s, 13*8(a0)
+    sw \T02h_s, 13*8+4(a0)
+    xor \T03l_s, \T03l_s, \T01l_s
+    xor \T03h_s, \T03h_s, \T01h_s
+    lw \T01l_s, 18*4(sp)
+    lw \T01h_s, 19*4(sp)
+    sw \T03l_s, 18*8(a0)
+    sw \T03h_s, 18*8+4(a0)
+    srli \T03h_s,   \T00l_s, 31
+    slli \T00l_s, \T00l_s, 1
+    srli \T03l_s,   \T00h_s, 31
+    slli \T00h_s, \T00h_s, 1
+    xor  \T00l_s, \T00l_s, \T03l_s
+    xor  \T00h_s, \T00h_s, \T03h_s
+    lw \T02l_s, 1*8(a0)
+    lw \T02h_s, 1*8+4(a0)
+    xor \T00l_s, \T00l_s, \T01l_s
+    xor \T00h_s, \T00h_s, \T01h_s
+    lw \T03l_s, 6*8(a0)
+    lw \T03h_s, 6*8+4(a0)
+    xor \S16l_s, \S16l_s, \T00l_s
+    xor \S16h_s, \S16h_s, \T00h_s
+    xor \S21l_s, \S21l_s, \T00l_s
+    xor \S21h_s, \S21h_s, \T00h_s
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    sw \T02l_s, 1*8(a0)
+    sw \T02h_s, 1*8+4(a0)
+    xor \T03l_s, \T03l_s, \T00l_s
+    xor \T03h_s, \T03h_s, \T00h_s
+    lw \T02l_s, 11*8(a0)
+    lw \T02h_s, 11*8+4(a0)
+    sw \T03l_s, 6*8(a0)
+    sw \T03h_s, 6*8+4(a0)
+    xor \T02l_s, \T02l_s, \T00l_s
+    xor \T02h_s, \T02h_s, \T00h_s
+    mv \T01l_s, \T03l_s
+    mv \T01h_s, \T03h_s
+    sw \T02l_s, 11*8(a0)
+    sw \T02h_s, 11*8+4(a0)
+    slli \T03l_s, \S21l_s, 2
+    srli \S21l_s, \S21l_s, 30
+    srli \T03h_s, \S21h_s, 30
+    slli \S21h_s, \S21h_s, 2
+    xor  \T03l_s, \T03l_s, \T03h_s
+    xor  \T03h_s, \S21h_s, \S21l_s
+    slli \T02h_s,  \T01l_s, 12
+    srli \T01l_s, \T01l_s, 20
+    slli \T02l_s,  \T01h_s, 12
+    srli \T01h_s, \T01h_s, 20
+    xor  \T01l_s, \T01l_s, \T02l_s
+    xor  \T01h_s, \T01h_s, \T02h_s
+    lw \T00l_s, 0*8(a0)
+    lw \T00h_s, 0*8+4(a0)
+    slli \S21l_s, \S08h_s, 23
+    srli \S08h_s, \S08h_s, 9
+    srli \S21h_s, \S08l_s, 9
+    slli \S08l_s, \S08l_s, 23
+    xor  \S21l_s, \S21l_s, \S21h_s
+    xor  \S21h_s, \S08l_s, \S08h_s
+    sw \T03l_s, 0*8(a0)
+    sw \T03h_s, 0*8+4(a0)
+    slli \S08l_s, \S16h_s, 13
+    srli \S16h_s, \S16h_s, 19
+    srli \S08h_s, \S16l_s, 19
+    slli \S16l_s, \S16l_s, 13
+    xor  \S08l_s, \S08l_s, \S08h_s
+    xor  \S08h_s, \S16l_s, \S16h_s
+    lw \T02l_s, 3*8(a0)
+    lw \T02h_s, 3*8+4(a0)
+    slli \S16l_s, \S05h_s, 4
+    srli \S05h_s, \S05h_s, 28
+    srli \S16h_s, \S05l_s, 28
+    slli \S05l_s, \S05l_s, 4
+    xor  \S16l_s, \S16l_s, \S16h_s
+    xor  \S16h_s, \S05l_s, \S05h_s
+    lw \T03l_s, 18*8(a0)
+    lw \T03h_s, 18*8+4(a0)
+    slli \S05l_s, \T02l_s, 28
+    srli \T02l_s, \T02l_s, 4
+    srli \S05h_s, \T02h_s, 4
+    slli \T02h_s, \T02h_s, 28
+    xor  \S05l_s, \S05l_s, \S05h_s
+    xor  \S05h_s, \T02h_s, \T02l_s
+    slli \T02l_s, \T03l_s, 21
+    srli \T03l_s, \T03l_s, 11
+    srli \T02h_s, \T03h_s, 11
+    slli \T03h_s, \T03h_s, 21
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \T03h_s, \T03l_s
+    lw \T03l_s, 13*8(a0)
+    lw \T03h_s, 13*8+4(a0)
+    sw \T02l_s, 3*8(a0)
+    sw \T02h_s, 3*8+4(a0)
+    srli \T02h_s,   \T03l_s, 7
+    slli \T03l_s, \T03l_s, 25
+    srli \T02l_s,   \T03h_s, 7
+    slli \T03h_s, \T03h_s, 25
+    xor  \T03l_s, \T03l_s, \T02l_s
+    xor  \T03h_s, \T03h_s, \T02h_s
+    sw \T03l_s, 18*8(a0)
+    sw \T03h_s, 18*8+4(a0)
+    slli \T02l_s, \S10l_s, 3
+    srli \S10l_s, \S10l_s, 29
+    srli \T02h_s, \S10h_s, 29
+    slli \S10h_s, \S10h_s, 3
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \S10h_s, \S10l_s
+    lw \T03l_s, 1*8(a0)
+    lw \T03h_s, 1*8+4(a0)
+    sw \T02l_s, 13*8(a0)
+    sw \T02h_s, 13*8+4(a0)
+    slli \S10l_s, \T03l_s, 1
+    srli \T03l_s, \T03l_s, 31
+    srli \S10h_s, \T03h_s, 31
+    slli \T03h_s, \T03h_s, 1
+    xor  \S10l_s, \S10l_s, \S10h_s
+    xor  \S10h_s, \T03h_s, \T03l_s
+    lw \T03l_s, 12*8(a0)
+    lw \T03h_s, 12*8+4(a0)
+    slli \T02l_s, \S02h_s, 30
+    srli \S02h_s, \S02h_s, 2
+    srli \T02h_s, \S02l_s, 2
+    slli \S02l_s, \S02l_s, 30
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \S02l_s, \S02h_s
+    sw \T02l_s, 1*8(a0)
+    sw \T02h_s, 1*8+4(a0)
+    lw \T02l_s, 9*8(a0)
+    lw \T02h_s, 9*8+4(a0)
+    slli \S02l_s, \T03h_s, 11
+    srli \T03h_s, \T03h_s, 21
+    srli \S02h_s, \T03l_s, 21
+    slli \T03l_s, \T03l_s, 11
+    xor  \S02l_s, \S02l_s, \S02h_s
+    xor  \S02h_s, \T03l_s, \T03h_s
+    slli \T03l_s, \T02l_s, 20
+    srli \T02l_s, \T02l_s, 12
+    srli \T03h_s, \T02h_s, 12
+    slli \T02h_s, \T02h_s, 20
+    xor  \T03l_s, \T03l_s, \T03h_s
+    xor  \T03h_s, \T02h_s, \T02l_s
+    lw \T02l_s, 22*8(a0)
+    lw \T02h_s, 22*8+4(a0)
+    sw \T03l_s, 12*8(a0)
+    sw \T03h_s, 12*8+4(a0)
+    slli \T03h_s,  \T02l_s, 29
+    srli \T02l_s, \T02l_s, 3
+    slli \T03l_s,  \T02h_s, 29
+    srli \T02h_s, \T02h_s, 3
+    xor  \T02l_s, \T02l_s, \T03l_s
+    xor  \T02h_s, \T02h_s, \T03h_s
+    sw \T02l_s, 9*8(a0)
+    sw \T02h_s, 9*8+4(a0)
+    slli \T03l_s, \S14h_s, 7
+    srli \S14h_s, \S14h_s, 25
+    srli \T03h_s, \S14l_s, 25
+    slli \S14l_s, \S14l_s, 7
+    xor  \T03l_s, \T03l_s, \T03h_s
+    xor  \T03h_s, \S14l_s, \S14h_s
+    lw \T02l_s, 20*8(a0)
+    lw \T02h_s, 20*8+4(a0)
+    sw \T03l_s, 22*8(a0)
+    sw \T03h_s, 22*8+4(a0)
+    slli \S14l_s, \T02l_s, 18
+    srli \T02l_s, \T02l_s, 14
+    srli \S14h_s, \T02h_s, 14
+    slli \T02h_s, \T02h_s, 18
+    xor  \S14l_s, \S14l_s, \S14h_s
+    xor  \S14h_s, \T02h_s, \T02l_s
+    lw \T03l_s, 15*8(a0)
+    lw \T03h_s, 15*8+4(a0)
+    slli \T02l_s, \S23h_s, 24
+    srli \S23h_s, \S23h_s, 8
+    srli \T02h_s, \S23l_s, 8
+    slli \S23l_s, \S23l_s, 24
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \S23l_s, \S23h_s
+    slli \S23l_s, \T03h_s, 9
+    srli \T03h_s, \T03h_s, 23
+    srli \S23h_s, \T03l_s, 23
+    slli \T03l_s, \T03l_s, 9
+    xor  \S23l_s, \S23l_s, \S23h_s
+    xor  \S23h_s, \T03l_s, \T03h_s
+    sw \T02l_s, 20*8(a0)
+    sw \T02h_s, 20*8+4(a0)
+    slli \T02l_s, \S04l_s, 27
+    srli \S04l_s, \S04l_s, 5
+    srli \T02h_s, \S04h_s, 5
+    slli \S04h_s, \S04h_s, 27
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \S04h_s, \S04l_s
+    lw \T03l_s, 24*8(a0)
+    lw \T03h_s, 24*8+4(a0)
+    sw \T02l_s, 15*8(a0)
+    sw \T02h_s, 15*8+4(a0)
+    slli \S04l_s, \T03l_s, 14
+    srli \T03l_s, \T03l_s, 18
+    srli \S04h_s, \T03h_s, 18
+    slli \T03h_s, \T03h_s, 14
+    xor  \S04l_s, \S04l_s, \S04h_s
+    xor  \S04h_s, \T03h_s, \T03l_s
+    slli \T02l_s, \S17l_s, 15
+    srli \S17l_s, \S17l_s, 17
+    srli \T02h_s, \S17h_s, 17
+    slli \S17h_s, \S17h_s, 15
+    xor  \T02l_s, \T02l_s, \T02h_s
+    xor  \T02h_s, \S17h_s, \S17l_s
+    lw \T03l_s, 11*8(a0)
+    lw \T03h_s, 11*8+4(a0)
+    sw \T02l_s, 24*8(a0)
+    sw \T02h_s, 24*8+4(a0)
+    lw \T02h_s, 7*8(a0)
+    lw \T02l_s, 7*8+4(a0)
+    slli \S17l_s, \T03l_s, 10
+    srli \T03l_s, \T03l_s, 22
+    srli \S17h_s, \T03h_s, 22
+    slli \T03h_s, \T03h_s, 10
+    xor  \S17l_s, \S17l_s, \S17h_s
+    xor  \S17h_s, \T03h_s, \T03l_s
+    srli \T03h_s,   \T02h_s, 26
+    slli \T02h_s, \T02h_s, 6
+    srli \T03l_s,   \T02l_s, 26
+    slli \T02l_s, \T02l_s, 6
+    xor  \T02h_s, \T02h_s, \T03l_s
+    xor  \T02l_s, \T02l_s, \T03h_s
+    lw \T03l_s, 19*8(a0)
+    lw \T03h_s, 19*8+4(a0)
+    sw \T02h_s, 11*8(a0)
+    sw \T02l_s, 11*8+4(a0)
+    sw \T00l_s, 18*4(sp)
+    sw \T00h_s, 19*4(sp)
+    srli \T02h_s,   \T03l_s, 24
+    slli \T03l_s, \T03l_s, 8
+    srli \T02l_s,   \T03h_s, 24
+    slli \T03h_s, \T03h_s, 8
+    xor  \T03l_s, \T03l_s, \T02l_s
+    xor  \T03h_s, \T03h_s, \T02h_s
+    lw \T00l_s, 12*8(a0)
+    lw \T00h_s, 12*8+4(a0)
+    sw \T01l_s, 20*4(sp)
+    sw \T01h_s, 21*4(sp)
+    lw \T01l_s, 13*8(a0)
+    lw \T01h_s, 13*8+4(a0)
+    sw \T03l_s, 19*8(a0)
+    sw \T03h_s, 19*8+4(a0)
+    and \T03l_s, \T01l_s, \S08l_s
+    and \T03h_s, \T01h_s, \S08h_s
+    xor \T03l_s, \T00l_s, \T03l_s
+    xor \T03h_s, \T00h_s, \T03h_s
+    lw \T02l_s, 9*8(a0)
+    lw \T02h_s, 9*8+4(a0)
+    sw \T03l_s, 6*8(a0)
+    sw \T03h_s, 6*8+4(a0)
+    not \T03l_s, \T02l_s
+    not \T03h_s, \T02h_s
+    or \T03l_s, \T03l_s, \S08l_s
+    or \T03h_s, \T03h_s, \S08h_s
+    xor \T03l_s, \T01l_s, \T03l_s
+    xor \T03h_s, \T01h_s, \T03h_s
+    sw \T03l_s, 7*8(a0)
+    sw \T03h_s, 7*8+4(a0)
+    or \T03l_s, \T02l_s, \S05l_s
+    or \T03h_s, \T02h_s, \S05h_s
+    xor \S08l_s, \S08l_s, \T03l_s
+    xor \S08h_s, \S08h_s, \T03h_s
+    and \T03l_s, \S05l_s, \T00l_s
+    and \T03h_s, \S05h_s, \T00h_s
+    xor \T02l_s, \T02l_s, \T03l_s
+    xor \T02h_s, \T02h_s, \T03h_s
+    or  \T03l_s, \T00l_s, \T01l_s
+    or  \T03h_s, \T00h_s, \T01h_s
+    lw \T01l_s, 19*8(a0)
+    lw \T01h_s, 19*8+4(a0)
+    sw \T02l_s, 9*8(a0)
+    sw \T02h_s, 9*8+4(a0)
+    lw \T00l_s, 18*8(a0)
+    lw \T00h_s, 18*8+4(a0)
+    xor \S05h_s, \S05h_s, \T03h_s
+    xor \S05l_s, \S05l_s, \T03l_s
+    not \T03l_s, \T01l_s
+    not \T03h_s, \T01h_s
+    and \T03l_s, \T03l_s, \S14l_s
+    and \T03h_s, \T03h_s, \S14h_s
+    xor \T03l_s, \T00l_s, \T03l_s
+    xor \T03h_s, \T00h_s, \T03h_s
+    lw \T02l_s, 11*8(a0)
+    lw \T02h_s, 11*8+4(a0)
+    sw \T03l_s, 12*8(a0)
+    sw \T03h_s, 12*8+4(a0)
+    not \T04_s, \T01h_s
+    or  \T03h_s, \S14h_s, \S10h_s
+    or  \T03l_s, \S14l_s, \S10l_s
+    xor \T03h_s, \T03h_s, \T04_s
+    not \T04_s, \T01l_s
+    xor \T03l_s, \T03l_s, \T04_s
+    sw \T03l_s, 13*8(a0)
+    sw \T03h_s, 13*8+4(a0)
+    and \T03l_s, \S10l_s, \T02l_s
+    and \T03h_s, \S10h_s, \T02h_s
+    xor \S14l_s, \S14l_s, \T03l_s
+    xor \S14h_s, \S14h_s, \T03h_s
+    or \T03l_s, \T02l_s, \T00l_s
+    or \T03h_s, \T02h_s, \T00h_s
+    xor \S10l_s, \S10l_s, \T03l_s
+    xor \S10h_s, \S10h_s, \T03h_s
+    and \T03l_s, \T00l_s, \T01l_s
+    and \T03h_s, \T00h_s, \T01h_s
+    xor \T02l_s, \T02l_s, \T03l_s
+    xor \T02h_s, \T02h_s, \T03h_s
+    lw \T00h_s, 24*8+4(a0)
+    lw \T01h_s, 20*8+4(a0)
+    sw \T02h_s, 11*8+4(a0)
+    sw \T02l_s, 11*8(a0)
+    lw \T02h_s, 15*8+4(a0)
+    lw \T01l_s, 20*8(a0)
+    lw \T02l_s, 15*8(a0)
+    lw \T00l_s, 24*8(a0)
+    not \T04_s, \T00h_s
+    and \T03h_s, \T01h_s, \T02h_s
+    and \T03l_s, \T01l_s, \T02l_s
+    xor \T03h_s, \T03h_s, \T04_s
+    not \T04_s, \T00l_s
+    xor \T03l_s, \T03l_s, \T04_s
+    sw \T03l_s, 18*8(a0)
+    sw \T03h_s, 18*8+4(a0)
+    or \T03l_s, \T02l_s, \S16l_s
+    or \T03h_s, \T02h_s, \S16h_s
+    xor \T03l_s, \T01l_s, \T03l_s
+    xor \T03h_s, \T01h_s, \T03h_s
+    sw \T03l_s, 19*8(a0)
+    sw \T03h_s, 19*8+4(a0)
+    and \T03l_s, \S16l_s, \S17l_s
+    and \T03h_s, \S16h_s, \S17h_s
+    xor \T02l_s, \T02l_s, \T03l_s
+    xor \T02h_s, \T02h_s, \T03h_s
+    sw \T02l_s, 15*8(a0)
+    sw \T02h_s, 15*8+4(a0)
+    or \T03l_s, \S17l_s, \T00l_s
+    or \T03h_s, \S17h_s, \T00h_s
+    xor \S16l_s, \S16l_s, \T03l_s
+    xor \S16h_s, \S16h_s, \T03h_s
+    lw \T02l_s, 22*8(a0)
+    lw \T02h_s, 22*8+4(a0)
+    not \T03l_s, \T00l_s
+    not \T03h_s, \T00h_s
+    lw \T00l_s, 0*8(a0)
+    lw \T00h_s, 0*8+4(a0)
+    or  \T03l_s, \T03l_s, \T01l_s
+    or  \T03h_s, \T03h_s, \T01h_s
+    lw \T01l_s, 1*8(a0)
+    lw \T01h_s, 1*8+4(a0)
+    xor \S17l_s, \S17l_s, \T03l_s
+    xor \S17h_s, \S17h_s, \T03h_s
+    and \T03l_s, \T01l_s, \S21l_s
+    and \T03h_s, \T01h_s, \S21h_s
+    xor \T03l_s, \T00l_s, \T03l_s
+    xor \T03h_s, \T00h_s, \T03h_s
+    sw \T03l_s, 24*8(a0)
+    sw \T03h_s, 24*8+4(a0)
+    not \T03l_s, \S21l_s
+    not \T03h_s, \S21h_s
+    and \T03l_s, \T03l_s, \T02l_s
+    and \T03h_s, \T03h_s, \T02h_s
+    xor \T03l_s, \T01l_s, \T03l_s
+    xor \T03h_s, \T01h_s, \T03h_s
+    sw \T03l_s, 20*8(a0)
+    sw \T03h_s, 20*8+4(a0)
+    not \T04_s, \S21h_s
+    or  \T03h_s, \T02h_s, \S23h_s
+    or  \T03l_s, \T02l_s, \S23l_s
+    xor \S21h_s, \T03h_s, \T04_s
+    not \T04_s, \S21l_s
+    xor \S21l_s, \T03l_s, \T04_s
+    and \T03l_s, \S23l_s, \T00l_s
+    and \T03h_s, \S23h_s, \T00h_s
+    xor \T02l_s, \T02l_s, \T03l_s
+    xor \T02h_s, \T02h_s, \T03h_s
+    lw \T04_s, 17*4(sp)
+    or  \T03l_s, \T00l_s, \T01l_s
+    or  \T03h_s, \T00h_s, \T01h_s
+    lw \T00l_s, 18*4(sp)
+    lw \T00h_s, 19*4(sp)
+    sw \T02l_s, 22*8(a0)
+    sw \T02h_s, 22*8+4(a0)
+    lw \T01l_s, 20*4(sp)
+    lw \T01h_s, 21*4(sp)
+    xor \S23h_s, \S23h_s, \T03h_s
+    xor \S23l_s, \S23l_s, \T03l_s
+    lw \T02l_s, 0(\T04_s)
+    lw \T02h_s, 4(\T04_s)
+    addi \T04_s, \T04_s, 8
+    or \T03l_s, \T01l_s, \S02l_s
+    or \T03h_s, \T01h_s, \S02h_s
+    xor \T03l_s, \T00l_s, \T03l_s
+    xor \T03h_s, \T00h_s, \T03h_s
+    sw  \T04_s, 17*4(sp)
+    xor \T03l_s, \T03l_s, \T02l_s
+    xor \T03h_s, \T03h_s, \T02h_s
+    lw \T02l_s, 3*8(a0)
+    lw \T02h_s, 3*8+4(a0)
+    sw \T03l_s, 0*8(a0)
+    sw \T03h_s, 0*8+4(a0)
+    not \T03l_s, \S02l_s
+    not \T03h_s, \S02h_s
+    or \T03l_s, \T03l_s, \T02l_s
+    or \T03h_s, \T03h_s, \T02h_s
+    xor \T03l_s, \T01l_s, \T03l_s
+    xor \T03h_s, \T01h_s, \T03h_s
+    sw \T03l_s, 1*8(a0)
+    sw \T03h_s, 1*8+4(a0)
+    and \T03l_s, \T02l_s, \S04l_s
+    and \T03h_s, \T02h_s, \S04h_s
+    xor \S02l_s, \S02l_s, \T03l_s
+    xor \S02h_s, \S02h_s, \T03h_s
+    lw \T04_s, 16*4(sp)
+    or \T03l_s, \S04l_s, \T00l_s
+    or \T03h_s, \S04h_s, \T00h_s
+    xor \T03l_s, \T02l_s, \T03l_s
+    xor \T03h_s, \T02h_s, \T03h_s
+    sw \T03l_s, 3*8(a0)
+    sw \T03h_s, 3*8+4(a0)
+    addi \T04_s, \T04_s, -1
+    and \T03l_s, \T00l_s, \T01l_s
+    and \T03h_s, \T00h_s, \T01h_s
+    xor \S04l_s, \S04l_s, \T03l_s
+    xor \S04h_s, \S04h_s, \T03h_s
 .endm
 
 # stack: 

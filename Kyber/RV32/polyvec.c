@@ -21,7 +21,36 @@
  *              - const uint8_t *noiseseed: pointer to input seed
  *                                     (of length KYBER_SYMBYTES bytes)
  **************************************************/
-#if KYBER_K == 2 && (defined(RV32IMV) || defined(RV32IMBV))
+#if KYBER_K == 2
+#    if defined(RV32IMV)
+// using 2x 2-way sha3
+void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
+                             const uint8_t *noiseseed)
+{
+    unsigned int i;
+    ALIGNED_UINT8(KYBER_ETA1 * KYBER_N / 4) buf[2];
+    const uint8_t *inN[2];
+    uint8_t *outN[2];
+    for (i = 0; i < 2; i++) {
+        outN[i] = buf[i].coeffs;
+        inN[i] = buf[i].coeffs;
+        memcpy(buf[i].coeffs, noiseseed, KYBER_SYMBYTES);
+        buf[i].coeffs[KYBER_SYMBYTES] = i;
+    }
+    shake256x2(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
+    poly_cbd_eta1(&skpv->vec[0], buf[0].coeffs);
+    poly_cbd_eta1(&skpv->vec[1], buf[1].coeffs);
+    for (i = 0; i < 2; i++) {
+        outN[i] = buf[i].coeffs;
+        inN[i] = buf[i].coeffs;
+        memcpy(buf[i].coeffs, noiseseed, KYBER_SYMBYTES);
+        buf[i].coeffs[KYBER_SYMBYTES] = i + 2;
+    }
+    shake256x2(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
+    poly_cbd_eta1(&e->vec[0], buf[0].coeffs);
+    poly_cbd_eta1(&e->vec[1], buf[1].coeffs);
+}
+#    elif defined(RV32IMBV)
 // using 1x 4-way sha3
 void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
                              const uint8_t *noiseseed)
@@ -42,6 +71,7 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
     poly_cbd_eta1(&e->vec[0], buf[2].coeffs);
     poly_cbd_eta1(&e->vec[1], buf[3].coeffs);
 }
+#    endif
 #endif
 
 #if KYBER_K == 3 && (defined(RV32IMV) || defined(RV32IMBV))
@@ -74,7 +104,7 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
 }
 #endif
 
-#if KYBER_K == 4 && defined(RV32IMV)
+#if KYBER_K == 4 && (defined(RV32IMV) || defined(RV32IMBV))
 // using 2x 3-way sha3 + 1x 2-way sha3
 void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
                              const uint8_t *noiseseed)
@@ -108,36 +138,6 @@ void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
     shake256x2(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
     poly_cbd_eta1(&e->vec[2], buf[0].coeffs);
     poly_cbd_eta1(&e->vec[3], buf[1].coeffs);
-}
-#elif KYBER_K == 4 && defined(RV32IMBV)
-// using 2x 4-way sha3
-void polyvec_gen_eta1_skpv_e(polyvec *skpv, polyvec *e,
-                             const uint8_t *noiseseed)
-{
-    unsigned int i;
-    ALIGNED_UINT8(KYBER_ETA1 * KYBER_N / 4) buf[4];
-    const uint8_t *inN[4];
-    uint8_t *outN[4];
-    for (i = 0; i < 4; i++) {
-        outN[i] = buf[i].coeffs;
-        inN[i] = buf[i].coeffs;
-        memcpy(buf[i].coeffs, noiseseed, KYBER_SYMBYTES);
-        buf[i].coeffs[KYBER_SYMBYTES] = i;
-    }
-    shake256x4(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
-    poly_cbd_eta1(&skpv->vec[0], buf[0].coeffs);
-    poly_cbd_eta1(&skpv->vec[1], buf[1].coeffs);
-    poly_cbd_eta1(&skpv->vec[2], buf[2].coeffs);
-    poly_cbd_eta1(&skpv->vec[3], buf[3].coeffs);
-    for (i = 0; i < 4; i++) {
-        memcpy(buf[i].coeffs, noiseseed, KYBER_SYMBYTES);
-        buf[i].coeffs[KYBER_SYMBYTES] = i + 4;
-    }
-    shake256x4(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
-    poly_cbd_eta1(&e->vec[0], buf[0].coeffs);
-    poly_cbd_eta1(&e->vec[1], buf[1].coeffs);
-    poly_cbd_eta1(&e->vec[2], buf[2].coeffs);
-    poly_cbd_eta1(&e->vec[3], buf[3].coeffs);
 }
 #endif
 
@@ -198,7 +198,44 @@ void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
 }
 #endif
 
-#if KYBER_K == 3 && (defined(RV32IMV) || defined(RV32IMBV))
+#if KYBER_K == 3
+#    if defined(RV32IMV)
+// 1x 3-way + 2x 2-way sha3
+void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
+                                     const uint8_t coins[KYBER_SYMBYTES])
+{
+    unsigned int i;
+    ALIGNED_UINT8(KYBER_ETA1 * KYBER_N / 4) buf[3];
+    const uint8_t *inN[3];
+    uint8_t *outN[3];
+    for (i = 0; i < 3; i++) {
+        outN[i] = buf[i].coeffs;
+        inN[i] = buf[i].coeffs;
+        memcpy(buf[i].coeffs, coins, KYBER_SYMBYTES);
+        buf[i].coeffs[KYBER_SYMBYTES] = i;
+    }
+    shake256x3(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
+    poly_cbd_eta1(&sp->vec[0], buf[0].coeffs);
+    poly_cbd_eta1(&sp->vec[1], buf[1].coeffs);
+    poly_cbd_eta1(&sp->vec[2], buf[2].coeffs);
+    for (i = 0; i < 2; i++) {
+        outN[i] = buf[i].coeffs;
+        inN[i] = buf[i].coeffs;
+        memcpy(buf[i].coeffs, coins, KYBER_SYMBYTES);
+        buf[i].coeffs[KYBER_SYMBYTES] = i + 3;
+    }
+    shake256x2(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
+    poly_cbd_eta2(&ep->vec[0], buf[0].coeffs);
+    poly_cbd_eta2(&ep->vec[1], buf[1].coeffs);
+    for (i = 0; i < 2; i++) {
+        memcpy(buf[i].coeffs, coins, KYBER_SYMBYTES);
+        buf[i].coeffs[KYBER_SYMBYTES] = i + 5;
+    }
+    shake256x2(outN, KYBER_ETA1 * KYBER_N / 4, inN, KYBER_SYMBYTES + 1);
+    poly_cbd_eta2(&ep->vec[2], buf[0].coeffs);
+    poly_cbd_eta2(epp, buf[1].coeffs);
+}
+#    elif defined(RV32IMBV)
 // 1x 4-way + 1x 3-way sha3
 void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
                                      const uint8_t coins[KYBER_SYMBYTES])
@@ -227,6 +264,7 @@ void polyvec_gen_eta1_sp_eta2_ep_epp(polyvec *sp, polyvec *ep, poly *epp,
     poly_cbd_eta2(&ep->vec[2], buf[1].coeffs);
     poly_cbd_eta2(epp, buf[2].coeffs);
 }
+#    endif
 #endif
 
 #if KYBER_K == 4 && (defined(RV32IMV) || defined(RV32IMBV))
