@@ -11,7 +11,7 @@
 
 #define NTESTS 1000
 
-uint64_t t[NTESTS];
+uint64_t t[NTESTS * 10];
 
 int main(void)
 {
@@ -103,6 +103,12 @@ int main(void)
         crypto_sign_keypair(pk, sk);
     }
     print_results("Keypair:", t, NTESTS);
+
+    for (i = 0; i < NTESTS * 10; ++i) {
+        t[i] = cpucycles();
+        crypto_sign_signature(sig, &siglen, sig, CRHBYTES, sk);
+    }
+    print_results_average("Sign with rand:", t, NTESTS * 10);
 
     memset(message, 0xff, CRHBYTES);
     // Find a key pair such that the 'goto rej' statement within the Sign

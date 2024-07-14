@@ -58,6 +58,27 @@ void print_results(const char *s, uint64_t *t, size_t tlen)
     printf("%7llu cycles\n", (unsigned long long)median(t, tlen));
 }
 
+void print_results_average(const char *s, uint64_t *t, size_t tlen)
+{
+    size_t i;
+    static uint64_t overhead = -1;
+
+    if (tlen < 2) {
+        fprintf(stderr, "ERROR: Need a least two cycle counts!\n");
+        return;
+    }
+
+    if (overhead == (uint64_t)-1)
+        overhead = cpucycles_overhead();
+
+    tlen--;
+    for (i = 0; i < tlen; ++i)
+        t[i] = t[i + 1] - t[i] - overhead;
+
+    printf("%-30s", s);
+    printf("%7llu cycles\n", (unsigned long long)average(t, tlen));
+}
+
 uint64_t get_average(uint64_t *t, size_t tlen)
 {
     size_t i;

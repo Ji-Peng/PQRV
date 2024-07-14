@@ -1,54 +1,57 @@
 Test speed of Dilithium2
-polyvec_matrix_expand:         207464 cycles
-polyvecl_uniform_eta:           29556 cycles
-polyveck_uniform_eta:           29553 cycles
+polyvec_matrix_expand:         207329 cycles
+polyvecl_uniform_eta:           29583 cycles
+polyveck_uniform_eta:           29589 cycles
 poly_ntt:                        8260 cycles
 poly_intt:                       8486 cycles
-poly_pointwise:                  2320 cycles
+poly_pointwise:                  2321 cycles
 polyveck_pointwise_poly:         9992 cycles
-polyveck_reduce:                 6440 cycles
-poly_challenge:                  2913 cycles
-Keypair:                       446059 cycles
-Sign without rej:              819576 cycles
-Sign with 1 rej:              1125714 cycles
-Sign with 2 rej:              1494809 cycles
-Sign with 3 rej:              1806412 cycles
-Sign with 4 rej:              2104862 cycles
-Verify:                        503060 cycles
+polyveck_reduce:                 6439 cycles
+poly_challenge:                  2909 cycles
+Keypair:                       448299 cycles
+Sign with rand:               1956327 cycles
+Sign without rej:              820388 cycles
+Sign with 1 rej:              1128527 cycles
+Sign with 2 rej:              1505660 cycles
+Sign with 3 rej:              1801728 cycles
+Sign with 4 rej:              2250560 cycles
+Verify:                        503281 cycles
 
 Test speed of Dilithium3
-polyvec_matrix_expand:         388743 cycles
-polyvecl_uniform_eta:           43178 cycles
-polyveck_uniform_eta:           52327 cycles
+polyvec_matrix_expand:         389725 cycles
+polyvecl_uniform_eta:           44699 cycles
+polyveck_uniform_eta:           54131 cycles
 poly_ntt:                        8260 cycles
 poly_intt:                       8486 cycles
 poly_pointwise:                  2320 cycles
 polyveck_pointwise_poly:        15308 cycles
 polyveck_reduce:                 9643 cycles
-poly_challenge:                  3061 cycles
-Keypair:                       754644 cycles
-Sign without rej:             1223990 cycles
-Sign with 1 rej:              1621102 cycles
-Sign with 2 rej:              2106970 cycles
-Sign with 3 rej:              2405229 cycles
-Sign with 4 rej:              2900465 cycles
-Verify:                        792565 cycles
+poly_challenge:                  3071 cycles
+Keypair:                       752239 cycles
+Sign with rand:               3067746 cycles
+Sign without rej:             1221852 cycles
+Sign with 1 rej:              1616069 cycles
+Sign with 2 rej:              2205686 cycles
+Sign with 3 rej:              2405701 cycles
+Sign with 4 rej:              2998331 cycles
+Verify:                        790928 cycles
 
 Test speed of Dilithium5
-polyvec_matrix_expand:         728201 cycles
-polyvecl_uniform_eta:           49924 cycles
-polyveck_uniform_eta:           57879 cycles
+polyvec_matrix_expand:         727091 cycles
+polyvecl_uniform_eta:           49821 cycles
+polyveck_uniform_eta:           57720 cycles
 poly_ntt:                        8260 cycles
 poly_intt:                       8486 cycles
 poly_pointwise:                  2320 cycles
 polyveck_pointwise_poly:        19929 cycles
-polyveck_reduce:                12851 cycles
-poly_challenge:                  3228 cycles
-Keypair:                      1219003 cycles
-Sign without rej:             1877718 cycles
-Sign with 1 rej:              2575321 cycles
-Sign with 2 rej:              2998702 cycles
-Sign with 3 rej:              3818848 cycles
-Sign with 4 rej:              4646368 cycles
-Verify:                       1284894 cycles
+polyveck_reduce:                12852 cycles
+poly_challenge:                  3225 cycles
+Keypair:                      1218699 cycles
+Sign with rand:               3724005 cycles
+Sign without rej:             1878075 cycles
+Sign with 1 rej:              2565051 cycles
+Sign with 2 rej:              3269674 cycles
+Sign with 3 rej:              3829707 cycles
+Sign with 4 rej:              4380439 cycles
+Verify:                       1282829 cycles
 

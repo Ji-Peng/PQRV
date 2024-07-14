@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 void print_results(const char *s, uint64_t *t, size_t tlen);
+void print_results_average(const char *s, uint64_t *t, size_t tlen);
 uint64_t get_average(uint64_t *t, size_t tlen);
 uint64_t get_median(uint64_t *t, size_t tlen);
 uint64_t median(uint64_t *l, size_t llen);

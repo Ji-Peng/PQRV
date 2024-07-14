@@ -1,54 +1,57 @@
 Test speed of Dilithium2
-polyvec_matrix_expand:         554868 cycles
-polyvecl_uniform_eta:           58667 cycles
-polyveck_uniform_eta:           58696 cycles
-poly_ntt:                       26480 cycles
-poly_intt:                      31612 cycles
+polyvec_matrix_expand:         555347 cycles
+polyvecl_uniform_eta:           58669 cycles
+polyveck_uniform_eta:           58644 cycles
+poly_ntt:                       26485 cycles
+poly_intt:                      31627 cycles
 poly_pointwise:                  5661 cycles
-polyveck_pointwise_poly:        22664 cycles
+polyveck_pointwise_poly:        22661 cycles
 polyveck_reduce:                13140 cycles
 poly_challenge:                  7174 cycles
-Keypair:                      1171935 cycles
-Sign without rej:             2156944 cycles
-Sign with 1 rej:              2990132 cycles
-Sign with 2 rej:              4001663 cycles
-Sign with 3 rej:              4641563 cycles
-Sign with 4 rej:              5835332 cycles
-Verify:                       1298993 cycles
+Keypair:                      1167105 cycles
+Sign with rand:               5231374 cycles
+Sign without rej:             2155567 cycles
+Sign with 1 rej:              3167725 cycles
+Sign with 2 rej:              4183849 cycles
+Sign with 3 rej:              4817998 cycles
+Sign with 4 rej:              5828820 cycles
+Verify:                       1295201 cycles
 
 Test speed of Dilithium3
-polyvec_matrix_expand:        1040658 cycles
-polyvecl_uniform_eta:           85564 cycles
-polyveck_uniform_eta:          106970 cycles
-poly_ntt:                       26481 cycles
-poly_intt:                      31599 cycles
+polyvec_matrix_expand:        1040874 cycles
+polyvecl_uniform_eta:           85209 cycles
+polyveck_uniform_eta:          106572 cycles
+poly_ntt:                       26478 cycles
+poly_intt:                      31610 cycles
 poly_pointwise:                  5661 cycles
 polyveck_pointwise_poly:        33976 cycles
-polyveck_reduce:                19739 cycles
-poly_challenge:                  7362 cycles
-Keypair:                      1999858 cycles
-Sign without rej:             3282409 cycles
-Sign with 1 rej:              4399051 cycles
-Sign with 2 rej:              5524257 cycles
-Sign with 3 rej:              7178487 cycles
-Sign with 4 rej:              8575382 cycles
-Verify:                       2104472 cycles
+polyveck_reduce:                19728 cycles
+poly_challenge:                  7361 cycles
+Keypair:                      1995948 cycles
+Sign with rand:               8539948 cycles
+Sign without rej:             3276347 cycles
+Sign with 1 rej:              4393074 cycles
+Sign with 2 rej:              5781107 cycles
+Sign with 3 rej:              7160325 cycles
+Sign with 4 rej:              8286577 cycles
+Verify:                       2099931 cycles
 
 Test speed of Dilithium5
-polyvec_matrix_expand:        1945164 cycles
-polyvecl_uniform_eta:           95836 cycles
-polyveck_uniform_eta:          115898 cycles
-poly_ntt:                       26484 cycles
-poly_intt:                      31605 cycles
+polyvec_matrix_expand:        1945168 cycles
+polyvecl_uniform_eta:           95766 cycles
+polyveck_uniform_eta:          116062 cycles
+poly_ntt:                       26485 cycles
+poly_intt:                      31600 cycles
 poly_pointwise:                  5661 cycles
-polyveck_pointwise_poly:        45305 cycles
-polyveck_reduce:                26305 cycles
-poly_challenge:                  7559 cycles
-Keypair:                      3306104 cycles
-Sign without rej:             5095144 cycles
-Sign with 1 rej:              6731159 cycles
-Sign with 2 rej:              9108256 cycles
-Sign with 3 rej:              10381821 cycles
-Sign with 4 rej:              12028485 cycles
-Verify:                       3485672 cycles
+polyveck_pointwise_poly:        45298 cycles
+polyveck_reduce:                26298 cycles
+poly_challenge:                  7562 cycles
+Keypair:                      3309444 cycles
+Sign with rand:               10537148 cycles
+Sign without rej:             5090657 cycles
+Sign with 1 rej:              7097184 cycles
+Sign with 2 rej:              8368736 cycles
+Sign with 3 rej:              10737372 cycles
+Sign with 4 rej:              12759117 cycles
+Verify:                       3488357 cycles
 
