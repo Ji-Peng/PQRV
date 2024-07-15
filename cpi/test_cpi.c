@@ -41,18 +41,12 @@ extern void cpi_ld_addi(int8_t *);
 extern void cpi_sh(int8_t *);
 extern void cpi_sh_lh_addi(int8_t *);
 extern void cpi_sw(int8_t *);
+extern void cpi_addi_sw_v0(int8_t *);
+extern void cpi_addi_sw_v1(int8_t *);
+extern void cpi_addi_sw_v2(int8_t *);
 extern void cpi_sw_lw_addi(int8_t *);
 extern void cpi_sd(int8_t *);
 extern void cpi_sd_ld_addi(int8_t *);
-extern void cpi_load_use_len0(int8_t *);
-extern void cpi_load_use_len1(int8_t *);
-extern void cpi_load_use_len2(int8_t *);
-extern void cpi_load_use_len3(int8_t *);
-extern void cpi_load_use_len4(int8_t *);
-extern void cpi_load_use_len5(int8_t *);
-extern void cpi_load_use_len6(int8_t *);
-extern void cpi_load_use_len7(int8_t *);
-extern void cpi_load_use_len8(int8_t *);
 extern void cpi_plantmul();
 extern void cpi_plantmulx2();
 extern void cpi_plantmulx4();
@@ -77,7 +71,8 @@ extern void cpi_vle16(int8_t *buf);
 extern void cpi_vle16_add(int8_t *buf);
 extern void cpi_vle16_add_v2(int8_t *buf0, int8_t *buf1, int8_t *buf2,
                              int8_t *buf3);
-extern void cpi_vse16(int8_t *buf);
+extern void cpi_vse16(int8_t *buf0, int8_t *buf1, int8_t *buf2,
+                      int8_t *buf3);
 extern void cpi_vaddvv();
 extern void cpi_vaddvx();
 extern void cpi_vaddvx_x1();
@@ -85,6 +80,13 @@ extern void cpi_vaddvx_x2();
 extern void cpi_vaddvx_x4();
 extern void cpi_vandvv();
 extern void cpi_vandvx();
+extern void cpi_vandvx_and_hybrid_v1();
+extern void cpi_vandvx_and_hybrid_v2();
+extern void cpi_vandvx_and_hybrid_v3();
+extern void cpi_vandvx_and_hybrid_v4();
+extern void cpi_vandvx_and_hybrid_v4_1();
+extern void cpi_vandvx_and_hybrid_v5();
+extern void cpi_vandvx_and_hybrid_v6();
 extern void cpi_vandvv_x1();
 extern void cpi_vandvv_x2();
 extern void cpi_vandvv_x4();
@@ -129,14 +131,6 @@ extern void cpi_vmergevvm_x1();
 extern void cpi_vmergevvm_x2();
 extern void cpi_vmergevvm_x4();
 
-extern void cpi_ct_bfu_scalar_mont_x4();
-extern void cpi_ct_bfu_scalar_mont_x4_v2();
-extern void cpi_ct_bfu_scalar_mont_x4_v3();
-extern void cpi_ct_bfu_scalar_mont_x8();
-extern void cpi_ct_bfu_vector_mont_x1();
-extern void cpi_hybrid_ct_bfu_4s_mont_1v_mont();
-extern void cpi_hybrid_ct_bfu_8s_mont_1v_mont();
-
 int main(void)
 {
     int64_t buf[128];
@@ -149,7 +143,9 @@ int main(void)
     PERF(cpi_vle16_add_v2((int8_t *)buf, (int8_t *)&buf[2 * 1],
                           (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
          cpi_vle16_add_v2);
-    PERF(cpi_vse16((int8_t *)buf), cpi_vse16);
+    PERF(cpi_vse16((int8_t *)buf, (int8_t *)&buf[2 * 1],
+                   (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
+         cpi_vse16);
     PERF(cpi_vaddvv(), cpi_vaddvv);
     PERF(cpi_vaddvx(), cpi_vaddvx);
     PERF(cpi_vaddvx_x1(), cpi_vaddvx_x1);
@@ -157,6 +153,13 @@ int main(void)
     PERF(cpi_vaddvx_x4(), cpi_vaddvx_x4);
     PERF(cpi_vandvv(), cpi_vandvv);
     PERF(cpi_vandvx(), cpi_vandvx);
+    PERF(cpi_vandvx_and_hybrid_v1(), cpi_vandvx_and_hybrid_v1);
+    PERF(cpi_vandvx_and_hybrid_v2(), cpi_vandvx_and_hybrid_v2);
+    PERF(cpi_vandvx_and_hybrid_v3(), cpi_vandvx_and_hybrid_v3);
+    PERF(cpi_vandvx_and_hybrid_v4(), cpi_vandvx_and_hybrid_v4);
+    PERF(cpi_vandvx_and_hybrid_v4_1(), cpi_vandvx_and_hybrid_v4_1);
+    PERF(cpi_vandvx_and_hybrid_v5(), cpi_vandvx_and_hybrid_v5);
+    PERF(cpi_vandvx_and_hybrid_v6(), cpi_vandvx_and_hybrid_v6);
     PERF(cpi_vandvv_x1(), cpi_vandvv_x1);
     PERF(cpi_vandvv_x2(), cpi_vandvv_x2);
     PERF(cpi_vandvv_x4(), cpi_vandvv_x4);
@@ -196,13 +199,6 @@ int main(void)
     PERF(cpi_vmergevvm_x1(), cpi_vmergevvm_x1);
     PERF(cpi_vmergevvm_x2(), cpi_vmergevvm_x2);
     PERF(cpi_vmergevvm_x4(), cpi_vmergevvm_x4);
-    PERF(cpi_ct_bfu_scalar_mont_x4(), cpi_ct_bfu_scalar_mont_x4);
-    PERF(cpi_ct_bfu_scalar_mont_x4_v2(), cpi_ct_bfu_scalar_mont_x4_v2);
-    PERF(cpi_ct_bfu_scalar_mont_x4_v3(), cpi_ct_bfu_scalar_mont_x4_v3);
-    PERF(cpi_ct_bfu_scalar_mont_x8(), cpi_ct_bfu_scalar_mont_x8);
-    PERF(cpi_ct_bfu_vector_mont_x1(), cpi_ct_bfu_vector_mont_x1);
-    PERF(cpi_hybrid_ct_bfu_4s_mont_1v_mont(), cpi_ct_bfu_4s_mont_1v_mont);
-    PERF(cpi_hybrid_ct_bfu_8s_mont_1v_mont(), cpi_ct_bfu_8s_mont_1v_mont);
     vec_len = init_vector_e32();
     printf("\ninit_vector_e32, the length of vector is %d bits\n",
            vec_len * 32);
@@ -252,13 +248,6 @@ int main(void)
     PERF(cpi_vmergevvm_x1(), cpi_vmergevvm_x1);
     PERF(cpi_vmergevvm_x2(), cpi_vmergevvm_x2);
     PERF(cpi_vmergevvm_x4(), cpi_vmergevvm_x4);
-    PERF(cpi_ct_bfu_scalar_mont_x4(), cpi_ct_bfu_scalar_mont_x4);
-    PERF(cpi_ct_bfu_scalar_mont_x4_v2(), cpi_ct_bfu_scalar_mont_x4_v2);
-    PERF(cpi_ct_bfu_scalar_mont_x4_v3(), cpi_ct_bfu_scalar_mont_x4_v3);
-    PERF(cpi_ct_bfu_scalar_mont_x8(), cpi_ct_bfu_scalar_mont_x8);
-    PERF(cpi_ct_bfu_vector_mont_x1(), cpi_ct_bfu_vector_mont_x1);
-    PERF(cpi_hybrid_ct_bfu_4s_mont_1v_mont(), cpi_ct_bfu_4s_mont_1v_mont);
-    PERF(cpi_hybrid_ct_bfu_8s_mont_1v_mont(), cpi_ct_bfu_8s_mont_1v_mont);
 #else
     PERF(cpi_add(), cpi_add);
     PERF(cpi_addi(), cpi_addi);
@@ -293,18 +282,12 @@ int main(void)
     PERF(cpi_ld((int8_t *)buf), cpi_ld);
     PERF(cpi_ld_addi((int8_t *)buf), cpi_ld_addi);
 #    endif
-    PERF(cpi_load_use_len0((int8_t *)buf), cpi_load_use_len0);
-    PERF(cpi_load_use_len1((int8_t *)buf), cpi_load_use_len1);
-    PERF(cpi_load_use_len2((int8_t *)buf), cpi_load_use_len2);
-    PERF(cpi_load_use_len3((int8_t *)buf), cpi_load_use_len3);
-    PERF(cpi_load_use_len4((int8_t *)buf), cpi_load_use_len4);
-    PERF(cpi_load_use_len5((int8_t *)buf), cpi_load_use_len5);
-    PERF(cpi_load_use_len6((int8_t *)buf), cpi_load_use_len6);
-    PERF(cpi_load_use_len7((int8_t *)buf), cpi_load_use_len7);
-    PERF(cpi_load_use_len8((int8_t *)buf), cpi_load_use_len8);
     PERF(cpi_sh((int8_t *)buf), cpi_sh);
     PERF(cpi_sh_lh_addi((int8_t *)buf), cpi_sh_lh_addi);
     PERF(cpi_sw((int8_t *)buf), cpi_sw);
+    PERF(cpi_addi_sw_v0((int8_t *)buf), cpi_addi_sw_v0);
+    PERF(cpi_addi_sw_v1((int8_t *)buf), cpi_addi_sw_v1);
+    PERF(cpi_addi_sw_v2((int8_t *)buf), cpi_addi_sw_v2);
     PERF(cpi_sw_lw_addi((int8_t *)buf), cpi_sw_lw_addi);
 #    ifdef RV64
     PERF(cpi_sd((int8_t *)buf), cpi_sd);

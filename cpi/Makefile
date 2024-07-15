@@ -25,29 +25,58 @@ TARGET_DIR  = /sharefs
 SOURCES_COMMON 	= $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c
 HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 
-.PHONY: all clean
+.PHONY: all run_all clean
 
 all: \
 	out/cpi_rv32im out/cpi_rv64im out/cpi_rvv	\
 	out/cpi_rvv_group	\
-	out/cpi_rv32b out/cpi_rv64b	\
+	out/cpi_rv32imb out/cpi_rv64imb	\
+	out/cpi_ntt_rv32imv	\
 	out/scp_speed
+
+run_all: run_rv32im run_rv64im run_rvv run_rvv_group run_rv32imb run_rv64imb run_ntt_rv32imv
+
+run_ntt_rv32imv: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_ntt_rv32imv" > cpi_ntt_rv32imv.txt
+
+run_rv32im: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv32im" > cpi_rv32im.txt
+
+run_rv64im: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv64im" > cpi_rv64im.txt
+
+run_rvv: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rvv" > cpi_rvv.txt
+
+run_rvv_group: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rvv_group" > cpi_rvv_group.txt
+
+run_rv32imb: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv32imb" > cpi_rv32imb.txt
+
+run_rv64imb: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv64imb" > cpi_rv64imb.txt
 
 out/scp_speed:	\
 	out/cpi_rv32im out/cpi_rv64im out/cpi_rvv	\
-	out/cpi_rvv_group out/cpi_rv32b out/cpi_rv64b
+	out/cpi_rvv_group out/cpi_rv32imb out/cpi_rv64imb	\
+	out/cpi_ntt_rv32imv
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
 
-out/cpi_rv32im: $(SOURCES_COMMON) $(HEADERS_COMMON) testRVp.S test_cpi.c
+out/cpi_ntt_rv32imv: $(SOURCES_COMMON) $(HEADERS_COMMON) test_ntt.S test_cpi_ntt.c
+	mkdir -p out
+	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/cpi_rv32im: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvim.S test_cpi.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rv64im: $(SOURCES_COMMON) $(HEADERS_COMMON) testRVp.S test_cpi.c
+out/cpi_rv64im: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvim.S test_cpi.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) testRVp.S test_rvv.S test_cpi.c
+out/cpi_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvim.S test_rvv.S test_cpi.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
@@ -55,11 +84,11 @@ out/cpi_rvv_group: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvv_group.S test_cpi
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rv32b: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvb.S test_cpi_rvb.c
+out/cpi_rv32imb: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvb.S test_cpi_rvb.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rv64b: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvb.S test_cpi_rvb.c
+out/cpi_rv64imb: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rvb.S test_cpi_rvb.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 

@@ -1,29 +1,27 @@
-// Original results of the paper "Yet another Improvement of Plantard Arithmetic for Faster Kyber on Low-end 32-bit IoT Devices"
-
 Test speed of Kyber512
-NTT:                            13568 cycles
-poly_basemul_opt_16_32:          2764 cycles
-poly_basemul_acc_opt_32_32:      3618 cycles
-poly_basemul_acc_opt_32_16:      6566 cycles
-poly_invntt:                    11709 cycles
-kyber_keypair:                 652699 cycles
-kyber_encaps:                  783740 cycles
-kyber_decaps:                  728727 cycles
+NTT:                            13219 cycles
+poly_basemul_opt_16_32:          2698 cycles
+poly_basemul_acc_opt_32_32:      3531 cycles
+poly_basemul_acc_opt_32_16:      6413 cycles
+poly_invntt:                    11428 cycles
+kyber_keypair:                 649541 cycles
+kyber_encaps:                  783824 cycles
+kyber_decaps:                  730405 cycles
 Test speed of Kyber768
-NTT:                            13563 cycles
-poly_basemul_opt_16_32:          2764 cycles
-poly_basemul_acc_opt_32_32:      3617 cycles
-poly_basemul_acc_opt_32_16:      6563 cycles
-poly_invntt:                    11705 cycles
-kyber_keypair:                1057300 cycles
-kyber_encaps:                 1264340 cycles
-kyber_decaps:                 1183044 cycles
+NTT:                            13219 cycles
+poly_basemul_opt_16_32:          2698 cycles
+poly_basemul_acc_opt_32_32:      3531 cycles
+poly_basemul_acc_opt_32_16:      6413 cycles
+poly_invntt:                    11428 cycles
+kyber_keypair:                1052933 cycles
+kyber_encaps:                 1261401 cycles
+kyber_decaps:                 1179136 cycles
 Test speed of Kyber1024
-NTT:                            13563 cycles
-poly_basemul_opt_16_32:          2763 cycles
-poly_basemul_acc_opt_32_32:      3616 cycles
-poly_basemul_acc_opt_32_16:      6565 cycles
-poly_invntt:                    11693 cycles
-kyber_keypair:                1656252 cycles
-kyber_encaps:                 1905184 cycles
-kyber_decaps:                 1796789 cycles
+NTT:                            13219 cycles
+poly_basemul_opt_16_32:          2698 cycles
+poly_basemul_acc_opt_32_32:      3531 cycles
+poly_basemul_acc_opt_32_16:      6413 cycles
+poly_invntt:                    11428 cycles
+kyber_keypair:                1650647 cycles
+kyber_encaps:                 1918773 cycles
+kyber_decaps:                 1810008 cycles

@@ -38,10 +38,10 @@ cpi_vle16_add:
     vadd.vv v2, v2, v0
     vadd.vv v3, v3, v0
     vadd.vv v4, v4, v0
-    vadd.vv v1, v1, v0
-    vadd.vv v2, v2, v0
-    vadd.vv v3, v3, v0
-    vadd.vv v4, v4, v0
+    vadd.vv v5, v5, v0
+    vadd.vv v6, v6, v0
+    vadd.vv v7, v7, v0
+    vadd.vv v8, v8, v0
 .endr
 ret
 
@@ -80,22 +80,6 @@ cpi_vse16:
     vse16.v v1, (a0)
     vse16.v v2, (a0)
     vse16.v v3, (a0)
-    vse16.v v4, (a0)
-    vse16.v v5, (a0)
-    vse16.v v6, (a0)
-    vse16.v v7, (a0)
-    vse16.v v8, (a0)
-    vse16.v v9, (a0)
-    vse16.v v10, (a0)
-    vse16.v v11, (a0)
-    vse16.v v12, (a0)
-    vse16.v v13, (a0)
-    vse16.v v14, (a0)
-    vse16.v v15, (a0)
-    vse16.v v16, (a0)
-    vse16.v v17, (a0)
-    vse16.v v18, (a0)
-    vse16.v v19, (a0)
 .endr
 ret
 
@@ -327,6 +311,250 @@ cpi_vandvx:
     vand.vx v7, v7, t0
     vand.vx v8, v8, t0
     vand.vx v9, v9, t0
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v1
+.align 2
+cpi_vandvx_and_hybrid_v1:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v2
+.align 2
+cpi_vandvx_and_hybrid_v2:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v3
+.align 2
+cpi_vandvx_and_hybrid_v3:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v4
+.align 2
+cpi_vandvx_and_hybrid_v4:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    and a1, a1, a1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    and a2, t1, a2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    and a3, a3, a3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    and a4, a4, a4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+    and a5, a5, a5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v4_1
+.align 2
+cpi_vandvx_and_hybrid_v4_1:
+.rep 200
+    vand.vx v0, v0, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    vand.vx v2, v2, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    vand.vx v4, v4, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    vand.vx v6, v6, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    vand.vx v8, v8, t0
+    and t5, t5, t5
+    and a5, a5, a5
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v5
+.align 2
+cpi_vandvx_and_hybrid_v5:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+.endr
+ret
+
+.globl cpi_vandvx_and_hybrid_v6
+.align 2
+cpi_vandvx_and_hybrid_v6:
+.rep 200
+    vand.vx v0, v0, t0
+    vand.vx v1, v1, t0
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    and a1, a1, a1
+    and t1, t1, t1
+    and a1, a1, a1
+    vand.vx v2, v2, t0
+    vand.vx v3, v3, t0
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    and a2, t1, a2
+    and t2, t2, t2
+    and a2, t1, a2
+    vand.vx v4, v4, t0
+    vand.vx v5, v5, t0
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    and a3, a3, a3
+    and t3, t3, t3
+    and a3, a3, a3
+    vand.vx v6, v6, t0
+    vand.vx v7, v7, t0
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    and a4, a4, a4
+    and t4, t4, t4
+    and a4, a4, a4
+    vand.vx v8, v8, t0
+    vand.vx v9, v9, t0
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+    and a5, a5, a5
+    and t5, t5, t5
+    and a5, a5, a5
 .endr
 ret
 
@@ -679,455 +907,5 @@ cpi_vmergevvm_x4:
     vmerge.vvm v3, v3, v4, v0
     vmerge.vvm v5, v5, v6, v0
     vmerge.vvm v7, v7, v8, v0
-.endr
-ret
-
-.macro montmul_x1 r, a, b, bqinv, q, t
-    mul  \r, \a, \bqinv
-    mulh \t, \a, \b
-    mulh \r, \r, \q
-    sub  \r, \t, \r
-.endm
-
-.macro ct_bfu_scalar_mont_x4 \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    zeta_0, zeta_1, \
-    zeta_2, zeta_3, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_1_1, \
-    t_2_0, t_2_1, t_3_0, t_3_1
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_1_1, \a_1_1, \zeta_1
-    mulh \t_2_1, \a_2_1, \zeta_2
-    mulh \t_3_1, \a_3_1, \zeta_3
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    sub  \t_0_0, \t_0_1, \t_0_0
-    sub  \t_1_0, \t_1_1, \t_1_0
-    sub  \t_2_0, \t_2_1, \t_2_0
-    sub  \t_3_0, \t_3_1, \t_3_0
-    sub  \a_0_1, \a_0_0, \t_0_0
-    sub  \a_1_1, \a_1_0, \t_1_0
-    sub  \a_2_1, \a_2_0, \t_2_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    add  \a_3_0, \a_3_0, \t_3_0
-.endm
-
-.macro ct_bfu_scalar_mont_x4_v2 \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    zeta_0, zeta_1, \
-    zeta_2, zeta_3, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_2_0, \
-    t_3_0
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    sub  \t_0_0, \t_0_1, \t_0_0
-    mulh \t_0_1, \a_1_1, \zeta_1
-    sub  \a_0_1, \a_0_0, \t_0_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    sub  \t_1_0, \t_0_1, \t_1_0
-    mulh \t_0_1, \a_2_1, \zeta_2
-    sub  \a_1_1, \a_1_0, \t_1_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    sub  \t_2_0, \t_0_1, \t_2_0
-    mulh \t_0_1, \a_3_1, \zeta_3
-    sub  \a_2_1, \a_2_0, \t_2_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    sub  \t_3_0, \t_0_1, \t_3_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    add  \a_3_0, \a_3_0, \t_3_0
-.endm
-
-.macro ct_bfu_scalar_mont_x4_v3 \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    zeta_0, zeta_1, \
-    zeta_2, zeta_3, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_1_1, \
-    t_2_0, t_3_0
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    sub  \t_0_0, \t_0_1, \t_0_0
-    mulh \t_0_1, \a_1_1, \zeta_1
-    sub  \a_0_1, \a_0_0, \t_0_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    mulh \t_1_1, \a_2_1, \zeta_2
-    sub  \t_1_0, \t_0_1, \t_1_0
-    sub  \a_1_1, \a_1_0, \t_1_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    mulh \t_0_1, \a_3_1, \zeta_3
-    sub  \t_2_0, \t_1_1, \t_2_0
-    sub  \a_2_1, \a_2_0, \t_2_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    sub  \t_3_0, \t_0_1, \t_3_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    add  \a_3_0, \a_3_0, \t_3_0
-.endm
-
-.macro ct_bfu_scalar_mont_x8 \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    a_4_0, a_4_1, a_5_0, a_5_1, \
-    a_6_0, a_6_1, a_7_0, a_7_1, \
-    zeta_0, zeta_1, \
-    zeta_2, zeta_3, \
-    zeta_4, zeta_5, \
-    zeta_6, zeta_7, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    zetaqinv_4, zetaqinv_5, \
-    zetaqinv_6, zetaqinv_7, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_1_1, \
-    t_2_0, t_2_1, t_3_0, t_3_1, \
-    t_4_0, t_4_1, t_5_0, t_5_1, \
-    t_6_0, t_6_1, t_7_0, t_7_1
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    mul  \t_4_0, \a_4_1, \zetaqinv_4
-    mul  \t_5_0, \a_5_1, \zetaqinv_5
-    mul  \t_6_0, \a_6_1, \zetaqinv_6
-    mul  \t_7_0, \a_7_1, \zetaqinv_7
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_1_1, \a_1_1, \zeta_1
-    mulh \t_2_1, \a_2_1, \zeta_2
-    mulh \t_3_1, \a_3_1, \zeta_3
-    mulh \t_4_1, \a_4_1, \zeta_4
-    mulh \t_5_1, \a_5_1, \zeta_5
-    mulh \t_6_1, \a_6_1, \zeta_6
-    mulh \t_7_1, \a_7_1, \zeta_7
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    mulh \t_4_0, \t_4_0, \q
-    mulh \t_5_0, \t_5_0, \q
-    mulh \t_6_0, \t_6_0, \q
-    mulh \t_7_0, \t_7_0, \q
-    sub  \t_0_0, \t_0_1, \t_0_0
-    sub  \t_1_0, \t_1_1, \t_1_0
-    sub  \t_2_0, \t_2_1, \t_2_0
-    sub  \t_3_0, \t_3_1, \t_3_0
-    sub  \t_4_0, \t_4_1, \t_4_0
-    sub  \t_5_0, \t_5_1, \t_5_0
-    sub  \t_6_0, \t_6_1, \t_6_0
-    sub  \t_7_0, \t_7_1, \t_7_0
-    sub  \a_0_1, \a_0_0, \t_0_0
-    sub  \a_1_1, \a_1_0, \t_1_0
-    sub  \a_2_1, \a_2_0, \t_2_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    sub  \a_4_1, \a_4_0, \t_4_0
-    sub  \a_5_1, \a_5_0, \t_5_0
-    sub  \a_6_1, \a_6_0, \t_6_0
-    sub  \a_7_1, \a_7_0, \t_7_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    add  \a_3_0, \a_3_0, \t_3_0
-    add  \a_4_0, \a_4_0, \t_4_0
-    add  \a_5_0, \a_5_0, \t_5_0
-    add  \a_6_0, \a_6_0, \t_6_0
-    add  \a_7_0, \a_7_0, \t_7_0
-.endm
-
-.macro ct_bfu_vector_mont_x1    \
-    va_0_0, va_0_1, \
-    vzeta_0, \
-    vzetaqinv_0, \
-    q, \
-    vt_0_0, vt_0_1
-    vmul.vx  \vt_0_0, \va_0_1, \vzetaqinv_0
-    vmulh.vx \vt_0_1, \va_0_1, \vzeta_0
-    vmulh.vx \vt_0_0, \vt_0_0, \q
-    vsub.vv  \vt_0_0, \vt_0_1, \vt_0_0
-    vsub.vv  \va_0_1, \va_0_0, \vt_0_0
-    vadd.vv  \va_0_0, \va_0_0, \vt_0_0
-.endm
-
-.macro hybrid_ct_bfu_4s_mont_1v_mont \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    zeta_0, zeta_1, zeta_2, zeta_3, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_1_1, \
-    t_2_0, t_2_1, t_3_0, t_3_1, \
-    va_0_0, va_0_1, \
-    vzeta_0, vzetaqinv_0, \
-    vt_0_0, vt_0_1
-    vmul.vx  \vt_0_0, \va_0_1, \vzetaqinv_0
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    vmulh.vx \vt_0_1, \va_0_1, \vzeta_0
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_1_1, \a_1_1, \zeta_1
-    mulh \t_2_1, \a_2_1, \zeta_2
-    mulh \t_3_1, \a_3_1, \zeta_3
-    vmulh.vx \vt_0_0, \vt_0_0, \q
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    vsub.vv  \vt_0_0, \vt_0_1, \vt_0_0
-    sub  \t_0_0, \t_0_1, \t_0_0
-    sub  \t_1_0, \t_1_1, \t_1_0
-    sub  \t_2_0, \t_2_1, \t_2_0
-    sub  \t_3_0, \t_3_1, \t_3_0
-    vsub.vv  \va_0_1, \va_0_0, \vt_0_0
-    sub  \a_0_1, \a_0_0, \t_0_0
-    sub  \a_1_1, \a_1_0, \t_1_0
-    sub  \a_2_1, \a_2_0, \t_2_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    vadd.vv  \va_0_0, \va_0_0, \vt_0_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    add  \a_3_0, \a_3_0, \t_3_0
-.endm
-
-.macro hybrid_ct_bfu_8s_mont_1v_mont \
-    a_0_0, a_0_1, a_1_0, a_1_1, \
-    a_2_0, a_2_1, a_3_0, a_3_1, \
-    a_4_0, a_4_1, a_5_0, a_5_1, \
-    a_6_0, a_6_1, a_7_0, a_7_1, \
-    zeta_0, zeta_1, \
-    zeta_2, zeta_3, \
-    zeta_4, zeta_5, \
-    zeta_6, zeta_7, \
-    zetaqinv_0, zetaqinv_1, \
-    zetaqinv_2, zetaqinv_3, \
-    zetaqinv_4, zetaqinv_5, \
-    zetaqinv_6, zetaqinv_7, \
-    q, \
-    t_0_0, t_0_1, t_1_0, t_1_1, \
-    t_2_0, t_2_1, t_3_0, t_3_1, \
-    t_4_0, t_4_1, t_5_0, t_5_1, \
-    t_6_0, t_6_1, t_7_0, t_7_1, \
-    va_0_0, va_0_1, \
-    vzeta_0, vzetaqinv_0, \
-    vt_0_0, vt_0_1
-    vmul.vx  \vt_0_0, \va_0_1, \vzetaqinv_0
-    mul  \t_0_0, \a_0_1, \zetaqinv_0
-    mul  \t_1_0, \a_1_1, \zetaqinv_1
-    mul  \t_2_0, \a_2_1, \zetaqinv_2
-    mul  \t_3_0, \a_3_1, \zetaqinv_3
-    mul  \t_4_0, \a_4_1, \zetaqinv_4
-    mul  \t_5_0, \a_5_1, \zetaqinv_5
-    mul  \t_6_0, \a_6_1, \zetaqinv_6
-    mul  \t_7_0, \a_7_1, \zetaqinv_7
-    vmulh.vx \vt_0_1, \va_0_1, \vzeta_0
-    mulh \t_0_1, \a_0_1, \zeta_0
-    mulh \t_1_1, \a_1_1, \zeta_1
-    mulh \t_2_1, \a_2_1, \zeta_2
-    mulh \t_3_1, \a_3_1, \zeta_3
-    mulh \t_4_1, \a_4_1, \zeta_4
-    mulh \t_5_1, \a_5_1, \zeta_5
-    mulh \t_6_1, \a_6_1, \zeta_6
-    mulh \t_7_1, \a_7_1, \zeta_7
-    vmulh.vx \vt_0_0, \vt_0_0, \q
-    mulh \t_0_0, \t_0_0, \q
-    mulh \t_1_0, \t_1_0, \q
-    mulh \t_2_0, \t_2_0, \q
-    mulh \t_3_0, \t_3_0, \q
-    mulh \t_4_0, \t_4_0, \q
-    mulh \t_5_0, \t_5_0, \q
-    mulh \t_6_0, \t_6_0, \q
-    mulh \t_7_0, \t_7_0, \q
-    vsub.vv  \vt_0_0, \vt_0_1, \vt_0_0
-    sub  \t_0_0, \t_0_1, \t_0_0
-    sub  \t_1_0, \t_1_1, \t_1_0
-    sub  \t_2_0, \t_2_1, \t_2_0
-    sub  \t_3_0, \t_3_1, \t_3_0
-    sub  \t_4_0, \t_4_1, \t_4_0
-    sub  \t_5_0, \t_5_1, \t_5_0
-    sub  \t_6_0, \t_6_1, \t_6_0
-    sub  \t_7_0, \t_7_1, \t_7_0
-    vsub.vv  \va_0_1, \va_0_0, \vt_0_0
-    sub  \a_0_1, \a_0_0, \t_0_0
-    sub  \a_1_1, \a_1_0, \t_1_0
-    sub  \a_2_1, \a_2_0, \t_2_0
-    sub  \a_3_1, \a_3_0, \t_3_0
-    sub  \a_4_1, \a_4_0, \t_4_0
-    sub  \a_5_1, \a_5_0, \t_5_0
-    sub  \a_6_1, \a_6_0, \t_6_0
-    sub  \a_7_1, \a_7_0, \t_7_0
-    vadd.vv  \va_0_0, \va_0_0, \vt_0_0
-    add  \a_0_0, \a_0_0, \t_0_0
-    add  \a_1_0, \a_1_0, \t_1_0
-    add  \a_2_0, \a_2_0, \t_2_0
-    add  \a_3_0, \a_3_0, \t_3_0
-    add  \a_4_0, \a_4_0, \t_4_0
-    add  \a_5_0, \a_5_0, \t_5_0
-    add  \a_6_0, \a_6_0, \t_6_0
-    add  \a_7_0, \a_7_0, \t_7_0
-.endm
-
-.globl cpi_ct_bfu_scalar_mont_x4
-.align 2
-cpi_ct_bfu_scalar_mont_x4:
-.rep 200
-    ct_bfu_scalar_mont_x4 \
-    a0, a0, a1, a1, \
-    a2, a2, a3, a3, \
-    t0, t0, t0, t0, \
-    t0, t0, t0, t0, \
-    t0, \
-    a4, a5, a6, a7, \
-    t1, t2, t3, t4
-.endr
-ret
-
-.globl cpi_ct_bfu_scalar_mont_x4_v2
-.align 2
-cpi_ct_bfu_scalar_mont_x4_v2:
-.rep 200
-    ct_bfu_scalar_mont_x4_v2 \
-    a0, a0, a1, a1, \
-    a2, a2, a3, a3, \
-    t0, t0, t0, t0, \
-    t0, t0, t0, t0, \
-    t0, \
-    a4, a5, a6, a7, \
-    t1
-.endr
-ret
-
-.globl cpi_ct_bfu_scalar_mont_x4_v3
-.align 2
-cpi_ct_bfu_scalar_mont_x4_v3:
-.rep 200
-    ct_bfu_scalar_mont_x4_v3 \
-        a0, a0, a1, a1, \
-        a2, a2, a3, a3, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, \
-        a4, a5, a6, a7, \
-        t1, t2
-.endr
-ret
-
-.globl cpi_ct_bfu_scalar_mont_x8
-.align 2
-cpi_ct_bfu_scalar_mont_x8:
-    .rep 100
-    ct_bfu_scalar_mont_x8 \
-        a0, a0, a1, a1, \
-        a2, a2, a3, a3, \
-        a4, a4, a5, a5, \
-        a6, a6, a7, a7, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, \
-        t1, t1, t2, t2, \
-        t3, t3, t4, t4, \
-        t5, t5, t6, t6, \
-        a0, a0, a1, a1
-.endr
-ret
-
-.globl cpi_ct_bfu_vector_mont_x1
-.align 2
-cpi_ct_bfu_vector_mont_x1:
-    .rep 50
-    ct_bfu_vector_mont_x1 \
-        v0, v1, \
-        t0, t1, t2, \
-        v2, v3
-    ct_bfu_vector_mont_x1 \
-        v4, v5, \
-        t0, t1, t2, \
-        v6, v7
-    ct_bfu_vector_mont_x1 \
-        v8, v9, \
-        t0, t1, t2, \
-        v10, v11
-    ct_bfu_vector_mont_x1 \
-        v12, v13, \
-        t0, t1, t2, \
-        v14, v15
-.endr
-ret
-
-.globl cpi_hybrid_ct_bfu_4s_mont_1v_mont
-.align 2
-cpi_hybrid_ct_bfu_4s_mont_1v_mont:
-.rep 200
-    hybrid_ct_bfu_4s_mont_1v_mont \
-        a0, a0, a1, a1, \
-        a2, a2, a3, a3, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, \
-        a4, a5, a6, a7, \
-        t1, t2, t3, t4, \
-        v0, v1, \
-        t0, t0, \
-        v2, v3
-.endr
-ret
-
-# hybrid_ct_bfu_8s_mont_1v_mont
-.globl cpi_hybrid_ct_bfu_8s_mont_1v_mont
-.align 2
-cpi_hybrid_ct_bfu_8s_mont_1v_mont:
-.rep 200
-    hybrid_ct_bfu_8s_mont_1v_mont \
-        a0, a0, a1, a1, \
-        a2, a2, a3, a3, \
-        a4, a4, a5, a5, \
-        a6, a6, a7, a7, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, t0, t0, t0, \
-        t0, \
-        t1, t1, t2, t2, \
-        t3, t3, t4, t4, \
-        t5, t5, t6, t6, \
-        a0, a0, a1, a1, \
-        v0, v1, \
-        t0, t0, \
-        v2, v3
 .endr
 ret
