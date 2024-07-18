@@ -64,11 +64,6 @@ out/test_dilithium_dualissue_plant_ntt_rv64: test_dilithium_plant_ntt_rv64.c $(C
 	$(CC) $(CFLAGS_RV64IM) $(filter %.c, $^) $(filter %.S, $^) -o $@
 	scp $@ root@$(TARGET_IP):/sharefs/
 
-out/test_kyber_hybrid_ntt_rv32v: test_kyber_hybrid_ntt_rv32v.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KYBERNTTDIR)/ntt_hybrid_rvv.S $(KYBERNTTDIR)/ntt_hybridx2_rv32imv.S $(KYBERNTTDIR)/consts.c
-	mkdir -p out
-	$(CC) $(CFLAGS_RV32IMBV) $(filter %.c, $^) $(filter %.S, $^) -o $@
-	scp $@ root@$(TARGET_IP):/sharefs/
-
 out/test_kyber_mont_ntt_rv32: test_kyber_mont_ntt_rv32.c $(COMMONDIR)/cpucycles.c $(COMMONDIR)/speed_print.c $(KYBERNTTDIR)/ntt_dualissue_mont_rv32im.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) $(filter %.c, $^) $(filter %.S, $^) -o $@

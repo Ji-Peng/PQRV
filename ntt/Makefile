@@ -38,6 +38,7 @@ all: \
 	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
 	out/speed_singleissue_dilithium_mont_ntt_rv32	\
 	out/speed_dualissue_dilithium_mont_ntt_rv32		\
+	out/speed_dualissue_dilithium_plant_ntt_rv64		\
 	out/speed_dualissue_kyber_mont_ntt_rv32			\
 	out/speed_dualissue_kyber_mont_ntt_rvv			\
 	out/speed_dualissue_dilithium_mont_ntt_rvv		\
@@ -58,6 +59,8 @@ run_all: out/scp_speed
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_singleissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_dilithium_mont_ntt_rv32:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_dilithium_plant_ntt_rv64:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_plant_ntt_rv64" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_kyber_mont_ntt_rv32:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rv32" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_kyber_mont_ntt_rvv:" >> speed_ntt.txt
@@ -73,6 +76,7 @@ out/scp_speed:	\
 	out/speed_dualissue_kyber_plantard_l32_ntt_rv64	\
 	out/speed_singleissue_dilithium_mont_ntt_rv32	\
 	out/speed_dualissue_dilithium_mont_ntt_rv32		\
+	out/speed_dualissue_dilithium_plant_ntt_rv64		\
 	out/speed_dualissue_kyber_mont_ntt_rv32			\
 	out/speed_dualissue_kyber_mont_ntt_rvv			\
 	out/speed_dualissue_dilithium_mont_ntt_rvv
@@ -106,6 +110,10 @@ out/speed_singleissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(SOURCES) $(HE
 out/speed_dualissue_dilithium_mont_ntt_rv32: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_dualissue_mont_rv32im.S $(DILITHIUMNTTDIR)/ntt_6l_dualissue_mont_rv32im.S
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
+
+out/speed_dualissue_dilithium_plant_ntt_rv64: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(DILITHIUMNTTDIR)/ntt_8l_dualissue_plant_rv64im.S
+	mkdir -p out
+	$(CC) $(CFLAGS_RV64IM) -I$(DILITHIUMNTTDIR) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
 out/speed_dualissue_kyber_mont_ntt_rv32: $(SOURCES_COMMON) $(SOURCES) $(HEADERS_COMMON) $(KYBERNTTDIR)/ntt_dualissue_mont_rv32im.S
 	mkdir -p out

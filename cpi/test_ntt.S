@@ -731,3 +731,133 @@ cpi_hybrid_ct_bfu_8s_mont_1v_mont:
         v2, v3
 .endr
 ret
+
+.macro ct_bfu_vv_x4 \
+        va0_0, va0_1, va1_0, va1_1, va2_0, va2_1, va3_0, va3_1, \
+        vzeta0, vzetaqinv0, vzeta1, vzetaqinv1, \
+        vzeta2, vzetaqinv2, vzeta3, vzetaqinv3, \
+        xq, \
+        vt0_0, vt0_1, vt1_0, vt1_1, \
+        vt2_0, vt2_1, vt3_0, vt3_1
+    vmul.vv  \vt0_0, \va0_1, \vzetaqinv0
+    vmul.vv  \vt1_0, \va1_1, \vzetaqinv1
+    vmul.vv  \vt2_0, \va2_1, \vzetaqinv2
+    vmul.vv  \vt3_0, \va3_1, \vzetaqinv3
+    vmulh.vv \vt0_1, \va0_1, \vzeta0
+    vmulh.vv \vt1_1, \va1_1, \vzeta1
+    vmulh.vv \vt2_1, \va2_1, \vzeta2
+    vmulh.vv \vt3_1, \va3_1, \vzeta3
+    vmulh.vx \vt0_0, \vt0_0, \xq
+    vmulh.vx \vt1_0, \vt1_0, \xq
+    vmulh.vx \vt2_0, \vt2_0, \xq
+    vmulh.vx \vt3_0, \vt3_0, \xq
+    vsub.vv  \vt0_0, \vt0_1, \vt0_0
+    vsub.vv  \vt1_0, \vt1_1, \vt1_0
+    vsub.vv  \vt2_0, \vt2_1, \vt2_0
+    vsub.vv  \vt3_0, \vt3_1, \vt3_0
+    vsub.vv  \va0_1, \va0_0, \vt0_0
+    vsub.vv  \va1_1, \va1_0, \vt1_0
+    vsub.vv  \va2_1, \va2_0, \vt2_0
+    vsub.vv  \va3_1, \va3_0, \vt3_0
+    vadd.vv  \va0_0, \va0_0, \vt0_0
+    vadd.vv  \va1_0, \va1_0, \vt1_0
+    vadd.vv  \va2_0, \va2_0, \vt2_0
+    vadd.vv  \va3_0, \va3_0, \vt3_0
+.endm
+
+.macro ct_bfu_x8 \
+        va0_0, va0_1, va1_0, va1_1, va2_0, va2_1, va3_0, va3_1, \
+        va4_0, va4_1, va5_0, va5_1, va6_0, va6_1, va7_0, va7_1, \
+        xzeta0, xzetaqinv0, xzeta1, xzetaqinv1, \
+        xzeta2, xzetaqinv2, xzeta3, xzetaqinv3, \
+        xzeta4, xzetaqinv4, xzeta5, xzetaqinv5, \
+        xzeta6, xzetaqinv6, xzeta7, xzetaqinv7, \
+        xq, \
+        vt0_0, vt0_1, vt1_0, vt1_1, \
+        vt2_0, vt2_1, vt3_0, vt3_1, \
+        vt4_0, vt4_1, vt5_0, vt5_1, \
+        vt6_0, vt6_1, vt7_0, vt7_1
+    vmul.vx  \vt0_0, \va0_1, \xzetaqinv0
+    vmul.vx  \vt1_0, \va1_1, \xzetaqinv1
+    vmul.vx  \vt2_0, \va2_1, \xzetaqinv2
+    vmul.vx  \vt3_0, \va3_1, \xzetaqinv3
+    vmul.vx  \vt4_0, \va4_1, \xzetaqinv4
+    vmul.vx  \vt5_0, \va5_1, \xzetaqinv5
+    vmul.vx  \vt6_0, \va6_1, \xzetaqinv6
+    vmul.vx  \vt7_0, \va7_1, \xzetaqinv7
+    vmulh.vx \vt0_1, \va0_1, \xzeta0
+    vmulh.vx \vt1_1, \va1_1, \xzeta1
+    vmulh.vx \vt2_1, \va2_1, \xzeta2
+    vmulh.vx \vt3_1, \va3_1, \xzeta3
+    vmulh.vx \vt4_1, \va4_1, \xzeta4
+    vmulh.vx \vt5_1, \va5_1, \xzeta5
+    vmulh.vx \vt6_1, \va6_1, \xzeta6
+    vmulh.vx \vt7_1, \va7_1, \xzeta7
+    vmulh.vx \vt0_0, \vt0_0, \xq
+    vmulh.vx \vt1_0, \vt1_0, \xq
+    vmulh.vx \vt2_0, \vt2_0, \xq
+    vmulh.vx \vt3_0, \vt3_0, \xq
+    vmulh.vx \vt4_0, \vt4_0, \xq
+    vmulh.vx \vt5_0, \vt5_0, \xq
+    vmulh.vx \vt6_0, \vt6_0, \xq
+    vmulh.vx \vt7_0, \vt7_0, \xq
+    vsub.vv  \vt0_0, \vt0_1, \vt0_0
+    vsub.vv  \vt1_0, \vt1_1, \vt1_0
+    vsub.vv  \vt2_0, \vt2_1, \vt2_0
+    vsub.vv  \vt3_0, \vt3_1, \vt3_0
+    vsub.vv  \vt4_0, \vt4_1, \vt4_0
+    vsub.vv  \vt5_0, \vt5_1, \vt5_0
+    vsub.vv  \vt6_0, \vt6_1, \vt6_0
+    vsub.vv  \vt7_0, \vt7_1, \vt7_0
+    vsub.vv  \va0_1, \va0_0, \vt0_0
+    vsub.vv  \va1_1, \va1_0, \vt1_0
+    vsub.vv  \va2_1, \va2_0, \vt2_0
+    vsub.vv  \va3_1, \va3_0, \vt3_0
+    vsub.vv  \va4_1, \va4_0, \vt4_0
+    vsub.vv  \va5_1, \va5_0, \vt5_0
+    vsub.vv  \va6_1, \va6_0, \vt6_0
+    vsub.vv  \va7_1, \va7_0, \vt7_0
+    vadd.vv  \va0_0, \va0_0, \vt0_0
+    vadd.vv  \va1_0, \va1_0, \vt1_0
+    vadd.vv  \va2_0, \va2_0, \vt2_0
+    vadd.vv  \va3_0, \va3_0, \vt3_0
+    vadd.vv  \va4_0, \va4_0, \vt4_0
+    vadd.vv  \va5_0, \va5_0, \vt5_0
+    vadd.vv  \va6_0, \va6_0, \vt6_0
+    vadd.vv  \va7_0, \va7_0, \vt7_0
+.endm
+
+.globl cpi_ct_bfu_vv_x4
+.align 2
+cpi_ct_bfu_vv_x4:
+.rep 250
+    ct_bfu_vv_x4 \
+        v0,v1,v2,v3,v4,v5,v6,v7,\
+        v8,v8,v8,v8,v8,v8,v8,v8,\
+        a1,\
+        v9,v10,v11,v12,v13,v14,v15,v16
+    ct_bfu_vv_x4 \
+        v17,v18,v19,v20,v21,v22,v23,v24,\
+        v8,v8,v8,v8,v8,v8,v8,v8,\
+        a1,\
+        v25,v26,v27,v28,v29,v30,v31,v8
+.endr
+ret
+
+.globl cpi_ct_bfu_x8
+.align 2
+cpi_ct_bfu_x8:
+.rep 500
+    ct_bfu_x8 v0,v1,v2,v3,v4,v5,v6,v7,\
+        v9,v10,v11,v12,v13,v14,v15,v16,\
+        t0,t0,t0,t0,\
+        t0,t0,t0,t0,\
+        t0,t0,t0,t0,\
+        t0,t0,t0,t0,\
+        a1,\
+        v17,v18,v19,v20,\
+        v21,v22,v23,v24,\
+        v25,v26,v27,v28,\
+        v29,v30,v31,v8
+.endr
+ret

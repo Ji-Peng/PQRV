@@ -856,6 +856,54 @@ ret
     add  \a_3_0, \a_3_0, \t_3
 .endm
 
+.macro fake_plant_ct_bfu_x8 \
+    a_0_0, a_0_1, a_1_0, a_1_1, \
+    t_4, t_5, t_6, t_7, \
+    zeta_0, zeta_1, zeta_2, zeta_3, \
+    q16, \
+    t_0, t_1, t_2, t_3
+    mul  \t_0, \zeta_0, \zeta_0
+    mul  \t_1, \zeta_0, \zeta_1
+    mul  \t_2, \zeta_0, \zeta_2
+    mul  \t_3, \zeta_0, \zeta_3
+    mul  \t_4, \zeta_0, \zeta_0
+    mul  \t_5, \zeta_0, \zeta_1
+    mul  \t_6, \zeta_0, \zeta_2
+    mul  \t_7, \zeta_0, \zeta_3
+    srai \t_0, \t_0, 16
+    srai \t_1, \t_1, 16
+    srai \t_2, \t_2, 16
+    srai \t_3, \t_3, 16
+    srai \t_4, \t_4, 16
+    srai \t_5, \t_5, 16
+    srai \t_6, \t_6, 16
+    srai \t_7, \t_7, 16
+    addi \t_0, \t_0, 8
+    addi \t_1, \t_1, 8
+    addi \t_2, \t_2, 8
+    addi \t_3, \t_3, 8
+    addi \t_4, \t_4, 8
+    addi \t_5, \t_5, 8
+    addi \t_6, \t_6, 8
+    addi \t_7, \t_7, 8
+    sub  \t_0, \t_0, \t_0
+    sub  \t_1, \t_1, \t_1
+    sub  \t_2, \t_2, \t_2
+    sub  \t_3, \t_3, \t_3
+    sub  \t_4, \t_4, \t_4
+    sub  \t_5, \t_5, \t_5
+    sub  \t_6, \t_6, \t_6
+    sub  \t_7, \t_7, \t_7
+    add  \t_0, \t_0, \t_0
+    add  \t_1, \t_1, \t_1
+    add  \t_2, \t_2, \t_2
+    add  \t_3, \t_3, \t_3
+    add  \t_4, \t_4, \t_4
+    add  \t_5, \t_5, \t_5
+    add  \t_6, \t_6, \t_6
+    add  \t_7, \t_7, \t_7
+.endm
+
 .macro plant_ct_bfu_x8 \
     a_0_0, a_0_1, a_1_0, a_1_1, \
     a_2_0, a_2_1, a_3_0, a_3_1, \
@@ -974,6 +1022,19 @@ cpi_plant_ct_bfu_x8:
         t0, t0, t0, t0, \
         t0, t0, t0, t0, \
         t1, \
+        t2, t3, t4, t5
+.endr
+ret
+
+.globl cpi_fake_plant_ct_bfu_x8
+.align 2
+cpi_fake_plant_ct_bfu_x8:
+.rep 100
+    fake_plant_ct_bfu_x8 \
+        a0, a1, a2, a3, \
+        a4, a5, a6, a7, \
+        a4, a5, a6, a7, \
+        t0, \
         t2, t3, t4, t5
 .endr
 ret

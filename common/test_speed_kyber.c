@@ -23,8 +23,9 @@ int main()
     uint8_t sk[CRYPTO_SECRETKEYBYTES];
     uint8_t ct[CRYPTO_CIPHERTEXTBYTES];
     uint8_t key[CRYPTO_BYTES];
-    polyvec matrix[KYBER_K];
+    polyvec matrix[KYBER_K], pkpv, skpv;
     poly ap;
+    polyvec *a = matrix;
 
 #if (KYBER_K == 2)
     printf("Test speed of Kyber512\n");
@@ -125,6 +126,35 @@ int main()
         polyvec_basemul_acc(&ap, &matrix[0], &matrix[1]);
     }
     print_results("polyvec_basemul_acc: ", t, NTESTS);
+
+#if defined(VECTOR128) || defined(RV32)
+    polyvec_half skpv_cache;
+#endif
+    // matrix-vector mul
+    for (int j = 0; j < NTESTS; j++) {
+        t[j] = cpucycles();
+#if defined(VECTOR128) || defined(RV32)
+        polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv,
+                                       &skpv_cache);
+        for (i = 1; i < KYBER_K; i++) {
+            polyvec_basemul_acc_cached(&pkpv.vec[i], &a[i], &skpv,
+                                       &skpv_cache);
+        }
+#else
+        for (i = 0; i < KYBER_K; i++) {
+            polyvec_basemul_acc(&pkpv.vec[i], &a[i], &skpv);
+        }
+#endif
+    }
+    print_results("matrix-vector mul: ", t, NTESTS);
+
+#if defined(VECTOR128) || defined(RV32)
+    for (i = 0; i < NTESTS; i++) {
+        t[i] = cpucycles();
+        polyvec_basemul_acc_cached(&ap, &pkpv, &skpv, &skpv_cache);
+    }
+    print_results("polyvec_basemul_acc_cached: ", t, NTESTS);
+#endif
 
     // for(i=0;i<NTESTS;i++) {
     //   t[i] = cpucycles();

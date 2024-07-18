@@ -27,7 +27,7 @@ int main()
     int64_t tmp[256];
     printf(
         "Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers "
-        "merging\n");
+        "merging & RV32IM\n");
     PERF(ntt_8l_rv32im(a, zetas), ntt);
     PERF(poly_basemul_8l_init_rv32im(tmp, a, b), poly_basemul_init);
     PERF(poly_basemul_8l_acc_rv32im(tmp, a, b), poly_basemul_acc);
@@ -45,6 +45,21 @@ int main()
     PERF(poly_basemul_6l_cached_rv32im(c, a, b, (int32_t *)tmp),
          basemul_cached);
     PERF(intt_6l_rv32im(a, zetas), intt);
+#elif defined(DILITHIUM_NTT_RV64_H)
+    int32_t a[256], b[256], c[256];
+    int64_t zetas[256 * 2];
+    int64_t tmp[256];
+    printf(
+        "Dilithium 8-layer NTT & Plantard based & 4+4 layers "
+        "merging & RV64IM\n");
+    PERF(ntt_8l_rv64im(a, zetas), ntt);
+    PERF(poly_basemul_8l_init_rv64im(tmp, a, b), poly_basemul_init);
+    PERF(poly_basemul_8l_acc_rv64im(tmp, a, b), poly_basemul_acc);
+    PERF(poly_basemul_8l_acc_end_rv64im(c, a, b, tmp),
+         poly_basemul_acc_end);
+    PERF(poly_basemul_8l_rv64im(c, a, b), poly_basemul);
+    PERF(poly_reduce_rv64im(a), poly_reduce);
+    PERF(intt_8l_rv64im(a, zetas), intt);
 #elif defined(KYBER_RV32_MONT)
     int16_t r[256], a[256], b[256], b_cache[256];
     uint32_t zetas[128];

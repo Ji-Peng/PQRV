@@ -57,6 +57,7 @@ extern void cpi_plant_ct_bfu_x1();
 extern void cpi_plant_ct_bfu_x2();
 extern void cpi_plant_ct_bfu_x4();
 extern void cpi_plant_ct_bfu_x8();
+extern void cpi_fake_plant_ct_bfu_x8();
 extern void cpi_fake_plant_ct_bfu_x1();
 extern void cpi_fake_plant_ct_bfu_x2();
 extern void cpi_plant_gs_bfu_x1();
@@ -305,6 +306,7 @@ int main(void)
     PERF(cpi_plant_ct_bfu_x2(), cpi_plant_ct_bfu_x2);
     PERF(cpi_plant_ct_bfu_x4(), cpi_plant_ct_bfu_x4);
     PERF(cpi_plant_ct_bfu_x8(), cpi_plant_ct_bfu_x8);
+    PERF(cpi_fake_plant_ct_bfu_x8(), cpi_fake_plant_ct_bfu_x8);
     PERF(cpi_fake_plant_ct_bfu_x1(), cpi_fake_plant_ct_bfu_x1);
     PERF(cpi_fake_plant_ct_bfu_x2(), cpi_fake_plant_ct_bfu_x2);
     PERF(cpi_plant_gs_bfu_x1(), cpi_plant_gs_bfu_x1);

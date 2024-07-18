@@ -9,7 +9,7 @@
 #include "sign.h"
 #include "speed_print.h"
 
-#define NTESTS 1000
+#define NTESTS 10000
 
 uint64_t t[NTESTS * 10];
 
@@ -24,6 +24,7 @@ int main(void)
     uint8_t seed[CRHBYTES];
     polyvecl mat[K];
     polyveck veck;
+    polyvecl vecl;
     poly *a = &mat[0].vec[0];
     poly *b = &mat[0].vec[1];
     poly *c = &mat[0].vec[2];
@@ -85,6 +86,12 @@ int main(void)
     //     polyvecl_pointwise_poly(&mat[0], a, &mat[0]);
     // }
     // print_results("polyvecl_pointwise_poly:", t, NTESTS);
+
+    for (i = 0; i < NTESTS; ++i) {
+        t[i] = cpucycles();
+        polyvec_matrix_pointwise(&veck, mat, &vecl);
+    }
+    print_results("polyvec_matrix_pointwise:", t, NTESTS);
 
     for (i = 0; i < NTESTS; ++i) {
         t[i] = cpucycles();
