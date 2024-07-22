@@ -14,7 +14,7 @@ cpi_hybrid_vmulx4_addix4       cycles/insts/CPI=4006/6404/0.63
 cpi_hybrid_vmulx4_addix2       cycles/insts/CPI=3208/4804/0.67
 cpi_hybrid_vmulx4_addix1       cycles/insts/CPI=3207/4004/0.80
 cpi_ct_bfu_vv_x4               cycles/insts/CPI=15547/12004/1.30
-cpi_ct_bfu_x8                  cycles/insts/CPI=34328/24004/1.43
+cpi_ct_bfu_vv_x8                  cycles/insts/CPI=34328/24004/1.43
 e32
 cpi_ct_bfu_scalar_mont_x4      cycles/insts/CPI=3806/4804/0.79
 cpi_ct_bfu_scalar_mont_x4_v2   cycles/insts/CPI=4006/4804/0.83
@@ -31,4 +31,4 @@ cpi_hybrid_vmulx4_addix4       cycles/insts/CPI=4406/6404/0.69
 cpi_hybrid_vmulx4_addix2       cycles/insts/CPI=3408/4804/0.71
 cpi_hybrid_vmulx4_addix1       cycles/insts/CPI=3208/4004/0.80
 cpi_ct_bfu_vv_x4               cycles/insts/CPI=15741/12004/1.31
-cpi_ct_bfu_x8                  cycles/insts/CPI=34305/24004/1.43
+cpi_ct_bfu_vv_x8                  cycles/insts/CPI=34305/24004/1.43

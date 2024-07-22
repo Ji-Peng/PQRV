@@ -1,8 +1,17 @@
 # PQRV64
 
+## Preliminaries
+
+- **Development Board:** CanMV-K230 development board, which includes a C908 core.
+- **Cross Compiler:** Xuantie-900 linux-5.10.4 glibc gcc Toolchain V2.8.0 B-20231018.
+- **Host Machine:** A Linux-capable machine used for cross-compiling. Note that the Linux running on the C908 is a minimal version and is not suitable for direct development; therefore, cross-compilation is necessary.
+- **Router:** A router is used to set up a local area network (LAN), allowing the host machine to transfer files to the development board via `scp` and connect to the development board via `ssh`.
+- **Network Topology:** The host machine and the K230 development board are on the same local network. The host machine cross-compiles executable files for the C908 core and transfers them to the development board using the `scp` tool. Then, the host machine connects to the development board via `ssh` to run the executable files and obtain the experimental results.
+- **Necessary Modifications:** All Makefiles in this project have hard-coded information such as the IP address of the development board within the local network (`192.168.123.99`), the username on the Linux running on the C908 (`root`), and the directory on the C908 where the executable files are stored (`/sharefs`). These details need to be modified according to your specific setup, especially the IP address of the development board within the local network.
+
 ## Development board
 
-We use the CanMV-K230 development board based on the [Kendryte K230 SoC]([^1^](https://www.canaan.io/product/k230)). This SoC adopts a big.LITTLE heterogeneous design, and we only use the big core in this work. The big core is based on the [XuanTie C908 processor](https://riscv.org/blog/2022/11/xuantie-c908-high-performance-risc-v-processor-catered-to-aiot-industry-chang-liu-alibaba-cloud/) from [T-Head Semiconductor](https://www.t-head.cn/?lang=en), with the following information:
+We use the CanMV-K230 development board based on the [Kendryte K230 SoC]([^1^](https://www.canaan.io/product/k230)). This SoC adopts a big.LITTLE heterogeneous design, and we only use the big core in this work. The big core is based on the [XuanTie C908 processor](https://www.xrvm.com/product/xuantie/C908) from [T-Head Semiconductor](https://www.t-head.cn/?lang=en), with the following information:
 - Instruction set: RV64GCBV, vector extension version is 1.0
 - Frequency: 1.6GHz
 - Cache: 32KB L1 instruction/data cache, 256KB L2 cache
@@ -13,10 +22,13 @@ We use the CanMV-K230 development board based on the [Kendryte K230 SoC]([^1^](h
 
 For the tutorial on how to use this development board, we refer readers to [K230 doc](https://github.com/kendryte/k230_docs/blob/main/README_en.md) and [K230 sdk](https://github.com/kendryte/k230_sdk). We only emphasize some key configurations here. The command we use to make the system image for the development board is `make CONF=k230_evb_only_linux_defconfig`, which generates Linux OS by BuildRoot for the big core, so that we can run RVV instructions on the big core.
 
-## Regarding more extended instruction sets
+## Reproduction of Experimental Data
 
-The complete instruction set supported by C908 is `-march=rv64imafdcv_zihintpause_zfh_zba_zbb_zbc_zbs_xtheadc -mabi=lp64d`.
-We aim to obtain experimental results under `-march=rv64imav` to ensure the highest compatibility.
+### Microbenchmarks for the C908 Core
+
+Table 1 in our paper presents the latency and CPI (Cycles Per Instruction) for various instructions of the C908 core. Some of these results are directly obtained from the C908 user manual. Additionally, we performed a series of microbenchmarks, which can be found in the `cpi/` directory. The source code files are identified by the `.S` and `.c` extensions, and the test results are in files with the `.txt` extension.
+
+For a detailed explanation of the principles and results of the microbenchmarks, please refer to `cpi/README.md`.
 
 ## Why using the `-static` option?
 

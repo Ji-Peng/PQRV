@@ -1,8 +1,0 @@
-cpi_rori                       cycles/insts/CPI=81/154/0.53
-cpi_rori_x1                    cycles/insts/CPI=136/154/0.88
-cpi_rori_x2                    cycles/insts/CPI=76/144/0.53
-cpi_rori_x4                    cycles/insts/CPI=86/164/0.52
-cpi_andn                       cycles/insts/CPI=77/144/0.53
-cpi_andn_x1                    cycles/insts/CPI=126/144/0.88
-cpi_andn_x2                    cycles/insts/CPI=76/144/0.53
-cpi_andn_x4                    cycles/insts/CPI=86/164/0.52

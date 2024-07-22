@@ -10,28 +10,15 @@ uint64_t t[NTESTS];
 
 extern void cpi_add();
 extern void cpi_addi();
-extern void cpi_addi_forward();
+extern void cpi_addi_x1();
 extern void cpi_xor();
 extern void cpi_xori();
-extern void cpi_addxor();
-extern void cpi_addxor_forward();
-extern void cpi_mul_mulh();
 extern void cpi_mul();
 extern void cpi_mulh();
 extern void cpi_mulw();
 extern void cpi_mulw_x1();
-extern void cpi_mulw_x2();
-extern void cpi_mulw_x4();
 extern void cpi_mul_x1();
-extern void cpi_mul_x2();
-extern void cpi_mul_x4();
 
-extern void cpi_muladd();
-extern void cpi_mulx1addx2();
-extern void cpi_mulx2addx4();
-extern void cpi_mulx1addx3();
-extern void cpi_mulx1addx4();
-extern void cpi_shiftxor();
 extern void cpi_lh(int8_t *);
 extern void cpi_lh_addi(int8_t *);
 extern void cpi_lw(int8_t *);
@@ -39,39 +26,19 @@ extern void cpi_lw_addi(int8_t *);
 extern void cpi_ld(int8_t *);
 extern void cpi_ld_addi(int8_t *);
 extern void cpi_sh(int8_t *);
-extern void cpi_sh_lh_addi(int8_t *);
 extern void cpi_sw(int8_t *);
-extern void cpi_addi_sw_v0(int8_t *);
-extern void cpi_addi_sw_v1(int8_t *);
 extern void cpi_addi_sw_v2(int8_t *);
-extern void cpi_sw_lw_addi(int8_t *);
 extern void cpi_sd(int8_t *);
-extern void cpi_sd_ld_addi(int8_t *);
-extern void cpi_plantmul();
-extern void cpi_plantmulx2();
-extern void cpi_plantmulx4();
-extern void cpi_plantmul_rv64();
-extern void cpi_plantmul_rv64x2();
-extern void cpi_plantmul_rv64x4();
-extern void cpi_plant_ct_bfu_x1();
-extern void cpi_plant_ct_bfu_x2();
-extern void cpi_plant_ct_bfu_x4();
-extern void cpi_plant_ct_bfu_x8();
-extern void cpi_fake_plant_ct_bfu_x8();
-extern void cpi_fake_plant_ct_bfu_x1();
-extern void cpi_fake_plant_ct_bfu_x2();
-extern void cpi_plant_gs_bfu_x1();
-extern void cpi_plant_gs_bfu_x2();
-extern void cpi_plant_gs_bfu_x4();
-extern void cpi_plant_gs_bfu_x8();
-extern void cpi_fake_plant_gs_bfu_x1();
+
+extern void cpi_rori();
+extern void cpi_rori_x1();
+extern void cpi_andn();
+extern void cpi_andn_x1();
 
 extern int init_vector_e16();
 extern int init_vector_e32();
 extern void cpi_vle16(int8_t *buf);
 extern void cpi_vle16_add(int8_t *buf);
-extern void cpi_vle16_add_v2(int8_t *buf0, int8_t *buf1, int8_t *buf2,
-                             int8_t *buf3);
 extern void cpi_vse16(int8_t *buf0, int8_t *buf1, int8_t *buf2,
                       int8_t *buf3);
 extern void cpi_vaddvv();
@@ -134,16 +101,13 @@ extern void cpi_vmergevvm_x4();
 
 int main(void)
 {
-    int64_t buf[128];
 #ifdef VECTOR128
+    int64_t buf[128];
     int vec_len = init_vector_e16();
     printf("init_vector_e16, the length of vector is %d bits\n",
            vec_len * 16);
     PERF(cpi_vle16((int8_t *)buf), cpi_vle16);
     PERF(cpi_vle16_add((int8_t *)buf), cpi_vle16_add);
-    PERF(cpi_vle16_add_v2((int8_t *)buf, (int8_t *)&buf[2 * 1],
-                          (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
-         cpi_vle16_add_v2);
     PERF(cpi_vse16((int8_t *)buf, (int8_t *)&buf[2 * 1],
                    (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
          cpi_vse16);
@@ -249,32 +213,22 @@ int main(void)
     PERF(cpi_vmergevvm_x1(), cpi_vmergevvm_x1);
     PERF(cpi_vmergevvm_x2(), cpi_vmergevvm_x2);
     PERF(cpi_vmergevvm_x4(), cpi_vmergevvm_x4);
-#else
+#endif
+
+#if !defined(VECTOR128)
+    int64_t buf[128];
     PERF(cpi_add(), cpi_add);
     PERF(cpi_addi(), cpi_addi);
-    PERF(cpi_addi_forward(), cpi_addi_forward);
+    PERF(cpi_addi_x1(), cpi_addi_x1);
     PERF(cpi_xor(), cpi_xor);
     PERF(cpi_xori(), cpi_xori);
-    PERF(cpi_addxor(), cpi_addxor);
-    PERF(cpi_addxor_forward(), cpi_addxor_forward);
-    PERF(cpi_mul_mulh(), cpi_mul_mulh);
     PERF(cpi_mul(), cpi_mul);
     PERF(cpi_mulh(), cpi_mulh);
     PERF(cpi_mul_x1(), cpi_mul_x1);
-    PERF(cpi_mul_x2(), cpi_mul_x2);
-    PERF(cpi_mul_x4(), cpi_mul_x4);
 #    ifdef RV64
     PERF(cpi_mulw(), cpi_mulw);
     PERF(cpi_mulw_x1(), cpi_mulw_x1);
-    PERF(cpi_mulw_x2(), cpi_mulw_x2);
-    PERF(cpi_mulw_x4(), cpi_mulw_x4);
 #    endif
-    PERF(cpi_muladd(), cpi_muladd);
-    PERF(cpi_mulx1addx2(), cpi_mulx1addx2);
-    PERF(cpi_mulx2addx4(), cpi_mulx2addx4);
-    PERF(cpi_mulx1addx3(), cpi_mulx1addx3);
-    PERF(cpi_mulx1addx4(), cpi_mulx1addx4);
-    PERF(cpi_shiftxor(), cpi_shiftxor);
     PERF(cpi_lh((int8_t *)buf), cpi_lh);
     PERF(cpi_lh_addi((int8_t *)buf), cpi_lh_addi);
     PERF(cpi_lw((int8_t *)buf), cpi_lw);
@@ -284,36 +238,15 @@ int main(void)
     PERF(cpi_ld_addi((int8_t *)buf), cpi_ld_addi);
 #    endif
     PERF(cpi_sh((int8_t *)buf), cpi_sh);
-    PERF(cpi_sh_lh_addi((int8_t *)buf), cpi_sh_lh_addi);
     PERF(cpi_sw((int8_t *)buf), cpi_sw);
-    PERF(cpi_addi_sw_v0((int8_t *)buf), cpi_addi_sw_v0);
-    PERF(cpi_addi_sw_v1((int8_t *)buf), cpi_addi_sw_v1);
     PERF(cpi_addi_sw_v2((int8_t *)buf), cpi_addi_sw_v2);
-    PERF(cpi_sw_lw_addi((int8_t *)buf), cpi_sw_lw_addi);
 #    ifdef RV64
     PERF(cpi_sd((int8_t *)buf), cpi_sd);
-    PERF(cpi_sd_ld_addi((int8_t *)buf), cpi_sd_ld_addi);
 #    endif
-    PERF(cpi_plantmul(), cpi_plantmul);
-    PERF(cpi_plantmulx2(), cpi_plantmulx2);
-    PERF(cpi_plantmulx4(), cpi_plantmulx4);
-#    ifdef RV64
-    PERF(cpi_plantmul_rv64(), cpi_plantmul_rv64);
-    PERF(cpi_plantmul_rv64x2(), cpi_plantmul_rv64x2);
-    PERF(cpi_plantmul_rv64x4(), cpi_plantmul_rv64x4);
-#    endif
-    PERF(cpi_plant_ct_bfu_x1(), cpi_plant_ct_bfu_x1);
-    PERF(cpi_plant_ct_bfu_x2(), cpi_plant_ct_bfu_x2);
-    PERF(cpi_plant_ct_bfu_x4(), cpi_plant_ct_bfu_x4);
-    PERF(cpi_plant_ct_bfu_x8(), cpi_plant_ct_bfu_x8);
-    PERF(cpi_fake_plant_ct_bfu_x8(), cpi_fake_plant_ct_bfu_x8);
-    PERF(cpi_fake_plant_ct_bfu_x1(), cpi_fake_plant_ct_bfu_x1);
-    PERF(cpi_fake_plant_ct_bfu_x2(), cpi_fake_plant_ct_bfu_x2);
-    PERF(cpi_plant_gs_bfu_x1(), cpi_plant_gs_bfu_x1);
-    PERF(cpi_plant_gs_bfu_x2(), cpi_plant_gs_bfu_x2);
-    PERF(cpi_plant_gs_bfu_x4(), cpi_plant_gs_bfu_x4);
-    PERF(cpi_plant_gs_bfu_x8(), cpi_plant_gs_bfu_x8);
-    PERF(cpi_fake_plant_gs_bfu_x1(), cpi_fake_plant_gs_bfu_x1);
+    PERF(cpi_rori(), cpi_rori);
+    PERF(cpi_rori_x1(), cpi_rori_x1);
+    PERF(cpi_andn(), cpi_andn);
+    PERF(cpi_andn_x1(), cpi_andn_x1);
 #endif
     return 0;
 }

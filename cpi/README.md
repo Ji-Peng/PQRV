@@ -1,37 +1,116 @@
-连续的addi a1, a1, 1的CPI是1，说明有forwarding的哈，不然应该是2
+# CPI
 
-如何测试load执行的时延呢？
+The `.S` and `.c` files are the necessary source files, while the `.txt` files contain the results of the microbenchmarks. We mainly focus on the results in the following files:
+- `cpi_rv32im.txt, cpi_rv64im.txt`: Microbenchmark results for specific instructions in the RV32IM/RV64IM ISA
+- `cpi_rv32imb.txt, cpi_rv64imb.txt`: Microbenchmark results for the `rori` and `andn` instructions in the B extension
+- `cpi_rvv.txt`: Microbenchmark results for specific instructions in the V extension
 
-如下指令序列的CPI=0.7，10条指令耗时7cc，后面8条指令耗时4cc，因此lh耗时为3cc
+## Basic Methodology
+
+We primarily focus on the latency and CPI of instructions. For example, to test the latency of the `addi` instruction, we use the following code snippet:
+```assembly
+.globl cpi_addi_x1
+.align 2
+cpi_addi_x1:
+.rep 1000
+    addi a0, a0, 1
+.endr
+ret
 ```
-lh a1, 2*0(a0)
-lh a2, 2*1(a0)
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
-```
+In this code, each instruction depends on the result of the previous one, so the dual-issue capability cannot be fully utilized. The next instruction must wait for the result of the previous one, allowing us to measure the instruction's latency. The test results show that the CPI of this instruction sequence is 1, indicating a latency of 1 for the `addi` instruction.
 
-如下指令序列的CPI=0.6，共计10条指令耗时6cc。8条addi指令耗时4cc，因此lw耗时为2cc
+To test the CPI of `addi`, we use the following code snippet:
+```assembly
+.globl cpi_addi
+.align 2
+cpi_addi:
+.rep 100
+    addi a0, a0, 1
+    addi a1, a1, 1
+    addi a2, a2, 1
+    addi a3, a3, 1
+    addi a4, a4, 1
+    addi a5, a5, 1
+    ...
+.endr
+ret
 ```
-lw a1, 8*0(a0)
-lw a2, 8*1(a0)
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
-addi a1, a1, 1
-addi a2, a2, 1
+Here, there are no data dependencies between the instructions, allowing the dual-issue capability to be fully utilized. The test results show that the CPI of this instruction sequence is 0.5, indicating a CPI of 0.5 for the `addi` instruction.
+
+## RV32I and RV64I
+
+### Arithmetic/Logic Instructions
+
+The testing methodology for these instructions is similar to that of the `addi` instruction mentioned above. The results show that the latency and CPI are 1 and 0.5, respectively.
+
+### Load Instructions (lh/lw/ld)
+
+Testing the latency of `lh/lw/ld` instructions requires careful design. Consider the following code snippet:
+```assembly
+.globl cpi_lw_addi
+.align 2
+cpi_lw_addi:
+.rep 200
+    lw a1, 8*0(a0)
+    lw a2, 8*1(a0)
+    addi a1, a1, 1
+    addi a2, a2, 1
+    addi a1, a1, 1
+    addi a2, a2, 1
+    addi a1, a1, 1
+    addi a2, a2, 1
+    addi a1, a1, 1
+    addi a2, a2, 1
+.endr
+ret
 ```
+The test results are: `cycles/insts/CPI=1206/2004/0.60`. This means that these 10 instructions take 6 cycles, and the 8 `addi` instructions take 4 cycles. Under dual-issue conditions, the `lw` instruction seems to take 2 cycles. However, considering the forwarding feature, the latency is reduced by 1 cycle, so the actual latency of the `lw` instruction is 3.
 
-也就是说其实lh/lw/ld的时延都是3
-- 与A55的描述类似：The load-use latency from the data of a load instruction to the ALU of a dependent datapath instruction is two cycles. This means that in a back-to-back LDR-ADD sequence the ADD instruction would stall for one cycle.
-- 但上面的描述只适用于lw/ld指令，而lh则需要额外+1 cc，猜测是因为不支持转发8-bit data，这8-bit需要在流水线执行的最后一个阶段扩展为特定的数据类型。
+For the `lh` instruction, the `cpi_lh_addi` test results are cycles/insts/CPI=706/1004/0.70, indicating a latency of 3 with no benefit from the forwarding feature.
 
-cpi_addi_sw_v0 - cpi_addi_sw_v2，CPI几乎是一样的，奇怪，在sha3里好像隔几条指令对性能影响挺大的捏
+These test results corroborate our paper's claim: "The load-use latency from the data of an `lh/{lw,ld}` instruction to the ALU of a dependent datapath instruction is three/two cycles. This means that in a back-to-back `lh/{lw,ld}-add` sequence the add instruction would stall for two/one cycle. We attribute the additional latency of the lh instruction to zero or sign extension."
+
+### Store Instructions (sh/sw/sd)
+
+The latency of these instructions is directly obtained from the C908 user manual and is 1 cycle. The CPI for these instructions is tested by the `cpi_sh`, `cpi_sw`, and `cpi_sd` functions, showing that their CPI is 1.
+
+### Multiply Instructions (mul/mulw/mulh)
+
+To test the latency of `mulw` on RV64M, we use the following code snippet:
+```assembly
+.globl cpi_mulw_x1
+.align 2
+cpi_mulw_x1:
+.rep 200
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+    mulw a0, a0, a0
+.endr
+ret
+```
+Each instruction depends on the previous one, so the test result reflects the instruction's latency. The result is `cycles/insts/CPI=6002/2003/3.00`, indicating a latency of 3 for this instruction. Similarly, the latency of `mul` and `mulh` on RV32M is also 3 cycles, while the latency on RV64M is 4 cycles.
+
+The CPI for these instructions is measured by the `cpi_mulw`, `cpi_mul`, and `cpi_mulh` functions. The CPI for `mulw` on RV64, and `mul` and `mulh` on RV32, is 1, while the CPI for `mul` and `mulh` on RV64 is 2.
+
+### rori/andn
+
+For the `rori` instruction, `cpi_rori_x1` is used to measure latency, and `cpi_rori` is used to measure CPI. The latency is 1, and the CPI is 0.5.
+
+### RVV Instructions
+
+For the `vadd` and `vsub` instructions, `cpi_vaddvx_x1` and `cpi_vaddvx` are used to measure latency and CPI, respectively, which are 4 and 1.
+
+For the `vmul` and `vmulh` instructions, `cpi_vmulvx_x1` and `cpi_vmulvx` are used to measure latency and CPI. When SEW is less than or equal to 16, they are 4 and 1, respectively; otherwise, they are 5 and 1. The different latencies for multiplication instructions with different SEW configurations are inspired by the C910 user manual.
+
+For logical instructions, we tested `vand.vv`, `vnot.v`, `vxor.vv`, `vsll.vi`, and `vsrlvx` instructions. The latency and CPI are 4 and 2, respectively. The `vmerge` instruction is similar to logical instructions, with latency and CPI of 4 and 2, respectively.
+
+For the `vrgather` instruction, `cpi_vrgathervv_x1` and `cpi_vrgathervv` are used to measure latency and CPI, which are 5 and 4, respectively.
+
+The CPI for `vle/vse` instructions is measured by `cpi_vle16` and `cpi_vse16`.

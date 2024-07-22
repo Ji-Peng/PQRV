@@ -34,41 +34,10 @@ ret
 cpi_vle16_add:
 .rep 200
     vle16.v v0, (a0)
-    vadd.vv v1, v1, v0
-    vadd.vv v2, v2, v0
-    vadd.vv v3, v3, v0
-    vadd.vv v4, v4, v0
-    vadd.vv v5, v5, v0
-    vadd.vv v6, v6, v0
-    vadd.vv v7, v7, v0
-    vadd.vv v8, v8, v0
-.endr
-ret
-
-.globl cpi_vle16_add_v2
-.align 2
-cpi_vle16_add_v2:
-.rep 100
-    vle16.v v0, (a0)
-    vle16.v v5, (a1)
-    vle16.v v10, (a2)
-    vle16.v v15, (a3)
-    vadd.vv v1, v1, v0
-    vadd.vv v2, v2, v0
-    vadd.vv v3, v3, v0
-    vadd.vv v4, v4, v0
-    vadd.vv v6, v6, v5
-    vadd.vv v7, v7, v5
-    vadd.vv v8, v8, v5
-    vadd.vv v9, v9, v5
-    vadd.vv v1, v1, v10
-    vadd.vv v2, v2, v10
-    vadd.vv v3, v3, v10
-    vadd.vv v4, v4, v10
-    vadd.vv v6, v6, v15
-    vadd.vv v7, v7, v15
-    vadd.vv v8, v8, v15
-    vadd.vv v9, v9, v15
+    vadd.vv v10, v0, v0
+    vadd.vv v11, v0, v0
+    vadd.vv v12, v0, v0
+    vadd.vv v13, v0, v0
 .endr
 ret
 
@@ -842,6 +811,15 @@ cpi_vrgathervv_x1:
     vrgather.vv v8, v7, v20
     vrgather.vv v9, v8, v20
     vrgather.vv v10, v9, v20
+    vrgather.vv v11, v10, v20
+    vrgather.vv v12, v11, v20
+    vrgather.vv v13, v12, v20
+    vrgather.vv v14, v13, v20
+    vrgather.vv v15, v14, v20
+    vrgather.vv v16, v15, v20
+    vrgather.vv v17, v16, v20
+    vrgather.vv v18, v17, v20
+    vrgather.vv v19, v18, v20
 .endr
 ret
 
