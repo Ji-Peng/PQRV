@@ -55,16 +55,16 @@ run_all: out/scp_speed
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_plantard_ntt_rv64" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_kyber_plantard_l32_ntt_rv64:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_plantard_l32_ntt_rv64" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_mont_ntt_rv32:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rv32" >> speed_ntt.txt
+	@echo "\nspeed_dualissue_kyber_mont_ntt_rvv:" >> speed_ntt.txt
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rvv" >> speed_ntt.txt
 	@echo "\nspeed_singleissue_dilithium_mont_ntt_rv32:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_singleissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_dilithium_mont_ntt_rv32:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_mont_ntt_rv32" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_dilithium_plant_ntt_rv64:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_plant_ntt_rv64" >> speed_ntt.txt
-	@echo "\nspeed_dualissue_kyber_mont_ntt_rv32:" >> speed_ntt.txt
-	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rv32" >> speed_ntt.txt
-	@echo "\nspeed_dualissue_kyber_mont_ntt_rvv:" >> speed_ntt.txt
-	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_kyber_mont_ntt_rvv" >> speed_ntt.txt
 	@echo "\nspeed_dualissue_dilithium_mont_ntt_rvv:" >> speed_ntt.txt
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./speed_dualissue_dilithium_mont_ntt_rvv" >> speed_ntt.txt
 

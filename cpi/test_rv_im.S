@@ -3,7 +3,7 @@
 .globl cpi_add
 .align 2
 cpi_add:
-.rep 100
+.rep 200
     add a0, a0, a0
     add a1, a1, a1
     add a2, a2, a2
@@ -18,7 +18,7 @@ ret
 .globl cpi_addi
 .align 2
 cpi_addi:
-.rep 100
+.rep 200
     addi a0, a0, 1
     addi a1, a1, 1
     addi a2, a2, 1
@@ -33,7 +33,7 @@ ret
 .globl cpi_addi_x1
 .align 2
 cpi_addi_x1:
-.rep 1000
+.rep 1600
     addi a0, a0, 1
 .endr
 ret
@@ -41,7 +41,7 @@ ret
 .globl cpi_xor
 .align 2
 cpi_xor:
-.rep 100
+.rep 200
     xor a0, a0, a0
     xor a1, a1, a1
     xor a2, a2, a2
@@ -56,7 +56,7 @@ ret
 .globl cpi_xori
 .align 2
 cpi_xori:
-.rep 100
+.rep 200
     xori a0, a0, 1
     xori a1, a1, 1
     xori a2, a2, 1
@@ -71,7 +71,7 @@ ret
 .globl cpi_mul
 .align 2
 cpi_mul:
-.rep 100
+.rep 200
     mul a0, a0, a0
     mul a1, a1, a1
     mul a2, a2, a2
@@ -86,7 +86,7 @@ ret
 .globl cpi_mul_x1
 .align 2
 cpi_mul_x1:
-.rep 800
+.rep 1600
     mul a0, a0, a0
 .endr
 ret
@@ -94,7 +94,7 @@ ret
 .globl cpi_mulh
 .align 2
 cpi_mulh:
-.rep 100
+.rep 200
     mulh a0, a0, a0
     mulh a1, a1, a1
     mulh a2, a2, a2
@@ -110,7 +110,7 @@ ret
 .globl cpi_mulw
 .align 2
 cpi_mulw:
-.rep 100
+.rep 200
     mulw a0, a0, a0
     mulw a1, a1, a1
     mulw a2, a2, a2
@@ -125,7 +125,7 @@ ret
 .globl cpi_mulw_x1
 .align 2
 cpi_mulw_x1:
-.rep 800
+.rep 1600
     mulw a0, a0, a0
 .endr
 ret
@@ -134,7 +134,7 @@ ret
 .globl cpi_lh
 .align 2
 cpi_lh:
-.rep 100
+.rep 200
     lh a1, 2*0(a0)
     lh a2, 2*1(a0)
     lh a3, 2*2(a0)
@@ -149,7 +149,7 @@ ret
 .globl cpi_lh_addi
 .align 2
 cpi_lh_addi:
-.rep 100
+.rep 200
     lh a1, 2*0(a0)
     lh a2, 2*1(a0)
     addi a1, a1, 1
@@ -166,7 +166,7 @@ ret
 .globl cpi_lw
 .align 2
 cpi_lw:
-.rep 100
+.rep 200
     lw a1, 8*0(a0)
     lw a2, 8*1(a0)
     lw a3, 8*2(a0)
@@ -181,7 +181,7 @@ ret
 .globl cpi_lw_addi
 .align 2
 cpi_lw_addi:
-.rep 100
+.rep 200
     lw a1, 8*0(a0)
     lw a2, 8*1(a0)
     addi a1, a1, 1
@@ -199,7 +199,7 @@ ret
 .globl cpi_ld
 .align 2
 cpi_ld:
-.rep 100
+.rep 200
     ld a1, 8*0(a0)
     ld a2, 8*1(a0)
     ld a3, 8*2(a0)
@@ -214,7 +214,7 @@ ret
 .globl cpi_ld_addi
 .align 2
 cpi_ld_addi:
-.rep 100
+.rep 200
     ld a1, 8*0(a0)
     ld a2, 8*1(a0)
     addi a1, a1, 1
@@ -232,7 +232,7 @@ ret
 .globl cpi_sh
 .align 2
 cpi_sh:
-.rep 100
+.rep 200
     sh a1, 8*0(a0)
     sh a2, 8*1(a0)
     sh a3, 8*2(a0)
@@ -247,7 +247,7 @@ ret
 .globl cpi_sw
 .align 2
 cpi_sw:
-.rep 100
+.rep 200
     sw a1, 8*0(a0)
     sw a2, 8*1(a0)
     sw a3, 8*2(a0)
@@ -262,7 +262,7 @@ ret
 .globl cpi_addi_sw_v2
 .align 2
 cpi_addi_sw_v2:
-.rep 100
+.rep 200
     addi a1, a1, 1
     addi a2, a2, 1
     addi a3, a3, 1
@@ -278,7 +278,7 @@ ret
 .globl cpi_sd
 .align 2
 cpi_sd:
-.rep 100
+.rep 200
     sd a1, 8*0(a0)
     sd a2, 8*1(a0)
     sd a3, 8*2(a0)
@@ -296,59 +296,59 @@ ret
 .globl cpi_rori
 .align 2
 cpi_rori:
-    .rep 100
-        rori a0, a0, 16
-        rori a1, a1, 16
-        rori a2, a2, 16
-        rori a3, a3, 16
-        rori a4, a4, 16
-        rori a5, a5, 16
-        rori a6, a6, 16
-        rori a7, a7, 16
-    .endr
-    ret
+.rep 200
+    rori a0, a0, 16
+    rori a1, a1, 16
+    rori a2, a2, 16
+    rori a3, a3, 16
+    rori a4, a4, 16
+    rori a5, a5, 16
+    rori a6, a6, 16
+    rori a7, a7, 16
+.endr
+ret
 
 .globl cpi_rori_x1
 .align 2
 cpi_rori_x1:
-    .rep 100
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-        rori a0, a0, 16
-    .endr
-    ret
+.rep 200
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+    rori a0, a0, 16
+.endr
+ret
 
 .globl cpi_andn
 .align 2
 cpi_andn:
-    .rep 100
-        andn a0, a0, t6
-        andn a1, a1, t6
-        andn a2, a2, t6
-        andn a3, a3, t6
-        andn a4, a4, t6
-        andn a5, a5, t6
-        andn a6, a6, t6
-        andn a7, a7, t6
-    .endr
-    ret
+.rep 200
+    andn a0, a0, t6
+    andn a1, a1, t6
+    andn a2, a2, t6
+    andn a3, a3, t6
+    andn a4, a4, t6
+    andn a5, a5, t6
+    andn a6, a6, t6
+    andn a7, a7, t6
+.endr
+ret
 
 .globl cpi_andn_x1
 .align 2
 cpi_andn_x1:
-    .rep 100
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-        andn a0, a0, t6
-    .endr
-    ret
+.rep 200
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+    andn a0, a0, t6
+.endr
+ret

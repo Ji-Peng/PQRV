@@ -29,11 +29,11 @@ HEADERS_COMMON 	= $(COMMONDIR)/cpucycles.h $(COMMONDIR)/speed_print.h
 
 all: \
 	out/cpi_rv32imb out/cpi_rv64imb out/cpi_rvv	\
-	out/cpi_rvv_group	\
+	out/cpi_rv_vgroup	\
 	out/cpi_ntt_rv32imv	\
 	out/scp_speed
 
-run_all: run_rv32imb run_rv64imb run_rvv run_rvv_group run_ntt_rv32imv
+run_all: run_rv32imb run_rv64imb run_rvv run_rv_vgroup run_ntt_rv32imv
 
 run_rv32imb: out/scp_speed
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv32imb" > cpi_rv32imb.txt
@@ -44,15 +44,15 @@ run_rv64imb: out/scp_speed
 run_rvv: out/scp_speed
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rvv" > cpi_rvv.txt
 
-run_rvv_group: out/scp_speed
-	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rvv_group" > cpi_rvv_group.txt
+run_rv_vgroup: out/scp_speed
+	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_rv_vgroup" > cpi_rv_vgroup.txt
 
 run_ntt_rv32imv: out/scp_speed
 	ssh $(TARGET_USER)@$(TARGET_IP) "cd $(TARGET_DIR) && ./cpi_ntt_rv32imv" > cpi_ntt_rv32imv.txt
 
 out/scp_speed:	\
 	out/cpi_rv32imb out/cpi_rv64imb out/cpi_rvv	\
-	out/cpi_rvv_group	\
+	out/cpi_rv_vgroup	\
 	out/cpi_ntt_rv32imv
 	$(SCP) $^ $(TARGET_USER)@$(TARGET_IP):$(TARGET_DIR)/
 	@echo 1 > $@
@@ -65,11 +65,11 @@ out/cpi_rv64imb: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rv_im.S test_cpi.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV64IMB) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rv_im.S test_rv_v.S test_cpi.c
+out/cpi_rvv: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rv_v.S test_cpi.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 
-out/cpi_rvv_group: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rv_vgroup.S test_cpi_rvv_group.c
+out/cpi_rv_vgroup: $(SOURCES_COMMON) $(HEADERS_COMMON) test_rv_vgroup.S test_cpi_rv_vgroup.c
 	mkdir -p out
 	$(CC) $(CFLAGS_RV32IMV) $(filter %.c, $^) $(filter %.S, $^) -o $@
 

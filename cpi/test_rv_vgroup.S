@@ -1,10 +1,22 @@
 .text
 
+.globl init_vector_e32_m1
+.align 2
+init_vector_e32_m1:
+    li t1, 128
+    vsetvli a0, t1, e32, m1, tu, mu
+ret
+
+.globl init_vector_e32_m8
+.align 2
+init_vector_e32_m8:
+    li t1, 128
+    vsetvli a0, t1, e32, m8, tu, mu
+ret
+
 .globl cpi_m1_vle32
 .align 2
 cpi_m1_vle32:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
 .rep 200
     vle32.v v0, (a0)
     vle32.v v1, (a0)
@@ -20,18 +32,17 @@ ret
 .globl cpi_m8_vle32
 .align 2
 cpi_m8_vle32:
-    li t1, 128
-    vsetvli a2, t1, e32, m8, tu, mu
-.rep 200
+.rep 50
     vle32.v v0, (a0)
+    vle32.v v8, (a0)
+    vle32.v v16, (a0)
+    vle32.v v24, (a0)
 .endr
 ret
 
 .globl cpi_m1_vlse32
 .align 2
 cpi_m1_vlse32:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
     li t3, 16
 .rep 200
     vlse32.v v0, (a0), t3
@@ -48,19 +59,18 @@ ret
 .globl cpi_m8_vlse32
 .align 2
 cpi_m8_vlse32:
-    li t1, 128
-    vsetvli a2, t1, e32, m8, tu, mu
     li t3, 16
-.rep 200
-    vlse32.v v0, (a0), t3
+.rep 50
+    vlse32.v v0,  (a0), t3
+    vlse32.v v8,  (a0), t3
+    vlse32.v v16, (a0), t3
+    vlse32.v v24, (a0), t3
 .endr
 ret
 
 .globl cpi_m1_vmulvx
 .align 2
 cpi_m1_vmulvx:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
 .rep 200
     vmul.vx v0, v0, a0
     vmul.vx v1, v1, a0
@@ -76,19 +86,18 @@ ret
 .globl cpi_m8_vmulvx
 .align 2
 cpi_m8_vmulvx:
-    li t1, 128
-    vsetvli a2, t1, e32, m8, tu, mu
-.rep 200
-    vmul.vx v0, v0, a0
+.rep 50
+    vmul.vx v0,  v0,  a0
+    vmul.vx v8,  v8,  a0
+    vmul.vx v16, v16, a0
+    vmul.vx v24, v24, a0
 .endr
 ret
 
 .globl cpi_m1_vle32_vmul_vse32
 .align 2
 cpi_m1_vle32_vmul_vse32:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
-.rep 200
+.rep 100
     vle32.v v0, (a0);       addi a0, a0, 4*4
     vle32.v v1, (a0);       addi a0, a0, 4*4
     vle32.v v2, (a0);       addi a0, a0, 4*4
@@ -119,9 +128,7 @@ ret
 .globl cpi_m1_vle32_vmul_vse32_opt
 .align 2
 cpi_m1_vle32_vmul_vse32_opt:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
-.rep 200
+.rep 100
     vle32.v v0, (a0);       addi a0, a0, 4*4
     vle32.v v1, (a0);       addi a0, a0, 4*4
     vle32.v v2, (a0);       addi a0, a0, 4*4
@@ -152,9 +159,7 @@ ret
 .globl cpi_m1_vle32_vmul_vse32_opt_v2
 .align 2
 cpi_m1_vle32_vmul_vse32_opt_v2:
-    li t1, 128
-    vsetvli a2, t1, e32, m1, tu, mu
-.rep 200
+.rep 100
     vle32.v v0, (a0);       addi a0, a0, 4*4
     vle32.v v1, (a0);       addi a0, a0, -4*4
     vmul.vx v0, v0, a0
@@ -185,8 +190,6 @@ ret
 .globl cpi_m8_vle32_vmul_vse32
 .align 2
 cpi_m8_vle32_vmul_vse32:
-    li t1, 128
-    vsetvli a2, t1, e32, m8, tu, mu
 .rep 200
     vle32.v v0, (a0)
     vmul.vx v0, v0, a0

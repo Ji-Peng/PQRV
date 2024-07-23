@@ -1,0 +1,10 @@
+cpi_m1_vle32                   cycles/insts/CPI=3207/1605/2.00
+cpi_m1_vlse32                  cycles/insts/CPI=6410/1606/3.99
+cpi_m1_vmulvx                  cycles/insts/CPI=1608/1604/1.00
+cpi_m1_vle32_vmul_vse32        cycles/insts/CPI=4505/4005/1.12
+cpi_m1_vle32_vmul_vse32_opt    cycles/insts/CPI=4407/4005/1.10
+cpi_m1_vle32_vmul_vse32_opt_v2 cycles/insts/CPI=5206/4005/1.30
+cpi_m8_vle32                   cycles/insts/CPI=3207/205/15.64
+cpi_m8_vlse32                  cycles/insts/CPI=6410/206/31.12
+cpi_m8_vmulvx                  cycles/insts/CPI=1608/204/7.88
+cpi_m8_vle32_vmul_vse32        cycles/insts/CPI=7003/605/11.58

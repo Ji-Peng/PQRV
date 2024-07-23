@@ -41,6 +41,8 @@ extern void cpi_vle16(int8_t *buf);
 extern void cpi_vle16_add(int8_t *buf);
 extern void cpi_vse16(int8_t *buf0, int8_t *buf1, int8_t *buf2,
                       int8_t *buf3);
+extern void cpi_vse16_add(int8_t *buf);
+
 extern void cpi_vaddvv();
 extern void cpi_vaddvx();
 extern void cpi_vaddvx_x1();
@@ -111,6 +113,7 @@ int main(void)
     PERF(cpi_vse16((int8_t *)buf, (int8_t *)&buf[2 * 1],
                    (int8_t *)&buf[2 * 2], (int8_t *)&buf[2 * 3]),
          cpi_vse16);
+    PERF(cpi_vse16_add((int8_t *)buf), cpi_vse16_add);
     PERF(cpi_vaddvv(), cpi_vaddvv);
     PERF(cpi_vaddvx(), cpi_vaddvx);
     PERF(cpi_vaddvx_x1(), cpi_vaddvx_x1);
@@ -156,6 +159,10 @@ int main(void)
     PERF(cpi_vmulvv_x1(), cpi_vmulvv_x1);
     PERF(cpi_vmulvv_x2(), cpi_vmulvv_x2);
     PERF(cpi_vmulvv_x4(), cpi_vmulvv_x4);
+    PERF(cpi_vmulhvv(), cpi_vmulhvv);
+    PERF(cpi_vmulhvv_x1(), cpi_vmulhvv_x1);
+    PERF(cpi_vmulhvv_x2(), cpi_vmulhvv_x2);
+    PERF(cpi_vmulhvv_x4(), cpi_vmulhvv_x4);
     PERF(cpi_vrgathervv(), cpi_vrgathervv);
     PERF(cpi_vrgathervv_x1(), cpi_vrgathervv_x1);
     PERF(cpi_vrgathervv_x2(), cpi_vrgathervv_x2);
@@ -205,6 +212,10 @@ int main(void)
     PERF(cpi_vmulvv_x1(), cpi_vmulvv_x1);
     PERF(cpi_vmulvv_x2(), cpi_vmulvv_x2);
     PERF(cpi_vmulvv_x4(), cpi_vmulvv_x4);
+    PERF(cpi_vmulhvv(), cpi_vmulhvv);
+    PERF(cpi_vmulhvv_x1(), cpi_vmulhvv_x1);
+    PERF(cpi_vmulhvv_x2(), cpi_vmulhvv_x2);
+    PERF(cpi_vmulhvv_x4(), cpi_vmulhvv_x4);
     PERF(cpi_vrgathervv(), cpi_vrgathervv);
     PERF(cpi_vrgathervv_x1(), cpi_vrgathervv_x1);
     PERF(cpi_vrgathervv_x2(), cpi_vrgathervv_x2);

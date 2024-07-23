@@ -68,6 +68,26 @@ basemul_acc_cache_end          cycles/insts/CPI=3347/3543/0.94
 plantard_rdc                   cycles/insts/CPI=1760/1602/1.10
 toplant                        cycles/insts/CPI=1762/1604/1.10
 
+speed_dualissue_kyber_mont_ntt_rv32:
+Kyber 7-layer NTT & Mont based & 1+3+3 layers merging & RV32IM
+ntt                            cycles/insts/CPI=6442/7865/0.82
+intt                           cycles/insts/CPI=7192/8672/0.83
+
+speed_dualissue_kyber_mont_ntt_rvv:
+Kyber 7-layer NTT & Montgomery based & 1+6 layers merging & RV32IMV
+ntt                            cycles/insts/CPI=1575/1347/1.17
+intt                           cycles/insts/CPI=1840/1592/1.16
+poly_basemul_rvv               cycles/insts/CPI=712/705/1.01
+poly_basemul_acc_rvv           cycles/insts/CPI=824/801/1.03
+poly_basemul_cache_init_rvv    cycles/insts/CPI=753/738/1.02
+poly_basemul_acc_cache_init_rvv cycles/insts/CPI=865/834/1.04
+poly_basemul_cached_rvv        cycles/insts/CPI=631/608/1.04
+poly_basemul_acc_cached_rvv    cycles/insts/CPI=743/704/1.06
+poly_reduce_rvv                cycles/insts/CPI=313/276/1.13
+poly_tomont_rvv                cycles/insts/CPI=290/277/1.05
+ntt2normal_order               cycles/insts/CPI=771/374/2.06
+normal2ntt_order               cycles/insts/CPI=755/366/2.06
+
 speed_singleissue_dilithium_mont_ntt_rv32:
 Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging
 ntt                            cycles/insts/CPI=13223/8494/1.56
@@ -107,26 +127,6 @@ poly_basemul_acc_end           cycles/insts/CPI=2705/2805/0.96
 poly_basemul                   cycles/insts/CPI=2320/2227/1.04
 poly_reduce                    cycles/insts/CPI=1607/1672/0.96
 intt                           cycles/insts/CPI=8484/8293/1.02
-
-speed_dualissue_kyber_mont_ntt_rv32:
-Kyber 7-layer NTT & Mont based & 1+3+3 layers merging & RV32IM
-ntt                            cycles/insts/CPI=6442/7865/0.82
-intt                           cycles/insts/CPI=7192/8672/0.83
-
-speed_dualissue_kyber_mont_ntt_rvv:
-Kyber 7-layer NTT & Montgomery based & 1+6 layers merging & RV32IMV
-ntt                            cycles/insts/CPI=1575/1347/1.17
-intt                           cycles/insts/CPI=1840/1592/1.16
-poly_basemul_rvv               cycles/insts/CPI=712/705/1.01
-poly_basemul_acc_rvv           cycles/insts/CPI=824/801/1.03
-poly_basemul_cache_init_rvv    cycles/insts/CPI=753/738/1.02
-poly_basemul_acc_cache_init_rvv cycles/insts/CPI=865/834/1.04
-poly_basemul_cached_rvv        cycles/insts/CPI=631/608/1.04
-poly_basemul_acc_cached_rvv    cycles/insts/CPI=743/704/1.06
-poly_reduce_rvv                cycles/insts/CPI=313/276/1.13
-poly_tomont_rvv                cycles/insts/CPI=290/277/1.05
-ntt2normal_order               cycles/insts/CPI=771/374/2.06
-normal2ntt_order               cycles/insts/CPI=755/366/2.06
 
 speed_dualissue_dilithium_mont_ntt_rvv:
 Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging & RV32IMV

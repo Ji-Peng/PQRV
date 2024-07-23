@@ -1,0 +1,1 @@
+Derived from https://github.com/UIC-ESLAS/Kyber_RV_M3, with minor adjustments to suit our development environment.

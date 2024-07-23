@@ -44,11 +44,24 @@ ret
 .globl cpi_vse16
 .align 2
 cpi_vse16:
-.rep 100
+.rep 200
     vse16.v v0, (a0)
-    vse16.v v1, (a0)
-    vse16.v v2, (a0)
-    vse16.v v3, (a0)
+    vse16.v v1, (a1)
+    vse16.v v2, (a2)
+    vse16.v v3, (a3)
+.endr
+ret
+
+# Since there is no data dependency between vse and vadd instructions, the actual latency of vse instruction cannot be reflected.
+.globl cpi_vse16_add
+.align 2
+cpi_vse16_add:
+.rep 200
+    vse16.v v0, (a0)
+    vadd.vv v10, v0, v0
+    vadd.vv v11, v0, v0
+    vadd.vv v12, v0, v0
+    vadd.vv v13, v0, v0
 .endr
 ret
 
@@ -819,7 +832,7 @@ cpi_vrgathervv_x1:
     vrgather.vv v16, v15, v20
     vrgather.vv v17, v16, v20
     vrgather.vv v18, v17, v20
-    vrgather.vv v19, v18, v20
+    vrgather.vv v0, v18, v20
 .endr
 ret
 

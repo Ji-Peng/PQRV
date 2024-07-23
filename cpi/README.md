@@ -1,9 +1,9 @@
 # CPI
 
 The `.S` and `.c` files are the necessary source files, while the `.txt` files contain the results of the microbenchmarks. We mainly focus on the results in the following files:
-- `cpi_rv32im.txt, cpi_rv64im.txt`: Microbenchmark results for specific instructions in the RV32IM/RV64IM ISA
-- `cpi_rv32imb.txt, cpi_rv64imb.txt`: Microbenchmark results for the `rori` and `andn` instructions in the B extension
+- `cpi_rv32imb.txt, cpi_rv64imb.txt`: Microbenchmark results for specific instructions in the RV32IMB/RV64IMB ISA
 - `cpi_rvv.txt`: Microbenchmark results for specific instructions in the V extension
+- The other files contain some microbenchmarks of code snippets, aimed at helping us understand how to write more efficient code. For example, `cpi_ntt_rv32imv.txt` includes microbenchmarks for NTT code snippets, while `cpi_rv_vgroup.txt` explores the grouping characteristics of the V extension.
 
 ## Basic Methodology
 
@@ -64,11 +64,11 @@ cpi_lw_addi:
 .endr
 ret
 ```
-The test results are: `cycles/insts/CPI=1206/2004/0.60`. This means that these 10 instructions take 6 cycles, and the 8 `addi` instructions take 4 cycles. Under dual-issue conditions, the `lw` instruction seems to take 2 cycles. However, considering the forwarding feature, the latency is reduced by 1 cycle, so the actual latency of the `lw` instruction is 3.
+The test results are: `cycles/insts/CPI=1207/2005/0.60`. This means that these 10 instructions take 6 cycles, and the 8 `addi` instructions take 4 cycles. Under dual-issue conditions, the `lw` instruction seems to take 2 cycles. However, considering the forwarding feature, the latency is reduced by 1 cycle, so the actual latency of the `lw` instruction is 3.
 
-For the `lh` instruction, the `cpi_lh_addi` test results are cycles/insts/CPI=706/1004/0.70, indicating a latency of 3 with no benefit from the forwarding feature.
+For the `lh` instruction, the `cpi_lh_addi` test results are `cycles/insts/CPI=1407/2005/0.70`, indicating a latency of 3 with no benefit from the forwarding feature.
 
-These test results corroborate our paper's claim: "The load-use latency from the data of an `lh/{lw,ld}` instruction to the ALU of a dependent datapath instruction is three/two cycles. This means that in a back-to-back `lh/{lw,ld}-add` sequence the add instruction would stall for two/one cycle. We attribute the additional latency of the lh instruction to zero or sign extension."
+These test results corroborate our paper's claim: "The load-use latency from the data of an `lh/{lw,ld}` instruction to the ALU of a dependent datapath instruction is three/two cycles. This means that in a back-to-back `lh/{lw,ld}-add` sequence the add instruction would stall for two/one cycle. We attribute the additional latency of the `lh` instruction to zero or sign extension."
 
 ### Store Instructions (sh/sw/sd)
 
@@ -81,21 +81,12 @@ To test the latency of `mulw` on RV64M, we use the following code snippet:
 .globl cpi_mulw_x1
 .align 2
 cpi_mulw_x1:
-.rep 200
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
-    mulw a0, a0, a0
+.rep 1600
     mulw a0, a0, a0
 .endr
 ret
 ```
-Each instruction depends on the previous one, so the test result reflects the instruction's latency. The result is `cycles/insts/CPI=6002/2003/3.00`, indicating a latency of 3 for this instruction. Similarly, the latency of `mul` and `mulh` on RV32M is also 3 cycles, while the latency on RV64M is 4 cycles.
+Each instruction depends on the previous one, so the test result reflects the instruction's latency. The result is `cycles/insts/CPI=4802/1603/3.00`, indicating a latency of 3 for this instruction. Similarly, the latency of `mul` and `mulh` on RV32M is also 3 cycles, while the latency on RV64M is 4 cycles.
 
 The CPI for these instructions is measured by the `cpi_mulw`, `cpi_mul`, and `cpi_mulh` functions. The CPI for `mulw` on RV64, and `mul` and `mulh` on RV32, is 1, while the CPI for `mul` and `mulh` on RV64 is 2.
 
@@ -113,4 +104,22 @@ For logical instructions, we tested `vand.vv`, `vnot.v`, `vxor.vv`, `vsll.vi`, a
 
 For the `vrgather` instruction, `cpi_vrgathervv_x1` and `cpi_vrgathervv` are used to measure latency and CPI, which are 5 and 4, respectively.
 
-The CPI for `vle/vse` instructions is measured by `cpi_vle16` and `cpi_vse16`.
+The CPI for `vle` instructions is measured by `cpi_vle16`, with CPI of 2.
+
+The instruction sequence used to test the latency of `vle` is as follows:
+```assembly
+.globl cpi_vle16_add
+.align 2
+cpi_vle16_add:
+.rep 200
+    vle16.v v0, (a0)
+    vadd.vv v10, v0, v0
+    vadd.vv v11, v0, v0
+    vadd.vv v12, v0, v0
+    vadd.vv v13, v0, v0
+.endr
+ret
+```
+The test result is `cycles/insts/CPI=1208/1005/1.20`, indicating that the five instructions take 6 cycles, with the four `vadd.vv` instructions taking 4 cycles. Therefore, the latency of `vle16.v` is 2 cycles.
+
+When using `cpi_vse16` to test the CPI of the `vse` instruction, the result is `cycles/insts/CPI=1875/808/2.32`. We hypothesize that the higher CPI is due to the characteristics of the write combination.
