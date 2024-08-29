@@ -77,7 +77,7 @@
 .macro plant_mul_const_inplace q32, bqinv, a
   mul  \a, \a, \bqinv
   srai \a, \a, 32
-  addi \a, \a, 8
+  addi \a, \a, 256
   mulh \a, \a, \q32
 .endm
 
@@ -86,8 +86,8 @@
   mul \a_1, \a_1, \zeta
   srai \a_0, \a_0, 32
   srai \a_1, \a_1, 32
-  addi \a_0, \a_0, 8
-  addi \a_1, \a_1, 8
+  addi \a_0, \a_0, 256
+  addi \a_1, \a_1, 256
   mulh \a_0, \a_0, \q32
   mulh \a_1, \a_1, \q32
 .endm
@@ -103,10 +103,10 @@
   srai \a_1, \a_1, 32
   srai \a_2, \a_2, 32
   srai \a_3, \a_3, 32
-  addi \a_0, \a_0, 8
-  addi \a_1, \a_1, 8
-  addi \a_2, \a_2, 8
-  addi \a_3, \a_3, 8
+  addi \a_0, \a_0, 256
+  addi \a_1, \a_1, 256
+  addi \a_2, \a_2, 256
+  addi \a_3, \a_3, 256
   mulh \a_0, \a_0, \q32
   mulh \a_1, \a_1, \q32
   mulh \a_2, \a_2, \q32
@@ -123,31 +123,31 @@
   mul \a_3, \a_3, \zeta
   srai \a_0, \a_0, 32
   srai \a_1, \a_1, 32
-  addi \a_0, \a_0, 8
-  addi \a_1, \a_1, 8
+  addi \a_0, \a_0, 256
+  addi \a_1, \a_1, 256
   mulh \a_0, \a_0, \q32
   mulh \a_1, \a_1, \q32
   srai \a_2, \a_2, 32
   srai \a_3, \a_3, 32
   mul \a_4, \a_4, \zeta
   mul \a_5, \a_5, \zeta
-  addi \a_2, \a_2, 8
-  addi \a_3, \a_3, 8
+  addi \a_2, \a_2, 256
+  addi \a_3, \a_3, 256
   mulh \a_2, \a_2, \q32
   mulh \a_3, \a_3, \q32
   srai \a_4, \a_4, 32
   srai \a_5, \a_5, 32
   mul \a_6, \a_6, \zeta
   mul \a_7, \a_7, \zeta
-  addi \a_4, \a_4, 8
-  addi \a_5, \a_5, 8
+  addi \a_4, \a_4, 256
+  addi \a_5, \a_5, 256
   mulh \a_4, \a_4, \q32
   mulh \a_5, \a_5, \q32
   srai \a_6, \a_6, 32
-  addi \a_6, \a_6, 8
+  addi \a_6, \a_6, 256
   mulh \a_6, \a_6, \q32
   srai \a_7, \a_7, 32
-  addi \a_7, \a_7, 8
+  addi \a_7, \a_7, 256
   mulh \a_7, \a_7, \q32
 .endm
 
@@ -156,7 +156,7 @@
 .macro plant_mul_const q32, bqinv, a, r
     mul  \r, \a, \bqinv
     srai \r, \r, 32
-    addi \r, \r, 8
+    addi \r, \r, 256
     mulh \r, \r, \q32
 .endm
 
@@ -165,8 +165,8 @@
   mul \r_1, \a_1, \zeta_1
   srai \r_0, \r_0, 32
   srai \r_1, \r_1, 32
-  addi \r_0, \r_0, 8
-  addi \r_1, \r_1, 8
+  addi \r_0, \r_0, 256
+  addi \r_1, \r_1, 256
   mulh \r_0, \r_0, \q32
   mulh \r_1, \r_1, \q32
 .endm
@@ -184,10 +184,10 @@
   srai \r_1, \r_1, 32
   srai \r_2, \r_2, 32
   srai \r_3, \r_3, 32
-  addi \r_0, \r_0, 8
-  addi \r_1, \r_1, 8
-  addi \r_2, \r_2, 8
-  addi \r_3, \r_3, 8
+  addi \r_0, \r_0, 256
+  addi \r_1, \r_1, 256
+  addi \r_2, \r_2, 256
+  addi \r_3, \r_3, 256
   mulh \r_0, \r_0, \q32
   mulh \r_1, \r_1, \q32
   mulh \r_2, \r_2, \q32
@@ -210,8 +210,8 @@
   mul  \t_1, \a_1_1, \zeta_1
   srai \t_0, \t_0, 32
   srai \t_1, \t_1, 32
-  addi \t_0, \t_0, 8
-  addi \t_1, \t_1, 8
+  addi \t_0, \t_0, 256
+  addi \t_1, \t_1, 256
   mulh \t_0, \t_0, \q32
   mulh \t_1, \t_1, \q32
   sub  \a_0_1, \a_0_0, \t_0
@@ -237,14 +237,14 @@
   mul  \t_3, \a_3_1, \zeta_3
   srai \t_0, \t_0, 32
   srai \t_1, \t_1, 32
-  addi \t_0, \t_0, 8
-  addi \t_1, \t_1, 8
+  addi \t_0, \t_0, 256
+  addi \t_1, \t_1, 256
   mulh \t_0, \t_0, \q32
   mulh \t_1, \t_1, \q32
   srai \t_2, \t_2, 32
   srai \t_3, \t_3, 32
-  addi \t_2, \t_2, 8
-  addi \t_3, \t_3, 8
+  addi \t_2, \t_2, 256
+  addi \t_3, \t_3, 256
   mulh \t_2, \t_2, \q32
   mulh \t_3, \t_3, \q32
   sub  \a_0_1, \a_0_0, \t_0
@@ -261,14 +261,14 @@
   mul  \t_3, \a_7_1, \zeta_7
   srai \t_0, \t_0, 32
   srai \t_1, \t_1, 32
-  addi \t_0, \t_0, 8
-  addi \t_1, \t_1, 8
+  addi \t_0, \t_0, 256
+  addi \t_1, \t_1, 256
   mulh \t_0, \t_0, \q32
   mulh \t_1, \t_1, \q32
   srai \t_2, \t_2, 32
   srai \t_3, \t_3, 32
-  addi \t_2, \t_2, 8
-  addi \t_3, \t_3, 8
+  addi \t_2, \t_2, 256
+  addi \t_3, \t_3, 256
   mulh \t_2, \t_2, \q32
   mulh \t_3, \t_3, \q32
   sub  \a_4_1, \a_4_0, \t_0
@@ -302,14 +302,14 @@
   mul  \t_3, \a_3_1, \t_3
   srai \t_0, \t_0, 32
   srai \t_1, \t_1, 32
-  addi \t_0, \t_0, 8
-  addi \t_1, \t_1, 8
+  addi \t_0, \t_0, 256
+  addi \t_1, \t_1, 256
   mulh \t_0, \t_0, \q32
   mulh \t_1, \t_1, \q32
   srai \t_2, \t_2, 32
   srai \t_3, \t_3, 32
-  addi \t_2, \t_2, 8
-  addi \t_3, \t_3, 8
+  addi \t_2, \t_2, 256
+  addi \t_3, \t_3, 256
   mulh \t_2, \t_2, \q32
   mulh \t_3, \t_3, \q32
   sub  \a_0_1, \a_0_0, \t_0
@@ -330,14 +330,14 @@
   mul  \t_3, \a_7_1, \t_3
   srai \t_0, \t_0, 32
   srai \t_1, \t_1, 32
-  addi \t_0, \t_0, 8
-  addi \t_1, \t_1, 8
+  addi \t_0, \t_0, 256
+  addi \t_1, \t_1, 256
   mulh \t_0, \t_0, \q32
   mulh \t_1, \t_1, \q32
   srai \t_2, \t_2, 32
   srai \t_3, \t_3, 32
-  addi \t_2, \t_2, 8
-  addi \t_3, \t_3, 8
+  addi \t_2, \t_2, 256
+  addi \t_3, \t_3, 256
   mulh \t_2, \t_2, \q32
   mulh \t_3, \t_3, \q32
   sub  \a_4_1, \a_4_0, \t_0
@@ -366,8 +366,8 @@
   mul \a_1_1, \t_1, \zeta_1
   srai \a_0_1, \a_0_1, 32
   srai \a_1_1, \a_1_1, 32
-  addi \a_0_1, \a_0_1, 8
-  addi \a_1_1, \a_1_1, 8
+  addi \a_0_1, \a_0_1, 256
+  addi \a_1_1, \a_1_1, 256
   mulh \a_0_1, \a_0_1, \q32
   mulh \a_1_1, \a_1_1, \q32
 .endm
@@ -396,14 +396,14 @@
   mul \a_3_1, \t_3, \zeta_3
   srai \a_0_1, \a_0_1, 32
   srai \a_1_1, \a_1_1, 32
-  addi \a_0_1, \a_0_1, 8
-  addi \a_1_1, \a_1_1, 8
+  addi \a_0_1, \a_0_1, 256
+  addi \a_1_1, \a_1_1, 256
   mulh \a_0_1, \a_0_1, \q32
   mulh \a_1_1, \a_1_1, \q32
   srai \a_2_1, \a_2_1, 32
   srai \a_3_1, \a_3_1, 32
-  addi \a_2_1, \a_2_1, 8
-  addi \a_3_1, \a_3_1, 8
+  addi \a_2_1, \a_2_1, 256
+  addi \a_3_1, \a_3_1, 256
   mulh \a_2_1, \a_2_1, \q32
   mulh \a_3_1, \a_3_1, \q32
   sub \t_0, \a_4_0, \a_4_1
@@ -420,14 +420,14 @@
   mul \a_7_1, \t_3, \zeta_7
   srai \a_4_1, \a_4_1, 32
   srai \a_5_1, \a_5_1, 32
-  addi \a_4_1, \a_4_1, 8
-  addi \a_5_1, \a_5_1, 8
+  addi \a_4_1, \a_4_1, 256
+  addi \a_5_1, \a_5_1, 256
   mulh \a_4_1, \a_4_1, \q32
   mulh \a_5_1, \a_5_1, \q32
   srai \a_6_1, \a_6_1, 32
   srai \a_7_1, \a_7_1, 32
-  addi \a_6_1, \a_6_1, 8
-  addi \a_7_1, \a_7_1, 8
+  addi \a_6_1, \a_6_1, 256
+  addi \a_7_1, \a_7_1, 256
   mulh \a_6_1, \a_6_1, \q32
   mulh \a_7_1, \a_7_1, \q32
 .endm
@@ -456,14 +456,14 @@
   mul \a_3_1, \t_3, \t_2
   srai \a_0_1, \a_0_1, 32
   srai \a_1_1, \a_1_1, 32
-  addi \a_0_1, \a_0_1, 8
-  addi \a_1_1, \a_1_1, 8
+  addi \a_0_1, \a_0_1, 256
+  addi \a_1_1, \a_1_1, 256
   mulh \a_0_1, \a_0_1, \q32
   mulh \a_1_1, \a_1_1, \q32
   srai \a_2_1, \a_2_1, 32
   srai \a_3_1, \a_3_1, 32
-  addi \a_2_1, \a_2_1, 8
-  addi \a_3_1, \a_3_1, 8
+  addi \a_2_1, \a_2_1, 256
+  addi \a_3_1, \a_3_1, 256
   mulh \a_2_1, \a_2_1, \q32
   mulh \a_3_1, \a_3_1, \q32
   sub \t_0, \a_4_0, \a_4_1
@@ -482,14 +482,14 @@
   mul \a_7_1, \t_3, \t_2
   srai \a_4_1, \a_4_1, 32
   srai \a_5_1, \a_5_1, 32
-  addi \a_4_1, \a_4_1, 8
-  addi \a_5_1, \a_5_1, 8
+  addi \a_4_1, \a_4_1, 256
+  addi \a_5_1, \a_5_1, 256
   mulh \a_4_1, \a_4_1, \q32
   mulh \a_5_1, \a_5_1, \q32
   srai \a_6_1, \a_6_1, 32
   srai \a_7_1, \a_7_1, 32
-  addi \a_6_1, \a_6_1, 8
-  addi \a_7_1, \a_7_1, 8
+  addi \a_6_1, \a_6_1, 256
+  addi \a_7_1, \a_7_1, 256
   mulh \a_6_1, \a_6_1, \q32
   mulh \a_7_1, \a_7_1, \q32
 .endm
@@ -516,14 +516,14 @@
   mul \a_3_1, \t_3, \t_2
   srai \a_0_1, \a_0_1, 32
   srai \a_1_1, \a_1_1, 32
-  addi \a_0_1, \a_0_1, 8
-  addi \a_1_1, \a_1_1, 8
+  addi \a_0_1, \a_0_1, 256
+  addi \a_1_1, \a_1_1, 256
   mulh \a_0_1, \a_0_1, \q32
   mulh \a_1_1, \a_1_1, \q32
   srai \a_2_1, \a_2_1, 32
   srai \a_3_1, \a_3_1, 32
-  addi \a_2_1, \a_2_1, 8
-  addi \a_3_1, \a_3_1, 8
+  addi \a_2_1, \a_2_1, 256
+  addi \a_3_1, \a_3_1, 256
   mulh \a_2_1, \a_2_1, \q32
   mulh \a_3_1, \a_3_1, \q32
   ld  \t_2, \zeta_1(a1)
@@ -541,14 +541,14 @@
   mul \a_7_1, \t_3, \t_2
   srai \a_4_1, \a_4_1, 32
   srai \a_5_1, \a_5_1, 32
-  addi \a_4_1, \a_4_1, 8
-  addi \a_5_1, \a_5_1, 8
+  addi \a_4_1, \a_4_1, 256
+  addi \a_5_1, \a_5_1, 256
   mulh \a_4_1, \a_4_1, \q32
   mulh \a_5_1, \a_5_1, \q32
   srai \a_6_1, \a_6_1, 32
   srai \a_7_1, \a_7_1, 32
-  addi \a_6_1, \a_6_1, 8
-  addi \a_7_1, \a_7_1, 8
+  addi \a_6_1, \a_6_1, 256
+  addi \a_7_1, \a_7_1, 256
   mulh \a_6_1, \a_6_1, \q32
   mulh \a_7_1, \a_7_1, \q32
 .endm
@@ -558,7 +558,7 @@
 .macro plant_red q32, qinv, a
   mul  \a, \a, \qinv
   srai \a, \a, 32
-  addi \a, \a, 8
+  addi \a, \a, 256
   mulh \a, \a, \q32
 .endm
 
@@ -571,10 +571,10 @@
   srai \a_1, \a_1, 32
   srai \a_2, \a_2, 32
   srai \a_3, \a_3, 32
-  addi \a_0, \a_0, 8
-  addi \a_1, \a_1, 8
-  addi \a_2, \a_2, 8
-  addi \a_3, \a_3, 8
+  addi \a_0, \a_0, 256
+  addi \a_1, \a_1, 256
+  addi \a_2, \a_2, 256
+  addi \a_3, \a_3, 256
   mulh \a_0, \a_0, \q32
   mulh \a_1, \a_1, \q32
   mulh \a_2, \a_2, \q32
