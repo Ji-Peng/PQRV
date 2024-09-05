@@ -260,6 +260,7 @@
     lh t2, (_ZETAS_EXP+0)*2(a1)
     lh t1, (_ZETAS_EXP+1)*2(a1)
     addi a2, a0, (128)*2        // &a[128]
+
     vle16.v v8,  (a2);  addi a2, a2, 2*8*4
     vle16.v v12, (a2);  addi a2, a2, -2*8*4
     vmul.vx v0, v8, t2
@@ -272,18 +273,18 @@
     vmulh.vx v4, v4, t0
     vsub.vv  v8,  v8,  v0
     vsub.vv  v12, v12, v4
-    vsub.vv  v8, v16, v8
-    vsub.vv  v12, v20, v12
-    vse16.v  v8,  (a2);  addi a2, a2, 2*8*4
-    vse16.v  v12, (a2);  addi a2, a2, 2*8*4     // &a[192]
-    vadd.vv  v0, v16, v8
-    vadd.vv  v4, v20, v12
+    vsub.vv  v0, v16, v8
+    vsub.vv  v4, v20, v12
+    vse16.v  v0, (a2);  addi a2, a2, 2*8*4
+    vse16.v  v4, (a2);  addi a2, a2, 2*8*4     // &a[192]
+    vadd.vv  v8, v16, v8
+    vadd.vv  v12,v20, v12
     vle16.v  v24, (a2);  addi a2, a2, 2*8*4
+    vse16.v  v8,  (a0);  addi a0, a0, 2*8*4
+    vmul.vx  v0, v24, t2
     vle16.v  v28, (a2);  addi a2, a2, -2*8*4
-    vse16.v  v0,  (a0);  addi a0, a0, 2*8*4
-    vse16.v  v4,  (a0);  addi a0, a0, 2*8*4     // &a[64]
-    vmul.vx v0, v24, t2
-    vmul.vx v4, v28, t2
+    vse16.v  v12, (a0);  addi a0, a0, 2*8*4     // &a[64]
+    vmul.vx  v4, v28, t2
     vle16.v  v16, (a0);  addi a0, a0, 2*8*4
     vmulh.vx v24, v24, t1
     vmulh.vx v28, v28, t1
