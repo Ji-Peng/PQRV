@@ -1,42 +1,47 @@
 Test speed of Kyber512
-gen_a:                          69764 cycles
-poly_getnoise_eta1:             18113 cycles
-NTT:                             1577 cycles
+gen_a:                          69715 cycles
+poly_getnoise_eta1:             17901 cycles
+NTT:                             1575 cycles
 INVNTT:                          1842 cycles
 poly_basemul_acc:                 826 cycles
 poly_basemul_acc_cache_init:      867 cycles
 poly_basemul_cached:              634 cycles
 poly_basemul_acc_cached:          746 cycles
 polyvec_basemul_acc:             1541 cycles
-kyber_keypair:                 215347 cycles
-kyber_encaps:                  283603 cycles
-kyber_decaps:                  252273 cycles
+matrix-vector mul:               3003 cycles
+polyvec_basemul_acc_cached:      1382 cycles
+kyber_keypair:                 213861 cycles
+kyber_encaps:                  281550 cycles
+kyber_decaps:                  249198 cycles
 
 Test speed of Kyber768
-gen_a:                         137556 cycles
-poly_getnoise_eta1:             10680 cycles
-NTT:                             1577 cycles
+gen_a:                         137648 cycles
+poly_getnoise_eta1:              9959 cycles
+NTT:                             1569 cycles
 INVNTT:                          1842 cycles
 poly_basemul_acc:                 825 cycles
 poly_basemul_acc_cache_init:      866 cycles
 poly_basemul_cached:              633 cycles
 poly_basemul_acc_cached:          745 cycles
 polyvec_basemul_acc:             2359 cycles
-kyber_keypair:                 316614 cycles
-kyber_encaps:                  422423 cycles
-kyber_decaps:                  375007 cycles
+matrix-vector mul:               6719 cycles
+polyvec_basemul_acc_cached:      2123 cycles
+kyber_keypair:                 311539 cycles
+kyber_encaps:                  418963 cycles
+kyber_decaps:                  371105 cycles
 
 Test speed of Kyber1024
-gen_a:                         253129 cycles
-poly_getnoise_eta1:             10676 cycles
-NTT:                             1577 cycles
+gen_a:                         252051 cycles
+poly_getnoise_eta1:             10023 cycles
+NTT:                             1573 cycles
 INVNTT:                          1842 cycles
-poly_basemul_acc:                 825 cycles
-poly_basemul_acc_cache_init:      866 cycles
-poly_basemul_cached:              633 cycles
-poly_basemul_acc_cached:          745 cycles
-polyvec_basemul_acc:             3185 cycles
-kyber_keypair:                 497804 cycles
-kyber_encaps:                  620516 cycles
-kyber_decaps:                  556774 cycles
-
+poly_basemul_acc:                 826 cycles
+poly_basemul_acc_cache_init:      867 cycles
+poly_basemul_cached:              634 cycles
+poly_basemul_acc_cached:          746 cycles
+polyvec_basemul_acc:             3190 cycles
+matrix-vector mul:              11966 cycles
+polyvec_basemul_acc_cached:      2875 cycles
+kyber_keypair:                 489602 cycles
+kyber_encaps:                  613721 cycles
+kyber_decaps:                  550410 cycles

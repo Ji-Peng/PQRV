@@ -26,7 +26,6 @@
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
     keccakx3_state *statex3;
     keccakx2_state *statex2;
@@ -60,9 +59,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         shake128x3_absorb_once(statex3, inN, 34);
         shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
+            ctr[j] = rej_uniform_vector(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
+                buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
@@ -93,10 +92,10 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         shake128x2_absorb_once(statex2, inN, 34);
         shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
         for (j = 0; j < 2; j++)
-            ctr[j] = rej_uniform(mat[buf_index_x2[i][j][0]]
-                                     .vec[buf_index_x2[i][j][1]]
-                                     .coeffs,
-                                 N, buf[j].coeffs, buflen);
+            ctr[j] = rej_uniform_vector(mat[buf_index_x2[i][j][0]]
+                                            .vec[buf_index_x2[i][j][1]]
+                                            .coeffs,
+                                        buf[j].coeffs);
         for (j = 0; j < 2; j++) {
             if (ctr[j] < N)
                 keccakx2_get_oneway_state(statex2, &statex1, j);
@@ -123,7 +122,6 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
     keccakx3_state *statex3;
     keccak_state statex1;
@@ -153,9 +151,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         shake128x3_absorb_once(statex3, inN, 34);
         shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
+            ctr[j] = rej_uniform_vector(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
+                buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
@@ -182,7 +180,6 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_NBLOCKS * SHAKE128_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_NBLOCKS * SHAKE128_RATE) buf[3];
     keccakx3_state *statex3;
     keccakx2_state *statex2;
@@ -218,9 +215,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
         shake128x3_absorb_once(statex3, inN, 34);
         shake128x3_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_uniform(
-                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-                buf[j].coeffs, buflen);
+            ctr[j] = rej_uniform_vector(
+                mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
+                buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
@@ -250,9 +247,9 @@ void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES])
     shake128x2_absorb_once(statex2, inN, 34);
     shake128x2_squeezeblocks(outN, POLY_UNIFORM_NBLOCKS, statex2);
     for (j = 0; j < 2; j++)
-        ctr[j] = rej_uniform(
-            mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs, N,
-            buf[j].coeffs, buflen);
+        ctr[j] = rej_uniform_vector(
+            mat[buf_index[i][j][0]].vec[buf_index[i][j][1]].coeffs,
+            buf[j].coeffs);
     for (j = 0; j < 2; j++) {
         if (ctr[j] < N)
             keccakx2_get_oneway_state(statex2, &statex1, j);
@@ -289,7 +286,6 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            uint16_t nonce_k)
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
     keccakx3_state *statex3;
     keccakx2_state *statex2;
@@ -322,7 +318,7 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
         shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
         shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+            ctr[j] = rej_eta_vector(buf_polys[i][j], buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
@@ -348,7 +344,7 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
     shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
     shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
     for (j = 0; j < 2; j++)
-        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        ctr[j] = rej_eta_vector(buf_polys[i][j], buf[j].coeffs);
     for (j = 0; j < 2; j++) {
         if (ctr[j] < N)
             keccakx2_get_oneway_state(statex2, &statex1, j);
@@ -369,7 +365,6 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            uint16_t nonce_k)
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
     keccakx3_state *statex3;
     keccakx2_state *statex2;
@@ -404,7 +399,7 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
         shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
         shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+            ctr[j] = rej_eta_vector(buf_polys[i][j], buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
@@ -430,7 +425,7 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
     shake256x2_absorb_once(statex2, inN, CRHBYTES + 2);
     shake256x2_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex2);
     for (j = 0; j < 2; j++)
-        ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+        ctr[j] = rej_eta_vector(buf_polys[i][j], buf[j].coeffs);
     for (j = 0; j < 2; j++) {
         if (ctr[j] < N)
             keccakx2_get_oneway_state(statex2, &statex1, j);
@@ -451,7 +446,6 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
                            uint16_t nonce_k)
 {
     unsigned int i, j, ctr[3];
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
     ALIGNED_UINT8(POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE) buf[3];
     keccakx3_state *statex3;
     keccak_state statex1;
@@ -487,7 +481,7 @@ void polyveclk_uniform_eta(polyvecl *v_l, polyveck *v_k,
         shake256x3_absorb_once(statex3, inN, CRHBYTES + 2);
         shake256x3_squeezeblocks(outN, POLY_UNIFORM_ETA_NBLOCKS, statex3);
         for (j = 0; j < 3; j++)
-            ctr[j] = rej_eta(buf_polys[i][j], N, buf[j].coeffs, buflen);
+            ctr[j] = rej_eta_vector(buf_polys[i][j], buf[j].coeffs);
         for (j = 0; j < 3; j++) {
             if (ctr[j] < N)
                 keccakx3_get_oneway_state(statex3, &statex1, j);
