@@ -13,6 +13,12 @@ unsigned int rej_uniform(int32_t *a, unsigned int len, const uint8_t *buf,
                          unsigned int buflen);
 unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
                      unsigned int buflen);
+
+#if defined(VECTOR128)
+unsigned int rej_uniform_vector(int32_t *a, const uint8_t *buf);
+unsigned int rej_eta_vector(int32_t *a, const uint8_t *buf);
+#endif
+
 void poly_reduce(poly *a);
 void poly_caddq(poly *a);
 void poly_add(poly *c, const poly *a, const poly *b);

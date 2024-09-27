@@ -60,170 +60,247 @@
     vsub.vv  \in3, \in3, \vt3
 .endm
 
+.macro montMul in0, vt0, const_q, const_montsq, const_montsq_qinv
+    vmul.vx \vt0, \in0, \const_montsq_qinv
+    vmulh.vx \in0, \in0, \const_montsq
+    vmulh.vx \vt0, \vt0, \const_q
+    vsub.vv  \in0, \in0, \vt0
+.endm
+
+.macro montMulX4 in0, in1, in2, in3, \
+        vt0, vt1, vt2, vt3, \
+        const_q, const_montsq, const_montsq_qinv
+    vmul.vx \vt0, \in0, \const_montsq_qinv
+    vmul.vx \vt1, \in1, \const_montsq_qinv
+    vmul.vx \vt2, \in2, \const_montsq_qinv
+    vmul.vx \vt3, \in3, \const_montsq_qinv
+    vmulh.vx \in0, \in0, \const_montsq
+    vmulh.vx \in1, \in1, \const_montsq
+    vmulh.vx \in2, \in2, \const_montsq
+    vmulh.vx \in3, \in3, \const_montsq
+    vmulh.vx \vt0, \vt0, \const_q
+    vmulh.vx \vt1, \vt1, \const_q
+    vmulh.vx \vt2, \vt2, \const_q
+    vmulh.vx \vt3, \vt3, \const_q
+    vsub.vv  \in0, \in0, \vt0
+    vsub.vv  \in1, \in1, \vt1
+    vsub.vv  \in2, \in2, \vt2
+    vsub.vv  \in3, \in3, \vt3
+.endm
+
+# The implementation with LMUL=1
+# .macro ntt_rvv_level0
+#     lh t2, (_ZETAS_EXP+0)*2(a1)
+#     addi a0, a0, (64*0+128)*2
+#     lh t1, (_ZETAS_EXP+1)*2(a1)
+#     vle16.v v8, (a0);   addi a0, a0, 16
+#     vle16.v v9, (a0);   addi a0, a0, 16
+#     vle16.v v10, (a0);  addi a0, a0, 16
+#     vle16.v v11, (a0);  addi a0, a0, 16
+#     vmul.vx v0, v8, t2
+#     vmul.vx v1, v9, t2
+#     vmul.vx v2, v10, t2
+#     vmul.vx v3, v11, t2
+#     vle16.v v12, (a0);  addi a0, a0, 16
+#     vle16.v v13, (a0);  addi a0, a0, 16
+#     vle16.v v14, (a0);  addi a0, a0, 16
+#     vle16.v v15, (a0);  addi a0, a0, -((64*0+128)*2+16*7)
+#     vmul.vx v4, v12, t2
+#     vmul.vx v5, v13, t2
+#     vmul.vx v6, v14, t2
+#     vmul.vx v7, v15, t2
+#     vle16.v v16, (a0);  addi a0, a0, 16
+#     vmulh.vx v8,  v8, t1
+#     vle16.v v17, (a0);  addi a0, a0, 16
+#     vmulh.vx v9,  v9, t1
+#     vle16.v v18, (a0);  addi a0, a0, 16
+#     vmulh.vx v10, v10, t1
+#     vle16.v v19, (a0);  addi a0, a0, 16
+#     vmulh.vx v11, v11, t1
+#     vle16.v v20, (a0);  addi a0, a0, 16
+#     vmulh.vx v12, v12, t1
+#     vle16.v v21, (a0);  addi a0, a0, 16
+#     vmulh.vx v13, v13, t1
+#     vle16.v v22, (a0);  addi a0, a0, 16
+#     vmulh.vx v14, v14, t1
+#     vle16.v v23, (a0);  addi a0, a0, -16*7
+#     vmulh.vx v15, v15, t1
+#     vmulh.vx v0, v0, t0
+#     vmulh.vx v1, v1, t0
+#     vmulh.vx v2, v2, t0
+#     vmulh.vx v3, v3, t0
+#     vsub.vv  v8,  v8,  v0
+#     vsub.vv  v9,  v9,  v1
+#     vsub.vv  v10, v10, v2
+#     vsub.vv  v11, v11, v3
+#     vmulh.vx v4, v4, t0
+#     vadd.vv  v0, v16, v8
+#     vmulh.vx v5, v5, t0
+#     vadd.vv  v1, v17, v9
+#     vmulh.vx v6, v6, t0
+#     vadd.vv  v2, v18, v10
+#     vmulh.vx v7, v7, t0
+#     vadd.vv  v3, v19, v11
+#     vse16.v  v0, (a0);  addi a0, a0, 16
+#     vsub.vv  v12, v12, v4
+#     vse16.v  v1, (a0);  addi a0, a0, 16
+#     vsub.vv  v13, v13, v5
+#     vse16.v  v2, (a0);  addi a0, a0, 16
+#     vsub.vv  v14, v14, v6
+#     vse16.v  v3, (a0);  addi a0, a0, 16
+#     vsub.vv  v15, v15, v7
+#     vadd.vv  v4, v20, v12
+#     vadd.vv  v5, v21, v13
+#     vadd.vv  v6, v22, v14
+#     vadd.vv  v7, v23, v15
+#     vse16.v  v4, (a0);  addi a0, a0, 16
+#     vsub.vv  v8, v16, v8
+#     vse16.v  v5, (a0);  addi a0, a0, 16
+#     vsub.vv  v9, v17, v9
+#     vse16.v  v6, (a0);  addi a0, a0, 16
+#     vsub.vv  v10, v18, v10
+#     vse16.v  v7, (a0);  addi a0, a0, (64*0+128)*2-16*7 // a[128]
+#     vsub.vv  v11, v19, v11
+#     vse16.v  v8,  (a0);  addi a0, a0, 16
+#     vsub.vv  v12, v20, v12
+#     vse16.v  v9,  (a0);  addi a0, a0, 16
+#     vsub.vv  v13, v21, v13
+#     vse16.v  v10, (a0);  addi a0, a0, 16
+#     vsub.vv  v14, v22, v14
+#     vse16.v  v11, (a0);  addi a0, a0, 16
+#     vsub.vv  v15, v23, v15
+#     vse16.v  v12, (a0);  addi a0, a0, 16
+#     vse16.v  v13, (a0);  addi a0, a0, 16
+#     vse16.v  v14, (a0);  addi a0, a0, 16
+#     vse16.v  v15, (a0);  addi a0, a0, 16 // a[192]
+#     vle16.v  v24, (a0);  addi a0, a0, 16
+#     vle16.v  v25, (a0);  addi a0, a0, 16
+#     vle16.v  v26, (a0);  addi a0, a0, 16
+#     vle16.v  v27, (a0);  addi a0, a0, 16
+#     vmul.vx v0, v24, t2
+#     vmul.vx v1, v25, t2
+#     vmul.vx v2, v26, t2
+#     vmul.vx v3, v27, t2
+#     vle16.v  v28, (a0);  addi a0, a0, 16
+#     vle16.v  v29, (a0);  addi a0, a0, 16
+#     vle16.v  v30, (a0);  addi a0, a0, 16
+#     vle16.v  v31, (a0);  addi a0, a0, -(128*2)-16*7 // a[64]
+#     vmul.vx v4, v28, t2
+#     vmul.vx v5, v29, t2
+#     vmul.vx v6, v30, t2
+#     vmul.vx v7, v31, t2
+#     vle16.v  v16, (a0);  addi a0, a0, 16
+#     vmulh.vx v24, v24, t1
+#     vle16.v  v17, (a0);  addi a0, a0, 16
+#     vmulh.vx v25, v25, t1
+#     vle16.v  v18, (a0);  addi a0, a0, 16
+#     vmulh.vx v26, v26, t1
+#     vle16.v  v19, (a0);  addi a0, a0, 16
+#     vmulh.vx v27, v27, t1
+#     vle16.v  v20, (a0);  addi a0, a0, 16
+#     vmulh.vx v28, v28, t1
+#     vle16.v  v21, (a0);  addi a0, a0, 16
+#     vmulh.vx v29, v29, t1
+#     vle16.v  v22, (a0);  addi a0, a0, 16
+#     vmulh.vx v30, v30, t1
+#     vle16.v  v23, (a0);  addi a0, a0, -16*7 // a[64]
+#     vmulh.vx v31, v31, t1
+#     vmulh.vx v0, v0, t0
+#     vmulh.vx v1, v1, t0
+#     vmulh.vx v2, v2, t0
+#     vmulh.vx v3, v3, t0
+#     vsub.vv  v24, v24, v0
+#     vsub.vv  v25, v25, v1
+#     vsub.vv  v26, v26, v2
+#     vsub.vv  v27, v27, v3
+#     vmulh.vx v4, v4, t0
+#     vadd.vv  v0, v16, v24
+#     vmulh.vx v5, v5, t0
+#     vadd.vv  v1, v17, v25
+#     vmulh.vx v6, v6, t0
+#     vadd.vv  v2, v18, v26
+#     vmulh.vx v7, v7, t0
+#     vadd.vv  v3, v19, v27
+#     vse16.v  v0, (a0);  addi a0, a0, 16
+#     vsub.vv  v28, v28, v4
+#     vse16.v  v1, (a0);  addi a0, a0, 16
+#     vsub.vv  v29, v29, v5
+#     vse16.v  v2, (a0);  addi a0, a0, 16
+#     vsub.vv  v30, v30, v6
+#     vse16.v  v3, (a0);  addi a0, a0, 16
+#     vsub.vv  v31, v31, v7
+#     vadd.vv  v4, v20, v28
+#     vadd.vv  v5, v21, v29
+#     vadd.vv  v6, v22, v30
+#     vadd.vv  v7, v23, v31
+#     vse16.v  v4, (a0);  addi a0, a0, 16
+#     vsub.vv  v24, v16, v24
+#     vse16.v  v5, (a0);  addi a0, a0, 16
+#     vsub.vv  v25, v17, v25
+#     vse16.v  v6, (a0);  addi a0, a0, 16
+#     vsub.vv  v26, v18, v26
+#     vse16.v  v7, (a0);  addi a0, a0, -16*7+128*2 // a[192]
+#     vsub.vv  v27, v19, v27
+#     vse16.v  v24, (a0);  addi a0, a0, 16
+#     vsub.vv  v28, v20, v28
+#     vse16.v  v25, (a0);  addi a0, a0, 16
+#     vsub.vv  v29, v21, v29
+#     vse16.v  v26, (a0);  addi a0, a0, 16
+#     vsub.vv  v30, v22, v30
+#     vse16.v  v27, (a0);  addi a0, a0, 16
+#     vsub.vv  v31, v23, v31
+#     vse16.v  v28, (a0);  addi a0, a0, 16
+#     vse16.v  v29, (a0);  addi a0, a0, 16
+#     vse16.v  v30, (a0);  addi a0, a0, 16
+#     vse16.v  v31, (a0);  addi a0, a0, -16*7-192*2 // a[0]
+# .endm
+
+# The implementation with LMUL=4
 .macro ntt_rvv_level0
     lh t2, (_ZETAS_EXP+0)*2(a1)
-    addi a0, a0, (64*0+128)*2
     lh t1, (_ZETAS_EXP+1)*2(a1)
-    vle16.v v8, (a0);   addi a0, a0, 16
-    vle16.v v9, (a0);   addi a0, a0, 16
-    vle16.v v10, (a0);  addi a0, a0, 16
-    vle16.v v11, (a0);  addi a0, a0, 16
+    addi a2, a0, (128)*2        // &a[128]
+
+    vle16.v v8,  (a2);  addi a2, a2, 2*8*4
+    vle16.v v12, (a2);  addi a2, a2, -2*8*4
     vmul.vx v0, v8, t2
-    vmul.vx v1, v9, t2
-    vmul.vx v2, v10, t2
-    vmul.vx v3, v11, t2
-    vle16.v v12, (a0);  addi a0, a0, 16
-    vle16.v v13, (a0);  addi a0, a0, 16
-    vle16.v v14, (a0);  addi a0, a0, 16
-    vle16.v v15, (a0);  addi a0, a0, -((64*0+128)*2+16*7)
     vmul.vx v4, v12, t2
-    vmul.vx v5, v13, t2
-    vmul.vx v6, v14, t2
-    vmul.vx v7, v15, t2
-    vle16.v v16, (a0);  addi a0, a0, 16
+    vle16.v v16, (a0);  addi a0, a0, 2*8*4
     vmulh.vx v8,  v8, t1
-    vle16.v v17, (a0);  addi a0, a0, 16
-    vmulh.vx v9,  v9, t1
-    vle16.v v18, (a0);  addi a0, a0, 16
-    vmulh.vx v10, v10, t1
-    vle16.v v19, (a0);  addi a0, a0, 16
-    vmulh.vx v11, v11, t1
-    vle16.v v20, (a0);  addi a0, a0, 16
     vmulh.vx v12, v12, t1
-    vle16.v v21, (a0);  addi a0, a0, 16
-    vmulh.vx v13, v13, t1
-    vle16.v v22, (a0);  addi a0, a0, 16
-    vmulh.vx v14, v14, t1
-    vle16.v v23, (a0);  addi a0, a0, -16*7
-    vmulh.vx v15, v15, t1
+    vle16.v v20, (a0);  addi a0, a0, -2*8*4
     vmulh.vx v0, v0, t0
-    vmulh.vx v1, v1, t0
-    vmulh.vx v2, v2, t0
-    vmulh.vx v3, v3, t0
+    vmulh.vx v4, v4, t0
     vsub.vv  v8,  v8,  v0
-    vsub.vv  v9,  v9,  v1
-    vsub.vv  v10, v10, v2
-    vsub.vv  v11, v11, v3
-    vmulh.vx v4, v4, t0
-    vadd.vv  v0, v16, v8
-    vmulh.vx v5, v5, t0
-    vadd.vv  v1, v17, v9
-    vmulh.vx v6, v6, t0
-    vadd.vv  v2, v18, v10
-    vmulh.vx v7, v7, t0
-    vadd.vv  v3, v19, v11
-    vse16.v  v0, (a0);  addi a0, a0, 16
     vsub.vv  v12, v12, v4
-    vse16.v  v1, (a0);  addi a0, a0, 16
-    vsub.vv  v13, v13, v5
-    vse16.v  v2, (a0);  addi a0, a0, 16
-    vsub.vv  v14, v14, v6
-    vse16.v  v3, (a0);  addi a0, a0, 16
-    vsub.vv  v15, v15, v7
-    vadd.vv  v4, v20, v12
-    vadd.vv  v5, v21, v13
-    vadd.vv  v6, v22, v14
-    vadd.vv  v7, v23, v15
-    vse16.v  v4, (a0);  addi a0, a0, 16
-    vsub.vv  v8, v16, v8
-    vse16.v  v5, (a0);  addi a0, a0, 16
-    vsub.vv  v9, v17, v9
-    vse16.v  v6, (a0);  addi a0, a0, 16
-    vsub.vv  v10, v18, v10
-    vse16.v  v7, (a0);  addi a0, a0, (64*0+128)*2-16*7 // a[128]
-    vsub.vv  v11, v19, v11
-    vse16.v  v8,  (a0);  addi a0, a0, 16
-    vsub.vv  v12, v20, v12
-    vse16.v  v9,  (a0);  addi a0, a0, 16
-    vsub.vv  v13, v21, v13
-    vse16.v  v10, (a0);  addi a0, a0, 16
-    vsub.vv  v14, v22, v14
-    vse16.v  v11, (a0);  addi a0, a0, 16
-    vsub.vv  v15, v23, v15
-    vse16.v  v12, (a0);  addi a0, a0, 16
-    vse16.v  v13, (a0);  addi a0, a0, 16
-    vse16.v  v14, (a0);  addi a0, a0, 16
-    vse16.v  v15, (a0);  addi a0, a0, 16 // a[192]
-    vle16.v  v24, (a0);  addi a0, a0, 16
-    vle16.v  v25, (a0);  addi a0, a0, 16
-    vle16.v  v26, (a0);  addi a0, a0, 16
-    vle16.v  v27, (a0);  addi a0, a0, 16
-    vmul.vx v0, v24, t2
-    vmul.vx v1, v25, t2
-    vmul.vx v2, v26, t2
-    vmul.vx v3, v27, t2
-    vle16.v  v28, (a0);  addi a0, a0, 16
-    vle16.v  v29, (a0);  addi a0, a0, 16
-    vle16.v  v30, (a0);  addi a0, a0, 16
-    vle16.v  v31, (a0);  addi a0, a0, -(128*2)-16*7 // a[64]
-    vmul.vx v4, v28, t2
-    vmul.vx v5, v29, t2
-    vmul.vx v6, v30, t2
-    vmul.vx v7, v31, t2
-    vle16.v  v16, (a0);  addi a0, a0, 16
+    vsub.vv  v0, v16, v8
+    vsub.vv  v4, v20, v12
+    vse16.v  v0, (a2);  addi a2, a2, 2*8*4
+    vse16.v  v4, (a2);  addi a2, a2, 2*8*4     // &a[192]
+    vadd.vv  v8, v16, v8
+    vadd.vv  v12,v20, v12
+    vle16.v  v24, (a2);  addi a2, a2, 2*8*4
+    vse16.v  v8,  (a0);  addi a0, a0, 2*8*4
+    vmul.vx  v0, v24, t2
+    vle16.v  v28, (a2);  addi a2, a2, -2*8*4
+    vse16.v  v12, (a0);  addi a0, a0, 2*8*4     // &a[64]
+    vmul.vx  v4, v28, t2
+    vle16.v  v16, (a0);  addi a0, a0, 2*8*4
     vmulh.vx v24, v24, t1
-    vle16.v  v17, (a0);  addi a0, a0, 16
-    vmulh.vx v25, v25, t1
-    vle16.v  v18, (a0);  addi a0, a0, 16
-    vmulh.vx v26, v26, t1
-    vle16.v  v19, (a0);  addi a0, a0, 16
-    vmulh.vx v27, v27, t1
-    vle16.v  v20, (a0);  addi a0, a0, 16
     vmulh.vx v28, v28, t1
-    vle16.v  v21, (a0);  addi a0, a0, 16
-    vmulh.vx v29, v29, t1
-    vle16.v  v22, (a0);  addi a0, a0, 16
-    vmulh.vx v30, v30, t1
-    vle16.v  v23, (a0);  addi a0, a0, -16*7 // a[64]
-    vmulh.vx v31, v31, t1
+    vle16.v  v20, (a0);  addi a0, a0, -2*8*4
     vmulh.vx v0, v0, t0
-    vmulh.vx v1, v1, t0
-    vmulh.vx v2, v2, t0
-    vmulh.vx v3, v3, t0
-    vsub.vv  v24, v24, v0
-    vsub.vv  v25, v25, v1
-    vsub.vv  v26, v26, v2
-    vsub.vv  v27, v27, v3
     vmulh.vx v4, v4, t0
-    vadd.vv  v0, v16, v24
-    vmulh.vx v5, v5, t0
-    vadd.vv  v1, v17, v25
-    vmulh.vx v6, v6, t0
-    vadd.vv  v2, v18, v26
-    vmulh.vx v7, v7, t0
-    vadd.vv  v3, v19, v27
-    vse16.v  v0, (a0);  addi a0, a0, 16
+    vsub.vv  v24, v24, v0
     vsub.vv  v28, v28, v4
-    vse16.v  v1, (a0);  addi a0, a0, 16
-    vsub.vv  v29, v29, v5
-    vse16.v  v2, (a0);  addi a0, a0, 16
-    vsub.vv  v30, v30, v6
-    vse16.v  v3, (a0);  addi a0, a0, 16
-    vsub.vv  v31, v31, v7
+    vadd.vv  v0, v16, v24
     vadd.vv  v4, v20, v28
-    vadd.vv  v5, v21, v29
-    vadd.vv  v6, v22, v30
-    vadd.vv  v7, v23, v31
-    vse16.v  v4, (a0);  addi a0, a0, 16
+    vse16.v  v0,  (a0);  addi a0, a0, 2*8*4
+    vse16.v  v4,  (a0);  addi a0, a0, -2*8*4*3  // &a[0]
     vsub.vv  v24, v16, v24
-    vse16.v  v5, (a0);  addi a0, a0, 16
-    vsub.vv  v25, v17, v25
-    vse16.v  v6, (a0);  addi a0, a0, 16
-    vsub.vv  v26, v18, v26
-    vse16.v  v7, (a0);  addi a0, a0, -16*7+128*2 // a[192]
-    vsub.vv  v27, v19, v27
-    vse16.v  v24, (a0);  addi a0, a0, 16
     vsub.vv  v28, v20, v28
-    vse16.v  v25, (a0);  addi a0, a0, 16
-    vsub.vv  v29, v21, v29
-    vse16.v  v26, (a0);  addi a0, a0, 16
-    vsub.vv  v30, v22, v30
-    vse16.v  v27, (a0);  addi a0, a0, 16
-    vsub.vv  v31, v23, v31
-    vse16.v  v28, (a0);  addi a0, a0, 16
-    vse16.v  v29, (a0);  addi a0, a0, 16
-    vse16.v  v30, (a0);  addi a0, a0, 16
-    vse16.v  v31, (a0);  addi a0, a0, -16*7-192*2 // a[0]
+    vse16.v  v24, (a2);  addi a2, a2, 2*8*4
+    vse16.v  v28, (a2)
 .endm
 
 .macro ntt_rvv_level1to6 off
@@ -677,9 +754,11 @@
 .align 2
 ntt_rvv:
     li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetvli t2, t1, e16, m4, tu, mu
     li t0, 3329
     ntt_rvv_level0
+    li t1, 128
+    vsetvli t2, t1, e16, m1, tu, mu
     // load some masks used by shuffle4/2/1
     addi t4, a1, _MASK_45674567*2
     vle16.v v31, (t4)
@@ -2008,82 +2087,39 @@ ret
 .align 2
 poly_reduce_rvv:
     li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetvli t2, t1, e16, m8, tu, mu
     li t0, 3329
     li a6, 20159    # for barrett reduction
-    li a2, 4
+    li a2, 2
+    addi a3, a0, 0
 poly_reduce_rvv_loop:
-    vle16.v v1,  (a0);       addi a0, a0, 16
-    vle16.v v2,  (a0);       addi a0, a0, 16
-    vle16.v v3,  (a0);       addi a0, a0, 16
-    vle16.v v4,  (a0);       addi a0, a0, 16
-    vle16.v v9,  (a0);       addi a0, a0, 16
-    vle16.v v10, (a0);       addi a0, a0, 16
-    vle16.v v11, (a0);       addi a0, a0, 16
-    vle16.v v12, (a0);       addi a0, a0, -16*7
-    barrettRdcX4 v1, v2, v3, v4, v5, v6, v7, v8, a6, t0
-    barrettRdcX4 v9, v10,v11,v12,v5, v6, v7, v8, a6, t0
-    vse16.v v1,  (a0);       addi a0, a0, 16
-    vse16.v v2,  (a0);       addi a0, a0, 16
-    vse16.v v3,  (a0);       addi a0, a0, 16
-    vse16.v v4,  (a0);       addi a0, a0, 16
-    vse16.v v9,  (a0);       addi a0, a0, 16
-    vse16.v v10, (a0);       addi a0, a0, 16
-    vse16.v v11, (a0);       addi a0, a0, 16
-    vse16.v v12, (a0);       addi a0, a0, 16
+    vle16.v v0,  (a0);       addi a0, a0, 2*8*8
+    vle16.v v8,  (a0);       addi a0, a0, 2*8*8
+    barrettRdc v0, v16, a6, t0
+    barrettRdc v8, v24, a6, t0
+    vse16.v v0,  (a3);       addi a3, a3, 2*8*8
+    vse16.v v8,  (a3);       addi a3, a3, 2*8*8
     addi a2, a2, -1
     bnez a2, poly_reduce_rvv_loop
 ret
-
-.macro montMulX4 in0, in1, in2, in3, \
-        vt0, vt1, vt2, vt3, \
-        const_q, const_montsq, const_montsq_qinv
-    vmul.vx \vt0, \in0, \const_montsq_qinv
-    vmul.vx \vt1, \in1, \const_montsq_qinv
-    vmul.vx \vt2, \in2, \const_montsq_qinv
-    vmul.vx \vt3, \in3, \const_montsq_qinv
-    vmulh.vx \in0, \in0, \const_montsq
-    vmulh.vx \in1, \in1, \const_montsq
-    vmulh.vx \in2, \in2, \const_montsq
-    vmulh.vx \in3, \in3, \const_montsq
-    vmulh.vx \vt0, \vt0, \const_q
-    vmulh.vx \vt1, \vt1, \const_q
-    vmulh.vx \vt2, \vt2, \const_q
-    vmulh.vx \vt3, \vt3, \const_q
-    vsub.vv  \in0, \in0, \vt0
-    vsub.vv  \in1, \in1, \vt1
-    vsub.vv  \in2, \in2, \vt2
-    vsub.vv  \in3, \in3, \vt3
-.endm
 
 .globl poly_tomont_rvv
 .align 2
 poly_tomont_rvv:
     li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetvli t2, t1, e16, m8, tu, mu
     li t0, 3329
     li t1, 1353     # mont^2
     li t2, 20553    # qinv*mont^2
-    li a2, 4
+    li a2, 2
+    addi a3, a0, 0
 poly_tomont_rvv_loop:
-    vle16.v v1,  (a0);       addi a0, a0, 16
-    vle16.v v2,  (a0);       addi a0, a0, 16
-    vle16.v v3,  (a0);       addi a0, a0, 16
-    vle16.v v4,  (a0);       addi a0, a0, 16
-    vle16.v v9,  (a0);       addi a0, a0, 16
-    vle16.v v10, (a0);       addi a0, a0, 16
-    vle16.v v11, (a0);       addi a0, a0, 16
-    vle16.v v12, (a0);       addi a0, a0, -16*7
-    montMulX4 v1, v2, v3, v4, v5, v6, v7, v8, t0, t1, t2
-    montMulX4 v9, v10,v11,v12,v5, v6, v7, v8, t0, t1, t2
-    vse16.v v1,  (a0);       addi a0, a0, 16
-    vse16.v v2,  (a0);       addi a0, a0, 16
-    vse16.v v3,  (a0);       addi a0, a0, 16
-    vse16.v v4,  (a0);       addi a0, a0, 16
-    vse16.v v9,  (a0);       addi a0, a0, 16
-    vse16.v v10, (a0);       addi a0, a0, 16
-    vse16.v v11, (a0);       addi a0, a0, 16
-    vse16.v v12, (a0);       addi a0, a0, 16
+    vle16.v v0,  (a0);       addi a0, a0, 2*8*8
+    vle16.v v8,  (a0);       addi a0, a0, 2*8*8
+    montMul v0,  v16, t0, t1, t2
+    montMul v8,  v24, t0, t1, t2
+    vse16.v v0,  (a3);       addi a3, a3, 2*8*8
+    vse16.v v8,  (a3);       addi a3, a3, 2*8*8
     addi a2, a2, -1
     bnez a2, poly_tomont_rvv_loop
 ret

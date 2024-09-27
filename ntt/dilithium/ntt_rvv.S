@@ -1335,41 +1335,15 @@ ret
 .align 2
 poly_basemul_8l_rvv:
     li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetvli t2, t1, e32, m8, tu, mu
     li t0, q
     li t1, qinv
     li t2, 8
 poly_basemul_8l_rvv_loop:
-    vle32.v v0,  (a1);          addi a1, a1, 4*4
-    vle32.v v1,  (a1);          addi a1, a1, 4*4
-    vle32.v v2,  (a1);          addi a1, a1, 4*4
-    vle32.v v3,  (a1);          addi a1, a1, 4*4
-    vle32.v v4,  (a1);          addi a1, a1, 4*4
-    vle32.v v5,  (a1);          addi a1, a1, 4*4
-    vle32.v v6,  (a1);          addi a1, a1, 4*4
-    vle32.v v7,  (a1);          addi a1, a1, 4*4
-    vle32.v v8,  (a2);          addi a2, a2, 4*4
-    vle32.v v9,  (a2);          addi a2, a2, 4*4
-    vle32.v v10, (a2);          addi a2, a2, 4*4
-    vle32.v v11, (a2);          addi a2, a2, 4*4
-    vle32.v v12, (a2);          addi a2, a2, 4*4
-    vle32.v v13, (a2);          addi a2, a2, 4*4
-    vle32.v v14, (a2);          addi a2, a2, 4*4
-    vle32.v v15, (a2);          addi a2, a2, 4*4
-    montmul_ref_x8 \
-        v16,v17,v18,v19,v20,v21,v22,v23,\
-        v0, v1, v2, v3, v4, v5, v6, v7, \
-        v8, v9, v10,v11,v12,v13,v14,v15,\
-        t0, t1, \
-        v24,v25,v26,v27,v28,v29,v30,v31
-    vse32.v v16, (a0);          addi a0, a0, 4*4
-    vse32.v v17, (a0);          addi a0, a0, 4*4
-    vse32.v v18, (a0);          addi a0, a0, 4*4
-    vse32.v v19, (a0);          addi a0, a0, 4*4
-    vse32.v v20, (a0);          addi a0, a0, 4*4
-    vse32.v v21, (a0);          addi a0, a0, 4*4
-    vse32.v v22, (a0);          addi a0, a0, 4*4
-    vse32.v v23, (a0);          addi a0, a0, 4*4
+    vle32.v v0,  (a1);          addi a1, a1, 4*4*8
+    vle32.v v8,  (a2);          addi a2, a2, 4*4*8
+    montmul_ref v16, v0, v8, t0, t1, v24
+    vse32.v v16, (a0);          addi a0, a0, 4*4*8
     addi t2, t2, -1
     bnez t2, poly_basemul_8l_rvv_loop
 ret
@@ -1381,55 +1355,16 @@ poly_basemul_acc_8l_rvv:
     vsetvli t2, t1, e32, m8, tu, mu
     li t0, q
     li t1, qinv
-    # 8 loops
+    li t2, 8
+poly_basemul_acc_8l_rvv_loop:
     vle32.v v0,  (a1);      addi a1, a1, 4*4*8
     vle32.v v8,  (a2);      addi a2, a2, 4*4*8
     montmul_ref v16, v0, v8, t0, t1, v24
     vle32.v v24, (a0)
     vadd.vv v24, v24, v16
     vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
-    vle32.v v0,  (a1);      addi a1, a1, 4*4*8
-    vle32.v v8,  (a2);      addi a2, a2, 4*4*8
-    montmul_ref v16, v0, v8, t0, t1, v24
-    vle32.v v24, (a0)
-    vadd.vv v24, v24, v16
-    vse32.v v24, (a0);      addi a0, a0, 4*4*8
+    addi t2, t2, -1
+    bnez t2, poly_basemul_acc_8l_rvv_loop
 ret
 
 .globl ntt2normal_order_8l_rvv
@@ -1592,107 +1527,24 @@ ret
 .align 2
 poly_reduce_rvv:
     li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetvli t2, t1, e32, m8, tu, mu
     li a1, 4194304  # 1<<22
     li a2, q
     li a3, 4
+    addi a4, a0, 0
 poly_reduce_rvv_loop:
-    vle32.v v1,  (a0);          addi a0, a0, 4*4
-    vle32.v v2,  (a0);          addi a0, a0, 4*4
-    vle32.v v3,  (a0);          addi a0, a0, 4*4
-    vle32.v v4,  (a0);          addi a0, a0, 4*4
-    vle32.v v5,  (a0);          addi a0, a0, 4*4
-    vle32.v v6,  (a0);          addi a0, a0, 4*4
-    vle32.v v7,  (a0);          addi a0, a0, 4*4
-    vle32.v v8,  (a0);          addi a0, a0, 4*4
-    vle32.v v9,  (a0);          addi a0, a0, 4*4
-    vle32.v v10, (a0);          addi a0, a0, 4*4
-    vle32.v v11, (a0);          addi a0, a0, 4*4
-    vle32.v v12, (a0);          addi a0, a0, 4*4
-    vle32.v v13, (a0);          addi a0, a0, 4*4
-    vle32.v v14, (a0);          addi a0, a0, 4*4
-    vle32.v v15, (a0);          addi a0, a0, 4*4
-    vle32.v v16, (a0);          addi a0, a0, -(4*15)*4
-    vadd.vx v17, v1,  a1
-    vadd.vx v18, v2,  a1
-    vadd.vx v19, v3,  a1
-    vadd.vx v20, v4,  a1
-    vadd.vx v21, v5,  a1
-    vadd.vx v22, v6,  a1
-    vadd.vx v23, v7,  a1
+    vle32.v v0,  (a0);          addi a0, a0, 4*4*8
+    vle32.v v8,  (a0);          addi a0, a0, 4*4*8
+    vadd.vx v16, v0,  a1
     vadd.vx v24, v8,  a1
-    vadd.vx v25, v9,  a1
-    vadd.vx v26, v10, a1
-    vadd.vx v27, v11, a1
-    vadd.vx v28, v12, a1
-    vadd.vx v29, v13, a1
-    vadd.vx v30, v14, a1
-    vadd.vx v31, v15, a1
-    vadd.vx v0,  v16, a1
-    vsra.vi v17, v17, 23
-    vsra.vi v18, v18, 23
-    vsra.vi v19, v19, 23
-    vsra.vi v20, v20, 23
-    vsra.vi v21, v21, 23
-    vsra.vi v22, v22, 23
-    vsra.vi v23, v23, 23
+    vsra.vi v16, v16, 23
     vsra.vi v24, v24, 23
-    vsra.vi v25, v25, 23
-    vsra.vi v26, v26, 23
-    vsra.vi v27, v27, 23
-    vsra.vi v28, v28, 23
-    vsra.vi v29, v29, 23
-    vsra.vi v30, v30, 23
-    vsra.vi v31, v31, 23
-    vsra.vi v0,  v0,  23
-    vmul.vx v17, v17, a2
-    vmul.vx v18, v18, a2
-    vmul.vx v19, v19, a2
-    vmul.vx v20, v20, a2
-    vmul.vx v21, v21, a2
-    vmul.vx v22, v22, a2
-    vmul.vx v23, v23, a2
+    vmul.vx v16, v16, a2
     vmul.vx v24, v24, a2
-    vmul.vx v25, v25, a2
-    vmul.vx v26, v26, a2
-    vmul.vx v27, v27, a2
-    vmul.vx v28, v28, a2
-    vmul.vx v29, v29, a2
-    vmul.vx v30, v30, a2
-    vmul.vx v31, v31, a2
-    vmul.vx v0,  v0,  a2
-    vsub.vv v1,  v1,  v17
-    vsub.vv v2,  v2,  v18
-    vsub.vv v3,  v3,  v19
-    vsub.vv v4,  v4,  v20
-    vsub.vv v5,  v5,  v21
-    vsub.vv v6,  v6,  v22
-    vsub.vv v7,  v7,  v23
-    vsub.vv v8,  v8,  v24
-    vsub.vv v9,  v9,  v25
-    vsub.vv v10, v10, v26
-    vsub.vv v11, v11, v27
-    vsub.vv v12, v12, v28
-    vsub.vv v13, v13, v29
-    vsub.vv v14, v14, v30
-    vsub.vv v15, v15, v31
-    vsub.vv v16, v16, v0
-    vse32.v v1,  (a0);          addi a0, a0, 4*4
-    vse32.v v2,  (a0);          addi a0, a0, 4*4
-    vse32.v v3,  (a0);          addi a0, a0, 4*4
-    vse32.v v4,  (a0);          addi a0, a0, 4*4
-    vse32.v v5,  (a0);          addi a0, a0, 4*4
-    vse32.v v6,  (a0);          addi a0, a0, 4*4
-    vse32.v v7,  (a0);          addi a0, a0, 4*4
-    vse32.v v8,  (a0);          addi a0, a0, 4*4
-    vse32.v v9,  (a0);          addi a0, a0, 4*4
-    vse32.v v10, (a0);          addi a0, a0, 4*4
-    vse32.v v11, (a0);          addi a0, a0, 4*4
-    vse32.v v12, (a0);          addi a0, a0, 4*4
-    vse32.v v13, (a0);          addi a0, a0, 4*4
-    vse32.v v14, (a0);          addi a0, a0, 4*4
-    vse32.v v15, (a0);          addi a0, a0, 4*4
-    vse32.v v16, (a0);          addi a0, a0, 4*4
+    vsub.vv v0,  v0, v16
+    vsub.vv v8,  v8, v24
+    vse32.v v0,  (a4);          addi a4, a4, 4*4*8
+    vse32.v v8,  (a4);          addi a4, a4, 4*4*8
     addi a3, a3, -1
     bnez a3, poly_reduce_rvv_loop
 ret

@@ -83,13 +83,13 @@ poly_basemul_cache_init_rvv    cycles/insts/CPI=753/738/1.02
 poly_basemul_acc_cache_init_rvv cycles/insts/CPI=865/834/1.04
 poly_basemul_cached_rvv        cycles/insts/CPI=631/608/1.04
 poly_basemul_acc_cached_rvv    cycles/insts/CPI=743/704/1.06
-poly_reduce_rvv                cycles/insts/CPI=313/276/1.13
-poly_tomont_rvv                cycles/insts/CPI=290/277/1.05
+poly_reduce_rvv                cycles/insts/CPI=250/49/5.10
+poly_tomont_rvv                cycles/insts/CPI=249/50/4.98
 ntt2normal_order               cycles/insts/CPI=771/374/2.06
 normal2ntt_order               cycles/insts/CPI=755/366/2.06
 
 speed_singleissue_dilithium_mont_ntt_rv32:
-Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging
+Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging & RV32IM
 ntt                            cycles/insts/CPI=13223/8494/1.56
 poly_basemul_init              cycles/insts/CPI=1035/1706/0.61
 poly_basemul_acc               cycles/insts/CPI=1933/3242/0.60
@@ -104,7 +104,7 @@ basemul_cached                 cycles/insts/CPI=7721/7278/1.06
 intt                           cycles/insts/CPI=8169/6479/1.26
 
 speed_dualissue_dilithium_mont_ntt_rv32:
-Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging
+Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging & RV32IM
 ntt                            cycles/insts/CPI=7054/8692/0.81
 poly_basemul_init              cycles/insts/CPI=1035/1706/0.61
 poly_basemul_acc               cycles/insts/CPI=1933/3242/0.60
@@ -118,7 +118,7 @@ basemul_cache_init             cycles/insts/CPI=7371/8464/0.87
 basemul_cached                 cycles/insts/CPI=6442/7341/0.88
 intt                           cycles/insts/CPI=5448/6676/0.82
 
-speed_dualissue_dilithium_plant_ntt_rv64
+speed_dualissue_dilithium_plant_ntt_rv64:
 Dilithium 8-layer NTT & Plantard based & 4+4 layers merging & RV64IM
 ntt                            cycles/insts/CPI=8258/7765/1.06
 poly_basemul_init              cycles/insts/CPI=872/1193/0.73
@@ -132,9 +132,9 @@ speed_dualissue_dilithium_mont_ntt_rvv:
 Dilithium 8-layer NTT & Montgomery based & 3+3+2 layers merging & RV32IMV
 ntt_8l_rvv                     cycles/insts/CPI=3395/2899/1.17
 intt_8l_rvv                    cycles/insts/CPI=3540/3106/1.14
-poly_basemul_8l_rvv            cycles/insts/CPI=759/734/1.03
-poly_basemul_acc_8l_rvv        cycles/insts/CPI=811/117/6.93
+poly_basemul_8l_rvv            cycles/insts/CPI=668/118/5.66
+poly_basemul_acc_8l_rvv        cycles/insts/CPI=820/134/6.12
 ntt2normal_order_8l_rvv        cycles/insts/CPI=1103/557/1.98
 normal2ntt_order_8l_rvv        cycles/insts/CPI=1103/557/1.98
-poly_reduce_rvv                cycles/insts/CPI=623/531/1.17
+poly_reduce_rvv                cycles/insts/CPI=523/84/6.23
 poly_basemul_acc_double_8l_rvv cycles/insts/CPI=929/219/4.24

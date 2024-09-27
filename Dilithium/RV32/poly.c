@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(VECTOR128)
+#    include <riscv_vector.h>
+#endif
+
 #include "fips202.h"
 #include "ntt.h"
 #include "params.h"
@@ -275,6 +279,65 @@ unsigned int rej_uniform(int32_t *a, unsigned int len, const uint8_t *buf,
     return ctr;
 }
 
+#define GEN_MATRIX_NBLOCKS ((768 + SHAKE128_RATE - 1) / SHAKE128_RATE)
+#define REJ_UNIFORM_VECTOR_BUFLEN (GEN_MATRIX_NBLOCKS * SHAKE128_RATE)
+
+#if defined(VECTOR128)
+unsigned int rej_uniform_vector(int32_t *a, const uint8_t *buf)
+{
+    unsigned int ctr, pos;
+    unsigned long num0, num1;
+    size_t vl;
+    vuint8m1_t f0, f1, idx8;
+    vuint32m1_t g0, g1;
+    vbool32_t good0, good1;
+    uint32_t t;
+
+    const uint32_t mask_23bits = 0x7FFFFF;
+    const uint32_t bound = Q;
+    const uint8_t idx8_t[16] __attribute__((aligned(16))) = {
+        0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8, 8, 9, 10, 11, 11};
+
+    vl = vsetvl_e8m1(128 / 8);
+    idx8 = vle8_v_u8m1(idx8_t, vl);
+
+    ctr = pos = 0;
+    while (ctr <= N - 8 && pos <= REJ_UNIFORM_VECTOR_BUFLEN - 24) {
+        vl = vsetvl_e8m1(128 / 8);
+        f0 = vle8_v_u8m1(&buf[pos], vl);
+        f1 = vle8_v_u8m1(&buf[pos + 12], vl);
+        pos += 24;
+        f0 = vrgather_vv_u8m1(f0, idx8, vl);
+        f1 = vrgather_vv_u8m1(f1, idx8, vl);
+
+        vl = vsetvl_e32m1(128 / 32);
+        g0 = vreinterpret_v_u8m1_u32m1(f0);
+        g1 = vreinterpret_v_u8m1_u32m1(f1);
+        g0 = vand_vx_u32m1(g0, mask_23bits, vl);
+        g1 = vand_vx_u32m1(g1, mask_23bits, vl);
+        good0 = vmsltu_vx_u32m1_b32(g0, bound, vl);
+        good1 = vmsltu_vx_u32m1_b32(g1, bound, vl);
+        num0 = vcpop_m_b32(good0, vl);
+        num1 = vcpop_m_b32(good1, vl);
+        g0 = vcompress_vm_u32m1(good0, g0, g0, vl);
+        g1 = vcompress_vm_u32m1(good1, g1, g1, vl);
+        vse32_v_u32m1((uint32_t *)&a[ctr], g0, vl);
+        ctr += num0;
+        vse32_v_u32m1((uint32_t *)&a[ctr], g1, vl);
+        ctr += num1;
+    }
+    while (ctr < N && pos <= REJ_UNIFORM_VECTOR_BUFLEN - 3) {
+        t = buf[pos++];
+        t |= (uint32_t)buf[pos++] << 8;
+        t |= (uint32_t)buf[pos++] << 16;
+        t &= 0x7FFFFF;
+        if (t < Q)
+            a[ctr++] = t;
+    }
+    return ctr;
+}
+#endif
+
 /*************************************************
  * Name:        poly_uniform
  *
@@ -303,7 +366,11 @@ void poly_uniform(poly *a, const uint8_t seed[SEEDBYTES], uint16_t nonce)
     shake128_finalize(&state);
     shake128_squeezeblocks(buf, POLY_UNIFORM_NBLOCKS, &state);
 
+#if defined(VECTOR128)
+    ctr = rej_uniform_vector(a->coeffs, buf);
+#else
     ctr = rej_uniform(a->coeffs, N, buf, buflen);
+#endif
 
     while (ctr < N) {
         off = buflen % 3;
@@ -363,6 +430,117 @@ unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
     return ctr;
 }
 
+#if ETA == 2
+#    define POLY_UNIFORM_ETA_NBLOCKS \
+        ((136 + SHAKE256_RATE - 1) / SHAKE256_RATE)
+#elif ETA == 4
+#    define POLY_UNIFORM_ETA_NBLOCKS \
+        ((227 + SHAKE256_RATE - 1) / SHAKE256_RATE)
+#endif
+#define POLY_UNIFORM_ETA_BUFLEN (POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE)
+
+#if defined(VECTOR128)
+unsigned int rej_eta_vector(int32_t *a, const uint8_t *buf)
+{
+    unsigned int ctr, pos;
+    unsigned long num0, num1;
+    uint32_t t0, t1;
+    size_t vl;
+    vuint8m1_t f0, f1, ft0, idx8;
+    vuint32m4_t g0, g1;
+    vbool8_t mask_10, mask_01;
+    vbool8_t good0, good1;
+#    if ETA == 2
+    vuint32m4_t gt0, gt1;
+#    endif
+
+    const uint8_t idx8_t[16] __attribute__((aligned(16))) = {
+        0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
+    const uint8_t mask_10_t[16] = {1, 0, 1, 0, 1, 0, 1, 0,
+                                   1, 0, 1, 0, 1, 0, 1, 0};
+
+    vl = vsetvl_e8m1(128 / 8);
+    ft0 = vle8_v_u8m1(mask_10_t, vl);
+    mask_10 = vmseq_vx_u8m1_b8(ft0, 1, vl);
+    mask_01 = vmsne_vx_u8m1_b8(ft0, 1, vl);
+    idx8 = vle8_v_u8m1(idx8_t, vl);
+
+    ctr = pos = 0;
+    while (ctr <= N - 32 && pos <= POLY_UNIFORM_ETA_BUFLEN - 16) {
+        vl = vsetvl_e8m1(128 / 8);
+        f0 = vle8_v_u8m1(&buf[pos], vl);
+        f1 = vle8_v_u8m1(&buf[pos + 8], vl);
+        pos += vl;
+        f0 = vrgather_vv_u8m1(f0, idx8, vl);
+        f1 = vrgather_vv_u8m1(f1, idx8, vl);
+        f0 = vand_vx_u8m1_m(mask_10, f0, f0, 0x0F, vl);
+        f1 = vand_vx_u8m1_m(mask_10, f1, f1, 0x0F, vl);
+        f0 = vsrl_vx_u8m1_m(mask_01, f0, f0, 4, vl);
+        f1 = vsrl_vx_u8m1_m(mask_01, f1, f1, 4, vl);
+        g0 = vzext_vf4_u32m4(f0, vl);
+        g1 = vzext_vf4_u32m4(f1, vl);
+#    if ETA == 2
+        good0 = vmsltu_vx_u32m4_b8(g0, 15, vl);
+        good1 = vmsltu_vx_u32m4_b8(g1, 15, vl);
+        gt0 = vmul_vx_u32m4(g0, 205, vl);
+        gt1 = vmul_vx_u32m4(g1, 205, vl);
+        gt0 = vsrl_vx_u32m4(gt0, 10, vl);
+        gt1 = vsrl_vx_u32m4(gt1, 10, vl);
+        gt0 = vmul_vx_u32m4(gt0, 5, vl);
+        gt1 = vmul_vx_u32m4(gt1, 5, vl);
+        g0 = vsub_vv_u32m4(g0, gt0, vl);
+        g1 = vsub_vv_u32m4(g1, gt1, vl);
+        num0 = vcpop_m_b8(good0, vl);
+        num1 = vcpop_m_b8(good1, vl);
+        g0 = vrsub_vx_u32m4(g0, 2, vl);
+        g1 = vrsub_vx_u32m4(g1, 2, vl);
+        g0 = vcompress_vm_u32m4(good0, g0, g0, vl);
+        g1 = vcompress_vm_u32m4(good1, g1, g1, vl);
+        vse32_v_u32m4((uint32_t *)&a[ctr], g0, vl);
+        ctr += num0;
+        vse32_v_u32m4((uint32_t *)&a[ctr], g1, vl);
+        ctr += num1;
+#    elif ETA == 4
+        good0 = vmsltu_vx_u32m4_b8(g0, 9, vl);
+        good1 = vmsltu_vx_u32m4_b8(g1, 9, vl);
+        g0 = vrsub_vx_u32m4(g0, 4, vl);
+        g1 = vrsub_vx_u32m4(g1, 4, vl);
+        num0 = vcpop_m_b8(good0, vl);
+        num1 = vcpop_m_b8(good1, vl);
+        g0 = vcompress_vm_u32m4(good0, g0, g0, vl);
+        g1 = vcompress_vm_u32m4(good1, g1, g1, vl);
+        vse32_v_u32m4((uint32_t *)&a[ctr], g0, vl);
+        ctr += num0;
+        vse32_v_u32m4((uint32_t *)&a[ctr], g1, vl);
+        ctr += num1;
+#    endif
+    }
+
+    while (ctr < N && pos < POLY_UNIFORM_ETA_BUFLEN) {
+        t0 = buf[pos] & 0x0F;
+        t1 = buf[pos++] >> 4;
+
+#    if ETA == 2
+        if (t0 < 15) {
+            t0 = t0 - (205 * t0 >> 10) * 5;
+            a[ctr++] = 2 - t0;
+        }
+        if (t1 < 15 && ctr < N) {
+            t1 = t1 - (205 * t1 >> 10) * 5;
+            a[ctr++] = 2 - t1;
+        }
+#    elif ETA == 4
+        if (t0 < 9)
+            a[ctr++] = 4 - t0;
+        if (t1 < 9 && ctr < N)
+            a[ctr++] = 4 - t1;
+#    endif
+    }
+
+    return ctr;
+}
+#endif
+
 /*************************************************
  * Name:        poly_uniform_eta
  *
@@ -375,19 +553,11 @@ unsigned int rej_eta(int32_t *a, unsigned int len, const uint8_t *buf,
  *CRHBYTES
  *              - uint16_t nonce: 2-byte nonce
  **************************************************/
-#if ETA == 2
-#    define POLY_UNIFORM_ETA_NBLOCKS \
-        ((136 + SHAKE256_RATE - 1) / SHAKE256_RATE)
-#elif ETA == 4
-#    define POLY_UNIFORM_ETA_NBLOCKS \
-        ((227 + SHAKE256_RATE - 1) / SHAKE256_RATE)
-#endif
 void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES],
                       uint16_t nonce)
 {
     unsigned int ctr;
-    unsigned int buflen = POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE;
-    uint8_t buf[POLY_UNIFORM_ETA_NBLOCKS * SHAKE256_RATE];
+    uint8_t buf[POLY_UNIFORM_ETA_BUFLEN];
     keccak_state state;
 
     memcpy(buf, seed, CRHBYTES);
@@ -396,7 +566,11 @@ void poly_uniform_eta(poly *a, const uint8_t seed[CRHBYTES],
     shake256_absorb_once(&state, buf, CRHBYTES + 2);
     shake256_squeezeblocks(buf, POLY_UNIFORM_ETA_NBLOCKS, &state);
 
-    ctr = rej_eta(a->coeffs, N, buf, buflen);
+#if defined(VECTOR128)
+    ctr = rej_eta_vector(a->coeffs, buf);
+#else
+    ctr = rej_eta(a->coeffs, N, buf, POLY_UNIFORM_ETA_BUFLEN);
+#endif
 
     while (ctr < N) {
         shake256_squeezeblocks(buf, 1, &state);

@@ -186,24 +186,20 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
     unsigned long num0, num1;
     size_t vl;
     vuint8m1_t f0, f1, idx8;
-    vuint16m1_t g0, g1, t0, mask_12bits, bound;
+    vuint16m1_t g0, g1, t0;
     vbool16_t mask_01, good0, good1;
 
+    const uint16_t mask_12bits = 0xFFF;
+    const uint16_t bound = KYBER_Q;
     const uint8_t idx8_t[16] __attribute__((aligned(16))) = {
         0, 1, 1, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11};
     const uint16_t mask_01_t[8] = {0, 1, 0, 1, 0, 1, 0, 1};
-    const uint16_t mask_12bits_t[8] = {0xFFF, 0xFFF, 0xFFF, 0xFFF,
-                                       0xFFF, 0xFFF, 0xFFF, 0xFFF};
-    const uint16_t bound_t[8] = {KYBER_Q, KYBER_Q, KYBER_Q, KYBER_Q,
-                                 KYBER_Q, KYBER_Q, KYBER_Q, KYBER_Q};
 
     // init useful vector variables
     vl = vsetvl_e8m1(128 / 8);
     idx8 = vle8_v_u8m1(idx8_t, vl);
     vl = vsetvl_e16m1(128 / 16);
     t0 = vle16_v_u16m1(mask_01_t, vl);
-    mask_12bits = vle16_v_u16m1(mask_12bits_t, vl);
-    bound = vle16_v_u16m1(bound_t, vl);
     mask_01 = vmseq_vx_u16m1_b16(t0, 1, vl);
 
     ctr = pos = 0;
@@ -221,11 +217,11 @@ static unsigned int rej_uniform_vector(int16_t *r, const uint8_t *buf)
         g0 = vsrl_vx_u16m1_m(mask_01, g0, g0, 4, vl);
         g1 = vsrl_vx_u16m1_m(mask_01, g1, g1, 4, vl);
 
-        g0 = vand_vv_u16m1(g0, mask_12bits, vl);
-        g1 = vand_vv_u16m1(g1, mask_12bits, vl);
+        g0 = vand_vx_u16m1(g0, mask_12bits, vl);
+        g1 = vand_vx_u16m1(g1, mask_12bits, vl);
 
-        good0 = vmsltu_vv_u16m1_b16(g0, bound, vl);
-        good1 = vmsltu_vv_u16m1_b16(g1, bound, vl);
+        good0 = vmsltu_vx_u16m1_b16(g0, bound, vl);
+        good1 = vmsltu_vx_u16m1_b16(g1, bound, vl);
         num0 = vcpop_m_b16(good0, vl);
         num1 = vcpop_m_b16(good1, vl);
 

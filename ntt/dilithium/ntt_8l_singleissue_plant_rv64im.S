@@ -77,7 +77,7 @@
 .macro plant_mul_const_inplace q32, bqinv, a
   mul  \a, \a, \bqinv
   srai \a, \a, 32
-  addi \a, \a, 8
+  addi \a, \a, 256
   mulh \a, \a, \q32
 .endm
 
@@ -86,7 +86,7 @@
 .macro plant_mul_const q32, bqinv, a, r
     mul  \r, \a, \bqinv
     srai \r, \r, 32
-    addi \r, \r, 8
+    addi \r, \r, 256
     mulh \r, \r, \q32
 .endm
 
@@ -108,7 +108,7 @@
 .macro plant_red q32, qinv, a
   mul  \a, \a, \qinv
   srai \a, \a, 32
-  addi \a, \a, 8
+  addi \a, \a, 256
   mulh \a, \a, \q32
 .endm
 
@@ -121,10 +121,10 @@
   srai \a_1, \a_1, 32
   srai \a_2, \a_2, 32
   srai \a_3, \a_3, 32
-  addi \a_0, \a_0, 8
-  addi \a_1, \a_1, 8
-  addi \a_2, \a_2, 8
-  addi \a_3, \a_3, 8
+  addi \a_0, \a_0, 256
+  addi \a_1, \a_1, 256
+  addi \a_2, \a_2, 256
+  addi \a_3, \a_3, 256
   mulh \a_0, \a_0, \q32
   mulh \a_1, \a_1, \q32
   mulh \a_2, \a_2, \q32

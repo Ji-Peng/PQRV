@@ -1,4 +1,4 @@
-# PQRV64
+# PQRV
 
 ## Preliminaries
 
@@ -11,8 +11,8 @@
 
 ## Development board
 
-We use the CanMV-K230 development board based on the [Kendryte K230 SoC]([^1^](https://www.canaan.io/product/k230)). This SoC adopts a big.LITTLE heterogeneous design, and we only use the big core in this work. The big core is based on the [XuanTie C908 processor](https://www.xrvm.com/product/xuantie/C908) from [T-Head Semiconductor](https://www.t-head.cn/?lang=en), with the following information:
-- Instruction set: RV64GCBV, vector extension version is 1.0
+We use the CanMV-K230 development board based on the Kendryte K230 SoC. This SoC adopts a big.LITTLE heterogeneous design, and we only use the big core in this work. The big core is based on the [XuanTie C908 processor](https://www.xrvm.com/product/xuantie/C908) from [T-Head Semiconductor](https://www.t-head.cn/?lang=en), with the following information:
+- Instruction set: RV{32,64}GCBV, vector extension version is 1.0
 - Frequency: 1.6GHz
 - Cache: 32KB L1 instruction/data cache, 256KB L2 cache
 - Microarchitecture: Dual-core, 9-stage in-order pipeline
