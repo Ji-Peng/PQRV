@@ -1,5 +1,24 @@
 # PQRV
 
+This is the artifact of the paper [Optimized Software Implementation of Keccak, Kyber, and Dilithium on RV{32,64}IM{B}{V}](https://ji-peng.github.io/uploads/tches2025/paper.pdf). You can cite this work like this:
+
+```
+@article{ZhangYHK24,
+  author  = {Jipeng Zhang and
+             Yuxing Yan and
+             Junhao Huang and
+             {\c{C}}etin Kaya Ko{\c{c}}},
+  title   = {{Optimized Software Implementation of Keccak, Kyber, and Dilithium
+             on RV\{32,64\}IM\{B\}\{V\}}},
+  journal = {{IACR} Trans. Cryptogr. Hardw. Embed. Syst.},
+  volume  = {2025},
+  number  = {1},
+  pages   = {to appear},
+  year    = {2025},
+  url     = {https://eprint.iacr.org/2024/1515}
+}
+```
+
 ## Preliminaries
 
 - **Development Board:** CanMV-K230 development board, which includes a C908 core.
