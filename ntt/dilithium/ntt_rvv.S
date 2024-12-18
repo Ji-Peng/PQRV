@@ -605,8 +605,7 @@
 # Do not use the vlse instruction to implement NTT, as its latency is higher than that of the vle instruction.
 # This is a version using vector-grouping. The performance is slightly slower than normal version
 # .macro ntt_8l_level0to3_rvv off
-#     li a7, 128
-#     vsetvli a7, a7, e32, m1, tu, mu
+#     vsetivli t2, 4, e32, m1, tu, mu
 #     lw   t2, (_ZETA_EXP_0TO3_L0+0)*4(a1)
 #     lw   t1, (_ZETA_EXP_0TO3_L0+1)*4(a1)
 #     addi a0, a0, (4*\off)*4
@@ -627,16 +626,15 @@
 #     vle32.v v30, (a0);          addi a0, a0, 16*4
 #     vle32.v v31, (a0);          addi a0, a0, -(16*15)*4
 #     # level0
-#     li a7, 128
-#     vsetvli a7, a7, e32, m8, tu, mu
+#     li t1, 32
+#     vsetvli t2, t1, e32, m8, tu, mu
 #     ct_bfu v16, v24, t1, t2, t0, v0, v8
 #     # level1
 #     lw   t2, (_ZETA_EXP_0TO3_L1+0)*4(a1)
 #     lw   t1, (_ZETA_EXP_0TO3_L1+1)*4(a1)
 #     lw   t4, (_ZETA_EXP_0TO3_L1+2)*4(a1)
 #     lw   t3, (_ZETA_EXP_0TO3_L1+3)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m4, tu, mu
+#     vsetivli t2, 16, e32, m4, tu, mu
 #     ct_bfu_x2 \
 #         v16,v20,v24,v28, \
 #         t1, t2, t3, t4, \
@@ -650,8 +648,7 @@
 #     lw   t5, (_ZETA_EXP_0TO3_L2+5)*4(a1)
 #     lw   a6, (_ZETA_EXP_0TO3_L2+6)*4(a1)
 #     lw   a5, (_ZETA_EXP_0TO3_L2+7)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m2, tu, mu
+#     vsetivli t2, 8, e32, m2, tu, mu
 #     ct_bfu_x4 \
 #         v16,v18,v20,v22,v24,v26,v28,v30,\
 #         t1, t2, t3, t4, t5, t6, a5, a6, \
@@ -665,8 +662,7 @@
 #     lw   t5, (_ZETA_EXP_0TO3_L3+5)*4(a1)
 #     lw   a6, (_ZETA_EXP_0TO3_L3+6)*4(a1)
 #     lw   a5, (_ZETA_EXP_0TO3_L3+7)*4(a1)
-#     li a7, 128
-#     vsetvli a7, a7, e32, m1, tu, mu
+#     vsetivli t2, 4, e32, m1, tu, mu
 #     ct_bfu_x4 \
 #         v16,v17,v18,v19,v20,v21,v22,v23,\
 #         t1, t2, t3, t4, t5, t6, a5, a6, \
@@ -1284,15 +1280,12 @@
 .globl ntt_8l_rvv
 .align 2
 ntt_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     ntt_8l_level0to3_rvv 0
     ntt_8l_level0to3_rvv 1
     ntt_8l_level0to3_rvv 2
     ntt_8l_level0to3_rvv 3
-    # li t1, 128
-    # vsetvli t2, t1, e32, m1, tu, mu
     ntt_8l_level4to7_rvv 0, \
         _ZETA_EXP_4TO7_P0_L4, _ZETA_EXP_4TO7_P0_L5, \
         _ZETA_EXP_4TO7_P0_L6, _ZETA_EXP_4TO7_P0_L7
@@ -1310,8 +1303,7 @@ ret
 .globl intt_8l_rvv
 .align 2
 intt_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     intt_8l_level0to3_rvv 0, \
         _ZETA_EXP_INTT_0TO3_P0_L0, _ZETA_EXP_INTT_0TO3_P0_L1, \
@@ -1334,8 +1326,8 @@ ret
 .globl poly_basemul_8l_rvv
 .align 2
 poly_basemul_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m8, tu, mu
+    li t2, 32
+    vsetvli t2, t2, e32, m8, tu, mu
     li t0, q
     li t1, qinv
     li t2, 8
@@ -1351,8 +1343,8 @@ ret
 .globl poly_basemul_acc_8l_rvv
 .align 2
 poly_basemul_acc_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m8, tu, mu
+    li t2, 32
+    vsetvli t2, t2, e32, m8, tu, mu
     li t0, q
     li t1, qinv
     li t2, 8
@@ -1370,8 +1362,7 @@ ret
 .globl ntt2normal_order_8l_rvv
 .align 2
 ntt2normal_order_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     # for vgather
     li   t4, _MASK_0101*4
     add  t4, t4, a1
@@ -1448,8 +1439,7 @@ ret
 .globl normal2ntt_order_8l_rvv
 .align 2
 normal2ntt_order_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     # for vgather
     li   t4, _MASK_0101*4
     add  t4, t4, a1
@@ -1526,8 +1516,8 @@ ret
 .globl poly_reduce_rvv
 .align 2
 poly_reduce_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m8, tu, mu
+    li t2, 32
+    vsetvli t2, t2, e32, m8, tu, mu
     li a1, 4194304  # 1<<22
     li a2, q
     li a3, 4

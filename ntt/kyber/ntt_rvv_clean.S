@@ -980,8 +980,7 @@
 .globl ntt_rvv
 .align 2
 ntt_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329
     ntt_rvv_level0
     ntt_rvv_level1to6 0

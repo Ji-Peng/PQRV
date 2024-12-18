@@ -1801,8 +1801,7 @@ KeccakF1600_StatePermute_RV64V_14x:
     SaveRegs
     sd a0, 15*8(sp)
     # set VPU
-    li a1, 128
-    vsetvli a1, a1, e64, m1, tu, mu
+    vsetivli a1, 2, e64, m1, tu, mu
 
     li s11, 0
 outer_loop:

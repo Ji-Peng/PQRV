@@ -708,11 +708,7 @@ KeccakF1600_StatePermute_RV64V_5x:
     sd a0, 15*8(sp)
     # set VPU
     li a1, 128
-#ifdef V0p7
-    vsetvli a2, a1, e64
-#else
-    vsetvli a2, a1, e64, m1, tu, mu
-#endif
+vsetivli a2, 2, e64, m1, tu, mu
     
     li s11, 0
 outer_loop:

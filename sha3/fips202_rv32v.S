@@ -378,8 +378,7 @@ constants_keccak:
 .globl KeccakF1600_StatePermute_RV32V_2x
 .align 2
 KeccakF1600_StatePermute_RV32V_2x:
-    li a1, 128
-    vsetvli a2, a1, e64, m1, tu, mu
+    vsetivli a2, 2, e64, m1, tu, mu
 
     LoadStates
 

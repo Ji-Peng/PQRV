@@ -423,11 +423,7 @@ constants_keccak:
 KeccakF1600_StatePermute_RV64V_2x:
 
     li a1, 128
-#ifdef V0p7
-    vsetvli a2, a1, e64
-#else
-    vsetvli a2, a1, e64, m1, tu, mu
-#endif
+vsetivli a2, 2, e64, m1, tu, mu
 
     # LoadStates
     # lane complement: 1,2,8,12,17,20

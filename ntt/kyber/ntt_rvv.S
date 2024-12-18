@@ -753,12 +753,11 @@
 .globl ntt_rvv
 .align 2
 ntt_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m4, tu, mu
+    li t2, 32
+    vsetvli t2, t2, e16, m4, tu, mu
     li t0, 3329
     ntt_rvv_level0
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     // load some masks used by shuffle4/2/1
     addi t4, a1, _MASK_45674567*2
     vle16.v v31, (t4)
@@ -778,8 +777,7 @@ ret
 .globl poly_basemul_rvv
 .align 2
 poly_basemul_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
@@ -864,8 +862,7 @@ ret
 .globl poly_basemul_acc_rvv
 .align 2
 poly_basemul_acc_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
@@ -952,26 +949,6 @@ poly_basemul_acc_rvv_loop:
     bnez t5, poly_basemul_acc_rvv_loop
 ret
 
-// void poly_basemul_acc_double_rvv(int32_t *r, const int16_t *a, const int16_t *b, const int16_t *table);
-# .globl poly_basemul_acc_double_rvv
-# .align 2
-# poly_basemul_acc_double_rvv:
-#     li t0, 3329     // q
-#     li t1, -3327    // qinv
-#     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
-#     addi t4, a3, _ZETAS_BASEMUL*2       // for loading zeta
-#     li   t5, 8
-# poly_basemul_acc_double_rvv_loop:
-#     li t1, 128
-#     vsetvli t2, t1, e32, m1, tu, mu
-#     vle32.v v0, (a0);       addi a0, a0, 4*4
-#     vle32.v v1, (a0);       addi a0, a0, 4*4
-#     vle32.v v2, (a0);       addi a0, a0, 4*4
-#     vle32.v v3, (a0);       addi a0, a0, 4*4
-
-#     addi t5, t5, -1
-#     bnez t5, poly_basemul_acc_double_rvv_loop
-
 // void poly_basemul_cache_init_rvv(int16_t *r, const int16_t *a, const int16_t *b, const int16_t *table, int16_t *b_cache);
 // basemul and store b1zeta, b3zeta, ... into b_cache
 // (a0b0 + a1 * (b1zeta mod q)) mod q + ((a0b1 + a1b0) mod q)x
@@ -979,8 +956,7 @@ ret
 .globl poly_basemul_cache_init_rvv
 .align 2
 poly_basemul_cache_init_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
@@ -1068,8 +1044,7 @@ ret
 .globl poly_basemul_acc_cache_init_rvv
 .align 2
 poly_basemul_acc_cache_init_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     addi t3, a3, _ZETAS_QINV_BASEMUL*2  // for loading zetaqinv
@@ -1165,8 +1140,7 @@ ret
 .globl poly_basemul_cached_rvv
 .align 2
 poly_basemul_cached_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     li t5, 8
@@ -1240,8 +1214,7 @@ ret
 .globl poly_basemul_acc_cached_rvv
 .align 2
 poly_basemul_acc_cached_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329     // q
     li t1, -3327    // qinv
     li t5, 8
@@ -1925,8 +1898,7 @@ ret
 .globl intt_rvv
 .align 2
 intt_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     li t0, 3329
     li a6, 20159
     // load some masks used by shuffle4/2/1
@@ -1958,8 +1930,7 @@ ret
 .globl ntt2normal_order
 .align 2
 ntt2normal_order:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     // for vrgather
     addi t4, a2, _MASK_45674567*2
     vle16.v v31, (t4)
@@ -2026,8 +1997,7 @@ ret
 .globl normal2ntt_order
 .align 2
 normal2ntt_order:
-    li t1, 128
-    vsetvli t2, t1, e16, m1, tu, mu
+    vsetivli t2, 8, e16, m1, tu, mu
     // for vrgather
     addi t4, a2, _MASK_45674567*2
     vle16.v v31, (t4)
@@ -2086,8 +2056,8 @@ ret
 .globl poly_reduce_rvv
 .align 2
 poly_reduce_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m8, tu, mu
+    li t2, 64
+    vsetvli t2, t2, e16, m8, tu, mu
     li t0, 3329
     li a6, 20159    # for barrett reduction
     li a2, 2
@@ -2106,8 +2076,8 @@ ret
 .globl poly_tomont_rvv
 .align 2
 poly_tomont_rvv:
-    li t1, 128
-    vsetvli t2, t1, e16, m8, tu, mu
+    li t2, 64
+    vsetvli t2, t2, e16, m8, tu, mu
     li t0, 3329
     li t1, 1353     # mont^2
     li t2, 20553    # qinv*mont^2

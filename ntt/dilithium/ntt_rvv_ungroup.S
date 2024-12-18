@@ -1183,8 +1183,7 @@
 .globl ntt_8l_rvv
 .align 2
 ntt_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     ntt_8l_level0to3_rvv 0
     ntt_8l_level0to3_rvv 1
@@ -1207,8 +1206,7 @@ ret
 .globl intt_8l_rvv
 .align 2
 intt_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     intt_8l_level0to3_rvv 0, \
         _ZETA_EXP_INTT_0TO3_P0_L0, _ZETA_EXP_INTT_0TO3_P0_L1, \
@@ -1231,8 +1229,7 @@ ret
 .globl poly_basemul_8l_rvv
 .align 2
 poly_basemul_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     li t1, qinv
     li t2, 8
@@ -1274,8 +1271,7 @@ ret
 .globl poly_basemul_acc_8l_rvv
 .align 2
 poly_basemul_acc_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li t0, q
     li t1, qinv
     li t2, 8
@@ -1333,8 +1329,7 @@ ret
 .globl ntt2normal_order_8l_rvv
 .align 2
 ntt2normal_order_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     # for vgather
     li   t4, _MASK_0101*4
     add  t4, t4, a1
@@ -1411,8 +1406,7 @@ ret
 .globl normal2ntt_order_8l_rvv
 .align 2
 normal2ntt_order_8l_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     # for vgather
     li   t4, _MASK_0101*4
     add  t4, t4, a1
@@ -1489,8 +1483,7 @@ ret
 .globl poly_reduce_rvv
 .align 2
 poly_reduce_rvv:
-    li t1, 128
-    vsetvli t2, t1, e32, m1, tu, mu
+    vsetivli t2, 4, e32, m1, tu, mu
     li a1, 4194304  # 1<<22
     li a2, q
     li a3, 4

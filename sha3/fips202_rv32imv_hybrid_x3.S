@@ -976,11 +976,7 @@ KeccakF1600_StatePermute_RV32V_3x:
     SaveRegs
 
     li a1, 128
-#ifdef V0p7
-    vsetvli a2, a1, e64
-#else
-    vsetvli a2, a1, e64, m1, tu, mu
-#endif
+vsetivli a2, 2, e64, m1, tu, mu
 
     la tp, constants_keccak
     sw tp, 17*4(sp)

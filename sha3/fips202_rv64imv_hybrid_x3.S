@@ -551,11 +551,7 @@ KeccakF1600_StatePermute_RV64V_3x:
     sd a1, 17*8(sp)
 
     li a1, 128
-#ifdef V0p7
-    vsetvli a2, a1, e64
-#else
-    vsetvli a2, a1, e64, m1, tu, mu
-#endif
+vsetivli a2, 2, e64, m1, tu, mu
 
     LoadStates \
         a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, \

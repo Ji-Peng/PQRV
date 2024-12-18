@@ -3,14 +3,13 @@
 .globl init_vector_e32_m1
 .align 2
 init_vector_e32_m1:
-    li t1, 128
-    vsetvli a0, t1, e32, m1, tu, mu
+    vsetivli a0, 4, e32, m1, tu, mu
 ret
 
 .globl init_vector_e32_m8
 .align 2
 init_vector_e32_m8:
-    li t1, 128
+    li t1, 32
     vsetvli a0, t1, e32, m8, tu, mu
 ret
 
