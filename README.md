@@ -13,9 +13,10 @@ This is the artifact of the paper [Optimized Software Implementation of Keccak, 
   journal = {{IACR} Trans. Cryptogr. Hardw. Embed. Syst.},
   volume  = {2025},
   number  = {1},
-  pages   = {to appear},
-  year    = {2025},
-  url     = {https://eprint.iacr.org/2024/1515}
+  pages   = {632-655},
+  year    = {2024},
+  month   = {Dec.}
+  url     = {https://tches.iacr.org/index.php/TCHES/article/view/11941}
 }
 ```
 
