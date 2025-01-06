@@ -127,13 +127,13 @@ int main()
     }
     print_results("polyvec_basemul_acc: ", t, NTESTS);
 
-#if defined(VECTOR128) || defined(RV32)
+#if !defined(REF_IMPL) && (defined(VECTOR128) || defined(RV32))
     polyvec_half skpv_cache;
 #endif
     // matrix-vector mul
     for (int j = 0; j < NTESTS; j++) {
         t[j] = cpucycles();
-#if defined(VECTOR128) || defined(RV32)
+#if !defined(REF_IMPL) && (defined(VECTOR128) || defined(RV32))
         polyvec_basemul_acc_cache_init(&pkpv.vec[0], &a[0], &skpv,
                                        &skpv_cache);
         for (i = 1; i < KYBER_K; i++) {
@@ -148,7 +148,7 @@ int main()
     }
     print_results("matrix-vector mul: ", t, NTESTS);
 
-#if defined(VECTOR128) || defined(RV32)
+#if !defined(REF_IMPL) && (defined(VECTOR128) || defined(RV32))
     for (i = 0; i < NTESTS; i++) {
         t[i] = cpucycles();
         polyvec_basemul_acc_cached(&ap, &pkpv, &skpv, &skpv_cache);
