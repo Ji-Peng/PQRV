@@ -1,1 +1,1 @@
-Derived from https://github.com/UIC-ESLAS/Kyber_RV_M3, with minor adjustments to suit our development environment.
+Derived from https://github.com/UIC-ESLAS/Kyber_RV_M3, with minor adjustments to suit our development environment. The Kyber_RV_M3 project is licensed under Apache-2.0.

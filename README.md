@@ -20,6 +20,12 @@ This is the artifact of the paper [Optimized Software Implementation of Keccak, 
 }
 ```
 
+This branch is solely dedicated to reproducing the results presented in our paper. For the most recent updates, please refer to the `main` branch.
+
+This project reused some open-source projects:
+- public-domain code from the following repositories: https://github.com/pq-crystals/kyber and https://github.com/pq-crystals/dilithium
+- https://github.com/UIC-ESLAS/Kyber_RV_M3 licensed under Apache-2.0.
+
 ## Preliminaries
 
 - **Development Board:** CanMV-K230 development board, which includes a C908 core.

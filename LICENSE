@@ -1,6 +1,7 @@
 The MIT license, the text of which is below, applies to PQRV in general.
-We have reused public-domain code from the following repositories: 
-https://github.com/pq-crystals/kyber and https://github.com/pq-crystals/dilithium.
+This project reused some open-source projects:
+(1) public-domain code from the following repositories: https://github.com/pq-crystals/kyber and https://github.com/pq-crystals/dilithium
+(2) https://github.com/UIC-ESLAS/Kyber_RV_M3 licensed under Apache-2.0.
 
 Copyright (c) 2024 Jipeng Zhang (jp-zhang@outlook.com)
 SPDX-License-Identifier: MIT
